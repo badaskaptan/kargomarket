@@ -14,15 +14,18 @@ import {
   Phone,
   Mail,
   Building,
-  AlertTriangle
+  AlertTriangle,
+  PlusCircle
 } from 'lucide-react';
 
 const MyOffersSection: React.FC = () => {
+  // --- STATE TANIMLARI ---
   const [activeTab, setActiveTab] = useState('incoming');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const [showSelfOfferWarning, setShowSelfOfferWarning] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -32,10 +35,18 @@ const MyOffersSection: React.FC = () => {
     destination: '',
     description: ''
   });
+  const [newOfferForm, setNewOfferForm] = useState({
+    listingId: '',
+    price: '',
+    description: '',
+    transportResponsible: '',
+    origin: '',
+    destination: '',
+    files: [] as File[]
+  });
 
-  // Simulated current user ID - gerçek uygulamada authentication context'ten gelecek
-  const currentUserId = 'user_123'; // Bu değer gerçek uygulamada auth context'ten gelecek
-
+  // --- SABİT VERİLER ---
+  const currentUserId = 'user_123'; // Simulated user id
   const incomingOffers = [
     {
       id: 1,
@@ -196,7 +207,6 @@ const MyOffersSection: React.FC = () => {
     }
   ];
 
-  // Kullanıcının verdiği teklifler
   const outgoingOffers = [
     {
       id: 5,
@@ -280,10 +290,15 @@ const MyOffersSection: React.FC = () => {
     }
   ];
 
-  // Aktif sekmeye göre teklifleri getir
-  const getActiveOffers = () => {
-    return activeTab === 'incoming' ? incomingOffers : outgoingOffers;
-  };
+  // listings dizisini fonksiyonun başında tanımla
+  const listings = [
+    { id: 'ILN2506230001', title: 'İstanbul-Ankara Tekstil Yükü' },
+    { id: 'ILN2506230002', title: 'Bursa Tekstil Ürünleri Satışı' },
+    { id: 'ILN2506230003', title: 'İzmir-Ankara Frigorifik Taşıma' }
+  ];
+
+  // --- YARDIMCI FONKSİYONLAR ---
+  const getActiveOffers = () => (activeTab === 'incoming' ? incomingOffers : outgoingOffers);
 
   const getStatusBadge = (status: string, label: string) => {
     const statusClasses = {
@@ -291,11 +306,8 @@ const MyOffersSection: React.FC = () => {
       accepted: 'bg-green-100 text-green-800',
       rejected: 'bg-red-100 text-red-800'
     };
-    
     return (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses]}`}>
-        {label}
-      </span>
+      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses]}`}>{label}</span>
     );
   };
 
@@ -305,32 +317,27 @@ const MyOffersSection: React.FC = () => {
       'Nakliye Talebi': 'bg-orange-100 text-orange-800',
       'Nakliye İlanı': 'bg-purple-100 text-purple-800'
     };
-    
     const typeIcons = {
       'Yük İlanı': '📦',
       'Nakliye Talebi': '🚚',
       'Nakliye İlanı': '🚛'
     };
-    
     return (
       <div className="flex flex-col items-start">
         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${typeClasses[type as keyof typeof typeClasses]} mb-1`}>
           {typeIcons[type as keyof typeof typeIcons]} {type}
         </span>
-        <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-          {id}
-        </span>
+        <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">{id}</span>
       </div>
     );
   };
 
+  // --- ACTION FONKSİYONLARI ---
   const handleEdit = (offer: any) => {
-    // Güvenlik kontrolü: Kullanıcı kendi ilanına teklif veremez
     if (activeTab === 'outgoing' && offer.listingOwnerId === currentUserId) {
       setShowSelfOfferWarning(true);
       return;
     }
-
     setSelectedOffer(offer);
     setEditFormData({
       price: offer.amount.replace('₺', '').replace('.', ''),
@@ -348,53 +355,52 @@ const MyOffersSection: React.FC = () => {
   };
 
   const handleSaveEdit = () => {
-    // Burada API çağrısı yapılacak
-    console.log('Teklif düzenleme kaydediliyor:', editFormData);
+    // API çağrısı yapılacak
     setEditModalOpen(false);
     setSelectedOffer(null);
   };
 
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setEditFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setEditFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const getActionButtons = (status: string, offer: any) => {
-    // Kullanıcının kendi ilanına teklif vermesi durumunda uyarı göster
-    const isSelfOffer = activeTab === 'outgoing' && offer.listingOwnerId === currentUserId;
+  const handleAccept = (offer: any) => {
+    alert(`Teklif kabul edildi: ${offer.listingId}`);
+  };
+  const handleReject = (offer: any) => {
+    alert(`Teklif reddedildi: ${offer.listingId}`);
+  };
+  const handleChat = (offer: any) => {
+    alert(`Mesajlaşma başlatıldı: ${offer.listingId}`);
+  };
 
+  // Dosya yükleme değişikliği
+  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
+    }
+  };
+
+  // --- BUTONLAR ---
+  const getActionButtons = (status: string, offer: any) => {
+    const isSelfOffer = activeTab === 'outgoing' && offer.listingOwnerId === currentUserId;
     if (isSelfOffer) {
       return (
         <div className="flex space-x-2">
-          <button 
-            onClick={() => setShowSelfOfferWarning(true)}
-            className="text-red-600 hover:text-red-900 transition-colors" 
-            title="Uyarı"
-          >
+          <button onClick={() => setShowSelfOfferWarning(true)} className="text-red-600 hover:text-red-900 transition-colors" title="Uyarı">
             <AlertTriangle size={18} />
           </button>
-          <button 
-            onClick={() => handlePreview(offer)}
-            className="text-blue-600 hover:text-blue-900 transition-colors" 
-            title="Ön İzleme"
-          >
+          <button onClick={() => handlePreview(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Ön İzleme">
             <Eye size={18} />
           </button>
         </div>
       );
     }
-
     if (status === 'accepted') {
       return (
         <div className="flex space-x-2">
-          <button 
-            onClick={() => handlePreview(offer)}
-            className="text-blue-600 hover:text-blue-900 transition-colors" 
-            title="Ön İzleme"
-          >
+          <button onClick={() => handlePreview(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Ön İzleme">
             <Eye size={18} />
           </button>
           <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
@@ -403,60 +409,39 @@ const MyOffersSection: React.FC = () => {
         </div>
       );
     }
-
     if (status === 'rejected') {
       return (
         <div className="flex space-x-2">
-          <button 
-            onClick={() => handlePreview(offer)}
-            className="text-blue-600 hover:text-blue-900 transition-colors" 
-            title="Ön İzleme"
-          >
+          <button onClick={() => handlePreview(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Ön İzleme">
             <Eye size={18} />
           </button>
         </div>
       );
     }
-
-    // Gelen teklifler için
     if (activeTab === 'incoming') {
       return (
         <div className="flex space-x-2">
-          <button 
-            onClick={() => handlePreview(offer)}
-            className="text-purple-600 hover:text-purple-900 transition-colors" 
-            title="Ön İzleme"
-          >
+          <button onClick={() => handlePreview(offer)} className="text-purple-600 hover:text-purple-900 transition-colors" title="Ön İzleme">
             <Eye size={18} />
           </button>
-          <button className="text-green-600 hover:text-green-900 transition-colors" title="Kabul Et">
+          <button className="text-green-600 hover:text-green-900 transition-colors" title="Kabul Et" onClick={() => handleAccept(offer)}>
             <Check size={18} />
           </button>
-          <button className="text-red-600 hover:text-red-900 transition-colors" title="Reddet">
+          <button className="text-red-600 hover:text-red-900 transition-colors" title="Reddet" onClick={() => handleReject(offer)}>
             <X size={18} />
           </button>
-          <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
+          <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder" onClick={() => handleChat(offer)}>
             <MessageCircle size={18} />
           </button>
         </div>
       );
     }
-
-    // Verilen teklifler için
     return (
       <div className="flex space-x-2">
-        <button 
-          onClick={() => handleEdit(offer)}
-          className="text-blue-600 hover:text-blue-900 transition-colors" 
-          title="Düzenle"
-        >
+        <button onClick={() => handleEdit(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Düzenle">
           <Edit size={18} />
         </button>
-        <button 
-          onClick={() => handlePreview(offer)}
-          className="text-purple-600 hover:text-purple-900 transition-colors" 
-          title="Ön İzleme"
-        >
+        <button onClick={() => handlePreview(offer)} className="text-purple-600 hover:text-purple-900 transition-colors" title="Ön İzleme">
           <Eye size={18} />
         </button>
         <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
@@ -466,6 +451,7 @@ const MyOffersSection: React.FC = () => {
     );
   };
 
+  // --- MODAL RENDER FONKSİYONLARI ---
   const renderEditModal = () => {
     if (!editModalOpen || !selectedOffer) return null;
 
@@ -499,6 +485,8 @@ const MyOffersSection: React.FC = () => {
                 onChange={handleEditInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 placeholder="Örn: 4500"
+                title="Teklif Tutarı"
+                aria-label="Teklif Tutarı"
               />
             </div>
 
@@ -513,6 +501,8 @@ const MyOffersSection: React.FC = () => {
                 value={editFormData.transportResponsible}
                 onChange={handleEditInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                title="Nakliye Kime Ait"
+                aria-label="Nakliye Kime Ait"
               >
                 <option value="Alıcı">Alıcı</option>
                 <option value="Satıcı">Satıcı</option>
@@ -536,6 +526,8 @@ const MyOffersSection: React.FC = () => {
                   onChange={handleEditInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   placeholder="Örn: İstanbul, Türkiye"
+                  title="Kalkış Noktası"
+                  aria-label="Kalkış Noktası"
                 />
               </div>
               <div>
@@ -551,6 +543,8 @@ const MyOffersSection: React.FC = () => {
                   onChange={handleEditInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   placeholder="Örn: Ankara, Türkiye"
+                  title="Varış Noktası"
+                  aria-label="Varış Noktası"
                 />
               </div>
             </div>
@@ -568,6 +562,8 @@ const MyOffersSection: React.FC = () => {
                 rows={4}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                 placeholder="Teklif açıklaması..."
+                title="Açıklama"
+                aria-label="Açıklama"
               />
             </div>
 
@@ -955,8 +951,140 @@ const MyOffersSection: React.FC = () => {
     );
   };
 
+  // Yeni Teklif Modalini Aç
+  const closeNewOfferModal = () => setShowNewOfferModal(false);
+
+  // Yeni Teklif Modalini render et
+  const renderNewOfferModal = () => {
+    if (!showNewOfferModal) return null;
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
+          <button onClick={closeNewOfferModal} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+            <X size={24} />
+          </button>
+          <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
+          <form onSubmit={e => { e.preventDefault(); /* Teklif gönderme işlemi */ closeNewOfferModal(); }} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-1">İlan Seç</label>
+              <select
+                className="w-full border rounded-lg px-3 py-2"
+                value={newOfferForm.listingId}
+                onChange={e => setNewOfferForm(f => ({ ...f, listingId: e.target.value }))}
+                required
+                title="İlan Seçiniz"
+                aria-label="İlan Seçiniz"
+              >
+                <option value="">İlan Seçiniz</option>
+                {listings.map((listing: {id: string, title: string}) => (
+                  <option key={listing.id} value={listing.id}>{listing.id} - {listing.title}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
+              <select
+                className="w-full border rounded-lg px-3 py-2"
+                value={newOfferForm.transportResponsible}
+                onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
+                required
+                title="Nakliye Kime Ait"
+                aria-label="Nakliye Kime Ait"
+              >
+                <option value="">Seçiniz</option>
+                <option value="Alıcı">Alıcı</option>
+                <option value="Satıcı">Satıcı</option>
+                <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
+              <input
+                type="text"
+                className="w-full border rounded-lg px-3 py-2"
+                value={newOfferForm.origin}
+                onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
+                required
+                title="Kalkış Noktası"
+                placeholder="Kalkış Noktası"
+                aria-label="Kalkış Noktası"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Varış Noktası</label>
+              <input
+                type="text"
+                className="w-full border rounded-lg px-3 py-2"
+                value={newOfferForm.destination || ''}
+                onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
+                required
+                title="Varış Noktası"
+                placeholder="Varış Noktası"
+                aria-label="Varış Noktası"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
+              <input
+                type="number"
+                className="w-full border rounded-lg px-3 py-2"
+                value={newOfferForm.price}
+                onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
+                required
+                min="0"
+                title="Teklif Tutarı"
+                placeholder="Teklif Tutarı"
+                aria-label="Teklif Tutarı"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Açıklama</label>
+              <textarea
+                className="w-full border rounded-lg px-3 py-2"
+                value={newOfferForm.description}
+                onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
+                rows={3}
+                title="Açıklama"
+                placeholder="Açıklama"
+                aria-label="Açıklama"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
+              <input
+                type="file"
+                className="w-full border rounded-lg px-3 py-2"
+                multiple
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                onChange={handleNewOfferFileChange}
+                title="Evrak ve Resim Yükle"
+                aria-label="Evrak ve Resim Yükle"
+              />
+              {newOfferForm.files && newOfferForm.files.length > 0 && (
+                <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
+                  {newOfferForm.files.map((file, idx) => (
+                    <li key={idx}>{file.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
+              <PlusCircle size={18} />
+              Teklif Ver
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
+  // --- RETURN ---
   return (
     <div className="space-y-6 animate-fade-in">
+      {renderNewOfferModal()}
+      <button onClick={() => setShowNewOfferModal(true)} className="mb-4 bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 flex items-center gap-2">
+        <PlusCircle size={20} /> Yeni Teklif Ver
+      </button>
       <div className="bg-white rounded-xl shadow-lg p-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
@@ -985,7 +1113,6 @@ const MyOffersSection: React.FC = () => {
             </select>
           </div>
         </div>
-
         {/* Tabs */}
         <div className="mb-6">
           <div className="flex space-x-1 border-b border-gray-200">
@@ -1011,7 +1138,6 @@ const MyOffersSection: React.FC = () => {
             </button>
           </div>
         </div>
-
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -1042,9 +1168,7 @@ const MyOffersSection: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {getActiveOffers().map((offer) => {
-                // Kullanıcının kendi ilanına teklif vermesi durumunu kontrol et
                 const isSelfOffer = activeTab === 'outgoing' && offer.listingOwnerId === currentUserId;
-                
                 return (
                   <tr key={offer.id} className={`hover:bg-gray-50 transition-colors ${isSelfOffer ? 'bg-red-50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -1064,8 +1188,6 @@ const MyOffersSection: React.FC = () => {
                         </div>
                         <div className="text-sm text-gray-500">
                           {activeTab === 'incoming' ? offer.offerBy : offer.contact.name}
-                          
-                          {/* Kendi ilanına teklif uyarısı */}
                           {isSelfOffer && (
                             <div className="text-xs text-red-600 font-medium flex items-center mt-1">
                               <AlertTriangle size={12} className="mr-1" />
@@ -1093,7 +1215,6 @@ const MyOffersSection: React.FC = () => {
             </tbody>
           </table>
         </div>
-
         {/* Pagination */}
         <div className="mt-6 flex items-center justify-between">
           <div className="text-sm text-gray-500">
@@ -1112,8 +1233,7 @@ const MyOffersSection: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Modals */}
+      {/* Modallar */}
       {renderEditModal()}
       {renderPreviewModal()}
       {renderSelfOfferWarningModal()}
