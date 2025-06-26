@@ -10,22 +10,16 @@ import {
   Clock,
   Shield,
   Zap,
-  ChevronLeft,
-  ChevronRight,
-  Quote,
-  Award,
-  TrendingUp,
   Globe,
   Heart,
   MapPin,
   Eye,
   MessageCircle,
-  Phone,
-  Mail,
   ExternalLink,
   X
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
+import './HomePage.pins.css';
 
 const HomePage: React.FC = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -91,7 +85,7 @@ const HomePage: React.FC = () => {
       number: '02',
       title: 'Teklif Al',
       description: 'Dakikalar içinde çoklu teklif alın',
-      icon: TrendingUp,
+      icon: Clock,
       color: 'bg-green-500'
     },
     {
@@ -375,11 +369,13 @@ const HomePage: React.FC = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center">
-              <button className="group bg-white text-primary-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl shadow-xl flex items-center justify-center hover:rotate-1">
+              <button className="group bg-white text-primary-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl shadow-xl flex items-center justify-center hover:rotate-1"
+                aria-label="İlan Oluştur" title="İlan Oluştur">
                 <span>İlan Oluştur</span>
                 <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform duration-300" size={24} />
               </button>
-              <button className="group border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl flex items-center justify-center hover:-rotate-1">
+              <button className="group border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl flex items-center justify-center hover:-rotate-1"
+                aria-label="İlanları Keşfet" title="İlanları Keşfet">
                 <span>İlanları Keşfet</span>
                 <Package className="ml-2 group-hover:scale-125 transition-transform duration-300" size={20} />
               </button>
@@ -421,6 +417,8 @@ const HomePage: React.FC = () => {
                     <button 
                       onClick={() => setVideoModalOpen(true)}
                       className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-125 transition-all duration-500 mb-4 group hover:shadow-2xl hover:bg-primary-50"
+                      aria-label="Tanıtım videosunu oynat"
+                      title="Tanıtım videosunu oynat"
                     >
                       <Play className="text-primary-600 ml-2 group-hover:scale-110 transition-transform duration-300" size={32} />
                     </button>
@@ -547,7 +545,8 @@ const HomePage: React.FC = () => {
 
           {/* CTA */}
           <div className="text-center mt-16">
-            <button className="bg-primary-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:rotate-1 shadow-xl hover:shadow-2xl">
+            <button className="bg-primary-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:rotate-1 shadow-xl hover:shadow-2xl"
+              aria-label="Hemen Başla" title="Hemen Başla">
               Hemen Başla!
             </button>
           </div>
@@ -607,16 +606,22 @@ const HomePage: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2">
-                  <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 group-hover:shadow-lg transform hover:scale-105 hover:rotate-1">
+                  <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 group-hover:shadow-lg transform hover:scale-105 hover:rotate-1"
+                    aria-label="Hemen Teklif Ver" title="Hemen Teklif Ver">
                     Hemen Teklif Ver
                   </button>
                   <button 
                     onClick={() => setSelectedListing(listing)}
                     className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all duration-300 transform hover:scale-110 hover:rotate-3"
+                    aria-label="İlanı Görüntüle"
+                    title="İlanı Görüntüle"
                   >
                     <Eye size={18} />
                   </button>
-                  <button className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all duration-300 transform hover:scale-110 hover:-rotate-3">
+                  <button className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all duration-300 transform hover:scale-110 hover:-rotate-3"
+                    aria-label="Mesaj Gönder"
+                    title="Mesaj Gönder"
+                  >
                     <MessageCircle size={18} />
                   </button>
                 </div>
@@ -628,7 +633,9 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="text-center mt-12">
-            <button className="text-primary-600 font-semibold hover:text-primary-700 transition-colors flex items-center mx-auto transform hover:scale-105 hover:rotate-1 duration-300">
+            <button className="text-primary-600 font-semibold hover:text-primary-700 transition-colors flex items-center mx-auto transform hover:scale-105 hover:rotate-1 duration-300"
+              aria-label="Tüm İlanları Görüntüle"
+              title="Tüm İlanları Görüntüle">
               <span>Tüm İlanları Görüntüle</span>
               <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform duration-300" size={20} />
             </button>
@@ -648,9 +655,7 @@ const HomePage: React.FC = () => {
               İhtiyacınıza en yakın kullanıcıları keşfedin.
             </p>
           </div>
-
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
-            {/* Map Controls */}
             <div className="p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap gap-4">
@@ -702,81 +707,11 @@ const HomePage: React.FC = () => {
 
             {/* Map Container */}
             <div className="relative h-[600px] bg-gradient-to-br from-blue-50 to-green-50">
-              {/* Map Background */}
-              <div className="absolute inset-0 opacity-20">
-                <svg width="100%" height="100%" viewBox="0 0 100 100" className="w-full h-full">
-                  <defs>
-                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#3B82F6" strokeWidth="0.5"/>
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-                </svg>
-              </div>
-
-              {/* Turkey Map Outline */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                <div className="w-96 h-64 bg-gray-300 rounded-lg"></div>
-              </div>
-
-              {/* User Pins */}
-              {filteredMapUsers.map((user, index) => (
-                <div
-                  key={user.id}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                  style={{
-                    left: `${20 + (index % 4) * 20}%`,
-                    top: `${25 + Math.floor(index / 4) * 15}%`
-                  }}
-                  onClick={() => setSelectedMapUser(user)}
-                >
-                  <div className={`w-10 h-10 ${getUserTypeColor(user.type)} rounded-full flex items-center justify-center shadow-lg hover:scale-125 transition-all duration-300 border-4 border-white group-hover:shadow-2xl`}>
-                    <MapPin size={20} className="text-white" />
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-ping"></div>
-                  
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <div className="bg-gray-900 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap">
-                      {user.name} - {getUserTypeLabel(user.type)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Legend */}
-              <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-3 text-sm">Harita Açıklaması</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-gray-700">Alıcılar</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <div className="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-gray-700">Satıcılar</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <div className="w-4 h-4 bg-orange-500 rounded-full mr-2"></div>
-                    <span className="text-gray-700">Nakliyeciler</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Google Maps Button */}
-              <div className="absolute top-4 right-4">
-                <button
-                  onClick={() => window.open('https://www.google.com/maps', '_blank')}
-                  className="bg-white rounded-lg shadow-lg p-3 border border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105 group"
-                >
-                  <div className="flex items-center gap-2">
-                    <ExternalLink size={16} className="text-primary-600 group-hover:scale-110 transition-transform duration-300" />
-                    <span className="text-sm font-medium text-gray-700 group-hover:text-primary-600 transition-colors duration-300">
-                      Google Maps'te Gör
-                    </span>
-                  </div>
-                </button>
-              </div>
+              <LiveMap
+                coordinates={filteredMapUsers.map(u => ({ lat: u.coordinates.lat, lng: u.coordinates.lng }))}
+                height="600px"
+              />
+              {/* İsteğe bağlı: üstteki svg, legend, butonlar burada kalabilir veya haritanın üstüne overlay olarak eklenebilir */}
             </div>
           </div>
         </div>
@@ -789,6 +724,8 @@ const HomePage: React.FC = () => {
             <button
               onClick={() => setSelectedMapUser(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold transform hover:scale-125 hover:rotate-90 transition-all duration-300"
+              aria-label="Kapat"
+              title="Kapat"
             >
               <X size={24} />
             </button>
@@ -840,10 +777,12 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="flex gap-3">
-              <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105">
+              <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105"
+                aria-label="Detay Gör" title="Detay Gör">
                 Detay Gör
               </button>
-              <button className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105">
+              <button className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105"
+                aria-label="Teklif Ver" title="Teklif Ver">
                 Teklif Ver
               </button>
             </div>
@@ -852,6 +791,8 @@ const HomePage: React.FC = () => {
               <button
                 onClick={() => openGoogleMaps(selectedMapUser)}
                 className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 transform hover:scale-105"
+                aria-label="Google Maps'te Gör"
+                title="Google Maps'te Gör"
               >
                 <ExternalLink size={16} />
                 <span className="text-sm">Google Maps'te Gör</span>
@@ -876,7 +817,6 @@ const HomePage: React.FC = () => {
           <div className="relative max-w-4xl mx-auto">
             <div className="bg-white rounded-3xl p-8 lg:p-12 shadow-2xl transform hover:scale-105 transition-all duration-500 hover:rotate-1">
               <div className="text-center">
-                <Quote className="text-primary-300 mx-auto mb-6 transform hover:scale-125 transition-transform duration-300" size={48} />
                 <p className="text-2xl text-gray-700 mb-8 leading-relaxed italic">
                   "{testimonials[currentTestimonial].content}"
                 </p>
@@ -925,12 +865,14 @@ const HomePage: React.FC = () => {
           </h3>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-            <button className="group bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:rotate-1 shadow-2xl flex items-center">
+            <button className="group bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:rotate-1 shadow-2xl flex items-center"
+              aria-label="Hemen Üye Olun" title="Hemen Üye Olun">
               <Users className="mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
               <span>Hemen Üye Olun</span>
               <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform duration-300" size={24} />
             </button>
-            <button className="group border-2 border-white text-white px-12 py-4 rounded-xl font-bold text-xl hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:-rotate-1 flex items-center">
+            <button className="group border-2 border-white text-white px-12 py-4 rounded-xl font-bold text-xl hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:-rotate-1 flex items-center"
+              aria-label="Daha Fazla Bilgi" title="Daha Fazla Bilgi">
               <Package className="mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
               <span>Daha Fazla Bilgi</span>
             </button>
@@ -979,6 +921,8 @@ const HomePage: React.FC = () => {
             <button
               onClick={() => setVideoModalOpen(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-125 hover:rotate-90 transition-all duration-300"
+              aria-label="Kapat"
+              title="Kapat"
             >
               ×
             </button>
@@ -1000,6 +944,8 @@ const HomePage: React.FC = () => {
             <button
               onClick={() => setSelectedListing(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-125 hover:rotate-90 transition-all duration-300"
+              aria-label="Kapat"
+              title="Kapat"
             >
               ×
             </button>
@@ -1043,10 +989,12 @@ const HomePage: React.FC = () => {
             </div>
 
             <div className="flex gap-3">
-              <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:rotate-1">
+              <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:rotate-1"
+                aria-label="Teklif Ver" title="Teklif Ver">
                 Teklif Ver
               </button>
-              <button className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 hover:-rotate-1">
+              <button className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 hover:-rotate-1"
+                aria-label="Mesaj Gönder" title="Mesaj Gönder">
                 Mesaj Gönder
               </button>
             </div>

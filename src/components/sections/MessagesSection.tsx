@@ -208,10 +208,10 @@ const MessagesSection: React.FC = () => {
               <div className="p-4 bg-white border-t border-gray-200">
                 <div className="flex items-center gap-3">
                   <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
-                    <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                    <button className="text-gray-500 hover:text-gray-700 transition-colors" title="Emoji Ekle">
                       <Smile size={20} />
                     </button>
-                    <button className="text-gray-500 hover:text-gray-700 transition-colors">
+                    <button className="text-gray-500 hover:text-gray-700 transition-colors" title="Dosya Ekle">
                       <Paperclip size={20} />
                     </button>
                     <input
@@ -226,6 +226,7 @@ const MessagesSection: React.FC = () => {
                   <button
                     onClick={handleSendMessage}
                     className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2 font-medium shadow-lg hover:shadow-xl"
+                    title="Gönder"
                   >
                     <span>Gönder</span>
                     <Send size={16} />

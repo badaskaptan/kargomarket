@@ -77,8 +77,8 @@ const MyAdsSection: React.FC = () => {
           <button className="text-green-600 hover:text-green-900 transition-colors" title="Aktifleştir">
             <Play size={18} />
           </button>
-          <button className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
-            <Trash2 size={18} />
+          <button title="Sil">
+            <Trash2 />
           </button>
         </div>
       );
@@ -98,8 +98,8 @@ const MyAdsSection: React.FC = () => {
         <button className="text-green-600 hover:text-green-900 transition-colors" title="Performans">
           <BarChart3 size={18} />
         </button>
-        <button className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
-          <Trash2 size={18} />
+        <button title="Sil">
+          <Trash2 />
         </button>
       </div>
     );
@@ -201,6 +201,7 @@ const MyAdsSection: React.FC = () => {
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            aria-label="Reklam Durumu Filtrele"
           >
             <option value="">Tüm Durumlar</option>
             <option value="active">Aktif</option>

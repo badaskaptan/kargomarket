@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, X, Save, Eye, Play, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Upload, X, Save, Eye, Play } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
 const CreateAdSection: React.FC = () => {
@@ -157,6 +157,7 @@ const CreateAdSection: React.FC = () => {
           <button
             onClick={() => setActiveSection('my-ads')}
             className="mr-4 p-2 text-gray-600 hover:text-primary-600 transition-colors rounded-full"
+            title="Geri"
           >
             <ArrowLeft size={24} />
           </button>
@@ -474,6 +475,7 @@ const CreateAdSection: React.FC = () => {
                           type="button"
                           onClick={() => handleMediaDelete(media.id)}
                           className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Sil"
                         >
                           <X size={14} />
                         </button>
@@ -500,6 +502,7 @@ const CreateAdSection: React.FC = () => {
               <button
                 type="button"
                 className="px-8 py-4 bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl flex items-center"
+                title="Önizleme"
               >
                 <Eye size={18} className="mr-2" />
                 Önizleme
@@ -507,6 +510,7 @@ const CreateAdSection: React.FC = () => {
               <button
                 type="submit"
                 className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl flex items-center"
+                title="Reklamı Yayınla"
               >
                 <Save size={18} className="mr-2" />
                 Reklamı Yayınla

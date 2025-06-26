@@ -1,0 +1,4 @@
+.realMapWrapper {
+  width: 100%;
+  height: var(--real-map-height, 400px);
+}

@@ -1,0 +1,12 @@
+.user-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* Dinamik konumlandırma için left/top değerlerini data attribute ile ayarlayacağız */
+.user-pin[data-left][data-top] {
+  /* left/top değerleri dinamik olarak JS ile atanacak */
+  /* Bu alan boş bırakıldı, linter uyarısı için kaldırıldı */
+}
+
+/* Gerekirse daha fazla pin için ekleme yapabilirsiniz */

@@ -1,98 +1,99 @@
 import React from 'react';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L, { DivIcon } from 'leaflet';
+import styles from './LiveMap.module.css';
+
+// Leaflet default icon fix
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 interface Coordinate {
   lat: number;
   lng: number;
+  avatar?: string;
+  type?: string;
+  name?: string;
 }
 
 interface LiveMapProps {
   coordinates: Coordinate[];
   height?: string;
   showRoute?: boolean;
-  onClick?: () => void;
   className?: string;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const LiveMap: React.FC<LiveMapProps> = ({ 
   coordinates, 
   height = "200px", 
-  showRoute = false, 
-  onClick,
-  className = ""
+  className = "",
+  onClick
 }) => {
-  // Bu gerçek bir harita implementasyonu değil, demo amaçlı bir görsel
-  // Gerçek projede Google Maps, Mapbox veya OpenStreetMap kullanılabilir
-  
+  const center = coordinates.length > 0 ? [coordinates[0].lat, coordinates[0].lng] : [39.0, 35.0];
+  const clickable = typeof onClick === 'function';
+  const getUserTypeBadge = (type?: string) => {
+    switch (type) {
+      case 'buyer': return { label: 'A', color: '#3b82f6' };
+      case 'seller': return { label: 'S', color: '#22c55e' };
+      case 'carrier': return { label: 'N', color: '#f59e42' };
+      default: return { label: '?', color: '#6b7280' };
+    }
+  };
+
+  const createUserIcon = (avatar?: string, type?: string, name?: string) => {
+    const badge = getUserTypeBadge(type);
+    const html = `
+      <div style="position:relative;display:flex;align-items:center;justify-content:center;width:48px;height:48px;">
+        <img src='${avatar || 'https://ui-avatars.com/api/?name=' + (name || 'Kullanıcı') + '&background=cccccc&color=444444&size=48'}' alt='avatar' style='width:40px;height:40px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px #0002;object-fit:cover;background:#fff;' />
+        <span style='position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:${badge.color};color:#fff;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;border:2px solid #fff;'>${badge.label}</span>
+      </div>
+    `;
+    return new DivIcon({
+      html,
+      className: '',
+      iconSize: [48, 48],
+      iconAnchor: [24, 40],
+      popupAnchor: [0, -40]
+    });
+  };
+
   return (
-    <div 
-      className={`relative bg-gradient-to-br from-blue-100 to-green-100 rounded-lg overflow-hidden ${className}`}
-      style={{ height }}
+    <div
+      className={`${className}${clickable ? ' live-map-clickable' : ''}`}
       onClick={onClick}
+      {...(clickable ? { role: 'button', tabIndex: 0 } : {})}
     >
-      {/* Map Background Pattern */}
-      <div className="absolute inset-0 opacity-20">
-        <svg width="100%" height="100%" viewBox="0 0 100 100" className="w-full h-full">
-          <defs>
-            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#3B82F6" strokeWidth="0.5"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      {/* Route Line */}
-      {showRoute && coordinates.length > 1 && (
-        <svg className="absolute inset-0 w-full h-full">
-          <path
-            d={`M 20% 30% Q 50% 20% 80% 70%`}
-            stroke="#EF4444"
-            strokeWidth="3"
-            fill="none"
-            strokeDasharray="5,5"
-            className="animate-pulse"
-          />
-        </svg>
-      )}
-
-      {/* Location Markers */}
-      {coordinates.map((coord, index) => (
-        <div
-          key={index}
-          className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
-            index === 0 ? 'text-green-600' : 'text-red-600'
-          }`}
-          style={{
-            left: `${20 + (index * 60)}%`,
-            top: `${30 + (index * 40)}%`
-          }}
-        >
-          <div className="relative">
-            <MapPin size={24} className="drop-shadow-lg" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full animate-ping"></div>
-          </div>
-        </div>
-      ))}
-
-      {/* Navigation Icon */}
-      <div className="absolute top-2 right-2">
-        <Navigation size={16} className="text-primary-600" />
-      </div>
-
-      {/* Click Overlay */}
-      {onClick && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/10 transition-colors">
-          <div className="bg-white/90 px-3 py-1 rounded-full text-sm font-medium text-gray-700 opacity-0 hover:opacity-100 transition-opacity">
-            Haritayı büyüt
-          </div>
-        </div>
-      )}
-
-      {/* Coordinates Info */}
-      <div className="absolute bottom-2 left-2 bg-white/90 px-2 py-1 rounded text-xs text-gray-600">
-        {coordinates.length} konum
-      </div>
+      <MapContainer center={center as [number, number]} zoom={6} style={{ width: '100%', height, borderRadius: 16, overflow: 'hidden' }} scrollWheelZoom={true}>
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {coordinates.map((coord, idx) => (
+          <Marker key={idx} position={[coord.lat, coord.lng]} icon={createUserIcon(coord.avatar, coord.type, coord.name)}>
+            <Popup>
+              <div className={styles.liveMapPopup}>
+                <div className={styles.liveMapPopupHeader}>
+                  <img src={coord.avatar || `https://ui-avatars.com/api/?name=${coord.name || 'Kullanıcı'}`} alt="avatar" className={styles.liveMapPopupAvatar} />
+                  <div>
+                    <span className={styles.liveMapPopupName}>{coord.name || 'Kullanıcı'}</span><br />
+                    <span className={styles.liveMapPopupType}>{coord.type}</span>
+                  </div>
+                </div>
+                <div>
+                  <strong>Konum</strong><br />
+                  {coord.lat}, {coord.lng}
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
     </div>
   );
 };
