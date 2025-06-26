@@ -847,6 +847,8 @@ const HomePage: React.FC = () => {
                   className={`w-3 h-3 rounded-full transition-all duration-300 transform hover:scale-150 ${
                     currentTestimonial === index ? 'bg-primary-600 w-8' : 'bg-gray-300'
                   }`}
+                  aria-label={`Referans ${index + 1} seç`}
+                  title={`Referans ${index + 1} seç`}
                 />
               ))}
             </div>

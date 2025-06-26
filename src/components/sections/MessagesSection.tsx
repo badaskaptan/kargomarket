@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Send, Paperclip, Smile, User } from 'lucide-react';
+import { Search, Send, Paperclip, Smile } from 'lucide-react';
 
 const MessagesSection: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState('mehmet-kaya');

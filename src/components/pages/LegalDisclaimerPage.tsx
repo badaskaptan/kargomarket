@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Shield, 
-  AlertTriangle, 
-  FileText, 
-  Users, 
-  CreditCard, 
-  Lock, 
-  Globe,
-  CheckCircle,
+import {
+  AlertTriangle,
+  CreditCard,
+  Users,
   XCircle,
   Info,
   Phone,
-  Mail
+  Mail,
+  CheckCircle,
+  Lock as LockIcon
 } from 'lucide-react';
 
 const LegalDisclaimerPage: React.FC = () => {
@@ -138,7 +135,7 @@ const LegalDisclaimerPage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-green-500">
         <div className="flex items-center mb-6">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-            <Lock className="text-green-600" size={24} />
+            <LockIcon className="text-green-600" size={24} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">4. Kişisel Veriler ve KVKK</h2>
         </div>
@@ -284,7 +281,7 @@ const LegalDisclaimerPage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-lg p-8 border-l-4 border-green-500">
         <div className="flex items-center mb-6">
           <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-            <Lock className="text-green-600" size={24} />
+            <LockIcon className="text-green-600" size={24} />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">4. Personal Data and Privacy</h2>
         </div>

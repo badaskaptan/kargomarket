@@ -30,7 +30,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Kurucu & CEO',
       description: 'Uzakyol Gemi Kaptanı - 2005\'ten beri denizcilik sektöründe',
       image: '⚓',
-      linkedin: '#',
+      linkedin: 'https://linkedin.com/in/emrahbadas',
       specialty: 'Denizcilik ve Lojistik Uzmanı'
     },
     {
@@ -38,7 +38,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Geliştirme Departmanı',
       description: 'Yapay zeka destekli platform geliştirme',
       image: '💻',
-      linkedin: '#',
+      linkedin: 'https://linkedin.com/company/kargomarket',
       specialty: 'AI & Yazılım Geliştirme'
     },
     {
@@ -46,7 +46,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Stratejik Ortaklıklar',
       description: 'Sektörel bağlantılar ve büyüme stratejileri',
       image: '📈',
-      linkedin: '#',
+      linkedin: 'https://linkedin.com/company/kargomarket',
       specialty: 'İş Geliştirme & Strategi'
     },
     {
@@ -54,7 +54,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Kullanıcı Memnuniyeti',
       description: 'Kullanıcı odaklı hizmet geliştirme',
       image: '🎯',
-      linkedin: '#',
+      linkedin: 'https://linkedin.com/company/kargomarket',
       specialty: 'UX & Müşteri İlişkileri'
     }
   ];
@@ -247,6 +247,8 @@ const AboutUsPage: React.FC = () => {
                 <a 
                   href={member.linkedin}
                   className="inline-flex items-center text-primary-600 hover:text-primary-700 transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   <Linkedin size={16} className="mr-1" />
                   LinkedIn

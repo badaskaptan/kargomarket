@@ -10,6 +10,12 @@ import ReviewsPage from '../pages/ReviewsPage.tsx';
 import HowItWorksPage from '../pages/HowItWorksPage.tsx';
 import AboutUsPage from '../pages/AboutUsPage.tsx';
 import LegalDisclaimerPage from '../pages/LegalDisclaimerPage.tsx';
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage.tsx';
+import TermsPage from '../pages/TermsPage.tsx';
+import CookiePolicyPage from '../pages/CookiePolicyPage.tsx';
+import KvkkPage from '../pages/KvkkPage.tsx';
+import RefundPolicyPage from '../pages/RefundPolicyPage.tsx';
+import RevenueModelPage from '../pages/RevenueModelPage.tsx';
 
 interface PublicLayoutProps {
   isLoggedIn: boolean;
@@ -38,6 +44,18 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ isLoggedIn, onLogin, onShow
         return <AboutUsPage />;
       case 'legal-disclaimer':
         return <LegalDisclaimerPage />;
+      case 'privacy-policy':
+        return <PrivacyPolicyPage />;
+      case 'terms':
+        return <TermsPage />;
+      case 'cookie-policy':
+        return <CookiePolicyPage />;
+      case 'kvkk':
+        return <KvkkPage />;
+      case 'refund-policy':
+        return <RefundPolicyPage />;
+      case 'revenue-model':
+        return <RevenueModelPage />;
       default:
         return <HomePage />;
     }

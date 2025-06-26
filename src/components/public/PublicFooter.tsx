@@ -27,8 +27,7 @@ const PublicFooter: React.FC = () => {
     { label: 'Yük İlanları', href: '#' },
     { label: 'Nakliye Hizmetleri', href: '#' },
     { label: 'Reklam Paneli', href: '#' },
-    { label: 'Kurumsal Çözümler', href: '#' },
-    { label: 'API Entegrasyonu', href: '#' }
+    { label: 'Kurumsal Çözümler', href: '#' }
   ];
 
   const support = [
@@ -40,21 +39,21 @@ const PublicFooter: React.FC = () => {
   ];
 
   const legal = [
-    { label: 'Gizlilik Politikası', href: '#' },
-    { label: 'Kullanım Şartları', href: '#' },
-    { label: 'Çerez Politikası', href: '#' },
-    { label: 'KVKK', href: '#' },
-    { label: 'İptal ve İade', href: '#' },
-    { label: 'Sorumluluk Reddi', href: '#disclaimer' },
-    { label: 'Gelir Modeli', href: '#revenue-model' }
+    { label: 'Gizlilik Politikası', href: '/privacy-policy' },
+    { label: 'Kullanım Şartları', href: '/terms' },
+    { label: 'Çerez Politikası', href: '/cookie-policy' },
+    { label: 'KVKK', href: '/kvkk' },
+    { label: 'İptal ve İade', href: '/refund-policy' },
+    { label: 'Sorumluluk Reddi', href: '/legal-disclaimer' },
+    { label: 'Gelir Modeli', href: '/revenue-model' }
   ];
 
   const socialLinks = [
-    { icon: Facebook, href: '#', color: 'hover:text-blue-600' },
-    { icon: Twitter, href: '#', color: 'hover:text-blue-400' },
-    { icon: Instagram, href: '#', color: 'hover:text-pink-600' },
-    { icon: Linkedin, href: '#', color: 'hover:text-blue-700' },
-    { icon: Youtube, href: '#', color: 'hover:text-red-600' }
+    { icon: Facebook, href: 'https://facebook.com/kargomarket', color: 'hover:text-blue-600' },
+    { icon: Twitter, href: 'https://twitter.com/kargomarket', color: 'hover:text-blue-400' },
+    { icon: Instagram, href: 'https://instagram.com/kargomarket', color: 'hover:text-pink-600' },
+    { icon: Linkedin, href: 'https://linkedin.com/company/kargomarket', color: 'hover:text-blue-700' },
+    { icon: Youtube, href: 'https://youtube.com/@kargomarket', color: 'hover:text-red-600' }
   ];
 
   return (
@@ -119,6 +118,17 @@ const PublicFooter: React.FC = () => {
                     key={index}
                     href={social.href}
                     className={`w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 ${social.color} transition-all duration-300 transform hover:scale-110 hover:bg-gray-700`}
+                    title={social.icon.displayName || social.icon.name || 'Sosyal Medya'}
+                    aria-label={
+                      social.icon === Facebook ? 'Facebook' :
+                      social.icon === Twitter ? 'Twitter' :
+                      social.icon === Instagram ? 'Instagram' :
+                      social.icon === Linkedin ? 'Linkedin' :
+                      social.icon === Youtube ? 'Youtube' :
+                      'Sosyal Medya'
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     <social.icon size={20} />
                   </a>
@@ -153,6 +163,8 @@ const PublicFooter: React.FC = () => {
                     <a
                       href={service.href}
                       className="text-gray-300 hover:text-primary-400 transition-colors duration-300 flex items-center group"
+                      title={service.label}
+                      aria-label={service.label}
                     >
                       <ArrowRight size={14} className="mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                       {service.label}
