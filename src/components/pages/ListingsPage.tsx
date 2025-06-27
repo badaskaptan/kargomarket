@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Package, Clock, Eye, MessageCircle, Star, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
+import { Search, Filter, MapPin, Package, Clock, Eye, Star, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
+import { listings, type Listing } from '../../data/listings';
 
 interface ListingsPageProps {
   isLoggedIn?: boolean;
@@ -11,10 +12,26 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedTransport, setSelectedTransport] = useState('all');
-  const [selectedListing, setSelectedListing] = useState<any>(null);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSelfOfferWarning, setShowSelfOfferWarning] = useState(false);
+
+  // Teklif Ver Modalı için state
+  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
+  const [newOfferForm, setNewOfferForm] = useState({
+    listingId: '',
+    price: '',
+    description: '',
+    transportResponsible: '',
+    origin: '',
+    destination: '',
+    files: [] as File[]
+  });
+  // Mesaj modalı için state
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [messageTarget, setMessageTarget] = useState<any>(null);
 
   // Simulated current user ID - gerçek uygulamada authentication context'ten gelecek
   const currentUserId = 'user_123'; // Bu değer gerçek uygulamada auth context'ten gelecek
@@ -24,194 +41,6 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
     { id: 'cargo-trade', label: 'Yük Alım Satım', count: 89 },
     { id: 'transport-request', label: 'Nakliye Talebi', count: 34 },
     { id: 'transport-service', label: 'Nakliye İlanları', count: 33 }
-  ];
-
-  const listings = [
-    // Yük Alım Satım İlanları
-    {
-      id: 1,
-      title: 'İstanbul-Ankara Tekstil Yükü',
-      route: 'İstanbul → Ankara',
-      loadType: 'Tekstil',
-      weight: '15 ton',
-      volume: '25 m³',
-      offers: 8,
-      price: '₺4.500',
-      urgent: true,
-      publishDate: '2 saat önce',
-      coordinates: { lat: 41.0082, lng: 28.9784 },
-      destination: { lat: 39.9334, lng: 32.8597 },
-      ownerId: 'user_456', // Farklı kullanıcı - teklif verilebilir
-      contact: {
-        name: 'Mehmet Yılmaz',
-        company: 'Yılmaz Tekstil A.Ş.',
-        phone: '+90 555 123 4567',
-        email: 'mehmet@yilmaztekstil.com',
-        rating: 4.8
-      },
-      description: 'Kaliteli tekstil ürünleri, paletli yük. Yükleme ve boşaltma için forklift gerekli.',
-      transportMode: 'road',
-      category: 'cargo-trade',
-      listingType: 'Satış İlanı'
-    },
-    {
-      id: 2,
-      title: 'İzmir-Bursa Elektronik Eşya Alımı',
-      route: 'İzmir → Bursa',
-      loadType: 'Elektronik',
-      weight: '8 ton',
-      volume: '15 m³',
-      offers: 12,
-      price: '₺3.200',
-      urgent: false,
-      publishDate: '4 saat önce',
-      coordinates: { lat: 38.4192, lng: 27.1287 },
-      destination: { lat: 40.1826, lng: 29.0665 },
-      ownerId: 'user_123', // Aynı kullanıcı - teklif verilemez!
-      contact: {
-        name: 'Ayşe Demir',
-        company: 'Demir Elektronik Ltd.',
-        phone: '+90 555 987 6543',
-        email: 'ayse@demirelektronik.com',
-        rating: 4.9
-      },
-      description: 'Hassas elektronik ürünler alımı yapılacaktır. Özel ambalajlama gerekli.',
-      transportMode: 'road',
-      category: 'cargo-trade',
-      listingType: 'Alım İlanı'
-    },
-    {
-      id: 3,
-      title: 'Ankara-Antalya Gıda Ürünleri Satışı',
-      route: 'Ankara → Antalya',
-      loadType: 'Gıda',
-      weight: '20 ton',
-      volume: '30 m³',
-      offers: 6,
-      price: '₺5.800',
-      urgent: true,
-      publishDate: '1 saat önce',
-      coordinates: { lat: 39.9334, lng: 32.8597 },
-      destination: { lat: 36.8969, lng: 30.7133 },
-      ownerId: 'user_789', // Farklı kullanıcı - teklif verilebilir
-      contact: {
-        name: 'Ali Kaya',
-        company: 'Kaya Gıda San. Tic.',
-        phone: '+90 555 456 7890',
-        email: 'ali@kayagida.com',
-        rating: 4.7
-      },
-      description: 'Organik gıda ürünleri satışı. Soğuk zincir gerektiren ürünler.',
-      transportMode: 'road',
-      category: 'cargo-trade',
-      listingType: 'Satış İlanı'
-    },
-    // Nakliye Talebi İlanları
-    {
-      id: 4,
-      title: 'İstanbul-Hamburg Konteyner Taşıma Talebi',
-      route: 'İstanbul → Hamburg',
-      loadType: 'Genel Kargo',
-      weight: '25 ton',
-      volume: '67 m³',
-      offers: 3,
-      price: '€2.800',
-      urgent: false,
-      publishDate: '6 saat önce',
-      coordinates: { lat: 41.0082, lng: 28.9784 },
-      destination: { lat: 53.5511, lng: 9.9937 },
-      ownerId: 'user_101', // Farklı kullanıcı - teklif verilebilir
-      contact: {
-        name: 'Fatma Özkan',
-        company: 'Özkan Dış Ticaret',
-        phone: '+90 555 321 9876',
-        email: 'fatma@ozkandis.com',
-        rating: 4.6
-      },
-      description: '40 HC konteyner taşıma talebi. Gümrük işlemleri dahil.',
-      transportMode: 'sea',
-      category: 'transport-request',
-      listingType: 'Nakliye Talebi'
-    },
-    {
-      id: 5,
-      title: 'Adana-Mersin İnşaat Malzemesi Taşıma',
-      route: 'Adana → Mersin',
-      loadType: 'İnşaat',
-      weight: '30 ton',
-      volume: '20 m³',
-      offers: 9,
-      price: '₺2.100',
-      urgent: false,
-      publishDate: '3 saat önce',
-      coordinates: { lat: 37.0000, lng: 35.3213 },
-      destination: { lat: 36.8000, lng: 34.6333 },
-      ownerId: 'user_123', // Aynı kullanıcı - teklif verilemez!
-      contact: {
-        name: 'Hasan Yıldız',
-        company: 'Yıldız İnşaat',
-        phone: '+90 555 654 3210',
-        email: 'hasan@yildizinsaat.com',
-        rating: 4.5
-      },
-      description: 'Çimento ve demir malzemeler taşıma talebi. Açık kasa araç uygun.',
-      transportMode: 'road',
-      category: 'transport-request',
-      listingType: 'Nakliye Talebi'
-    },
-    // Nakliye İlanları
-    {
-      id: 6,
-      title: 'İstanbul-Ankara Karayolu Nakliye Hizmeti',
-      route: 'İstanbul → Ankara',
-      loadType: 'Genel Kargo',
-      weight: '25 ton',
-      volume: '90 m³',
-      offers: 15,
-      price: '₺3.500',
-      urgent: false,
-      publishDate: '30 dakika önce',
-      coordinates: { lat: 41.0082, lng: 28.9784 },
-      destination: { lat: 39.9334, lng: 32.8597 },
-      ownerId: 'user_202', // Farklı kullanıcı - teklif verilebilir
-      contact: {
-        name: 'Zeynep Akar',
-        company: 'Akar Nakliyat',
-        phone: '+90 555 789 0123',
-        email: 'zeynep@akarnakliyat.com',
-        rating: 4.9
-      },
-      description: 'Tır ile karayolu taşımacılığı. Dönüş yükü için uygun fiyat.',
-      transportMode: 'road',
-      category: 'transport-service',
-      listingType: 'Nakliye Hizmeti'
-    },
-    {
-      id: 7,
-      title: 'İzmir-Antalya Frigorifik Taşıma',
-      route: 'İzmir → Antalya',
-      loadType: 'Gıda',
-      weight: '15 ton',
-      volume: '45 m³',
-      offers: 7,
-      price: '₺4.200',
-      urgent: true,
-      publishDate: '1 saat önce',
-      coordinates: { lat: 38.4192, lng: 27.1287 },
-      destination: { lat: 36.8969, lng: 30.7133 },
-      ownerId: 'user_123', // Aynı kullanıcı - teklif verilemez!
-      contact: {
-        name: 'Murat Şen',
-        company: 'Şen Frigorifik',
-        phone: '+90 555 111 2233',
-        email: 'murat@senfrigorifik.com',
-        rating: 4.8
-      },
-      description: 'Frigorifik araç ile soğuk zincir taşımacılığı. -18°C ile +4°C arası.',
-      transportMode: 'road',
-      category: 'transport-service',
-      listingType: 'Nakliye Hizmeti'
-    }
   ];
 
   const transportModes = [
@@ -242,38 +71,6 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
     { label: 'Tamamlanan', value: '12,890', color: 'text-orange-600' }
   ];
 
-  const handleOfferClick = (listing: any) => {
-    if (!isLoggedIn) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    // Güvenlik kontrolü: Kullanıcının kendi ilanına teklif vermesini engelle
-    if (listing.ownerId === currentUserId) {
-      setShowSelfOfferWarning(true);
-      return;
-    }
-
-    // Teklif verme işlemi
-    console.log('Teklif veriliyor:', listing.id);
-  };
-
-  const handleContactClick = (listing: any) => {
-    if (!isLoggedIn) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    // Güvenlik kontrolü: Kullanıcının kendi ilanıyla iletişime geçmesini engelle
-    if (listing.ownerId === currentUserId) {
-      setShowSelfOfferWarning(true);
-      return;
-    }
-
-    // İletişim işlemi
-    console.log('İletişime geçiliyor:', listing.id);
-  };
-
   const getCategoryColor = (category: string) => {
     const colors = {
       'all': 'bg-gray-100 text-gray-700 border-gray-200',
@@ -296,6 +93,65 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
 
   const isOwnListing = (listing: any) => {
     return isLoggedIn && listing.ownerId === currentUserId;
+  };
+
+  // Teklif Ver butonu işlevi
+  const handleShowOffer = (listing: any) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (listing.ownerId === currentUserId) {
+      setShowSelfOfferWarning(true);
+      return;
+    }
+    setNewOfferForm({
+      listingId: listing.id?.toString() || '',
+      price: '',
+      description: '',
+      transportResponsible: '',
+      origin: '',
+      destination: '',
+      files: []
+    });
+    setShowNewOfferModal(true);
+  };
+  // Mesaj Gönder butonu işlevi
+  const handleShowMessage = (listing: any) => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (listing.ownerId === currentUserId) {
+      setShowSelfOfferWarning(true);
+      return;
+    }
+    setMessageTarget(listing);
+    setShowMessageModal(true);
+  };
+  // Dosya yükleme
+  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
+    }
+  };
+  // Teklif formu submit
+  const handleNewOfferSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newOfferForm.price || !newOfferForm.transportResponsible || !newOfferForm.origin || !newOfferForm.destination) {
+      alert('Lütfen tüm alanları doldurun!');
+      return;
+    }
+    alert('Teklif gönderildi!');
+    setShowNewOfferModal(false);
+  };
+  // Mesaj gönderme
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
+    alert('Mesaj gönderildi!');
+    setShowMessageModal(false);
+    setMessageText('');
   };
 
   return (
@@ -419,16 +275,15 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-semibold" title="İlan No">
+                        {listing.ilanNo}
+                      </span>
                       {listing.urgent && (
                         <div className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">
                           <Clock size={12} className="mr-1" />
                           Acil
                         </div>
                       )}
-                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${getListingTypeColor(listing.listingType)}`}>
-                        {listing.listingType}
-                      </div>
-                      
                       {/* İlan sahibi göstergesi */}
                       {isOwnListing(listing) && (
                         <div className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
@@ -506,7 +361,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
               <div className="p-6 pt-4 border-t border-gray-100">
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => handleOfferClick(listing)}
+                    onClick={() => handleShowOffer(listing)}
                     className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${
                       isOwnListing(listing) 
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
@@ -528,16 +383,20 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                     <Eye size={16} />
                   </button>
                   <button 
-                    onClick={() => handleContactClick(listing)}
-                    className={`px-4 py-2 rounded-lg transition-colors transform hover:scale-105 ${
+                    onClick={() => handleShowMessage(listing)}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
                       isOwnListing(listing) 
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
-                    title="Mesaj Gönder"
                     disabled={isOwnListing(listing)}
+                    title="Mesaj Gönder"
                   >
-                    <MessageCircle size={16} />
+                    {isLoggedIn 
+                      ? isOwnListing(listing) 
+                        ? 'Kendi İlanınız' 
+                        : 'Mesaj Gönder' 
+                      : 'Giriş Yap'}
                   </button>
                 </div>
               </div>
@@ -680,7 +539,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                         Acil İlan
                       </div>
                     )}
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getListingTypeColor(selectedListing.listingType)}`}>
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getListingTypeColor(selectedListing.listingType ?? '')}`}>
                       {selectedListing.listingType}
                     </div>
                     
@@ -783,7 +642,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                     <div className="text-gray-600 mb-4">{selectedListing.offers} teklif alındı</div>
                     <div className="flex gap-3">
                       <button 
-                        onClick={() => handleOfferClick(selectedListing)}
+                        onClick={() => handleShowOffer(selectedListing)}
                         className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
                           isOwnListing(selectedListing) 
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
@@ -798,7 +657,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                           : 'Giriş Yap'}
                       </button>
                       <button 
-                        onClick={() => handleContactClick(selectedListing)}
+                        onClick={() => handleShowMessage(selectedListing)}
                         className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
                           isOwnListing(selectedListing) 
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
@@ -836,6 +695,162 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Teklif Ver Modalı */}
+      {showNewOfferModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
+            <button onClick={() => setShowNewOfferModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+              ×
+            </button>
+            <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
+            <form onSubmit={handleNewOfferSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-1">İlan</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
+                  value={newOfferForm.listingId}
+                  disabled
+                  readOnly
+                  title="İlan Numarası"
+                  aria-label="İlan Numarası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
+                <select
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.transportResponsible}
+                  onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
+                  required
+                  title="Nakliye Kime Ait"
+                  aria-label="Nakliye Kime Ait"
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="Alıcı">Alıcı</option>
+                  <option value="Satıcı">Satıcı</option>
+                  <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.origin}
+                  onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
+                  required
+                  title="Kalkış Noktası"
+                  placeholder="Kalkış Noktası"
+                  aria-label="Kalkış Noktası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Varış Noktası</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.destination}
+                  onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
+                  required
+                  title="Varış Noktası"
+                  placeholder="Varış Noktası"
+                  aria-label="Varış Noktası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
+                <input
+                  type="number"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.price}
+                  onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
+                  required
+                  min="0"
+                  title="Teklif Tutarı"
+                  placeholder="Teklif Tutarı"
+                  aria-label="Teklif Tutarı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Açıklama</label>
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.description}
+                  onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
+                  rows={3}
+                  title="Açıklama"
+                  placeholder="Açıklama"
+                  aria-label="Açıklama"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
+                <input
+                  type="file"
+                  className="w-full border rounded-lg px-3 py-2"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  onChange={handleNewOfferFileChange}
+                  title="Evrak ve Resim Yükle"
+                  aria-label="Evrak ve Resim Yükle"
+                />
+                {newOfferForm.files && newOfferForm.files.length > 0 && (
+                  <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
+                    {newOfferForm.files.map((file, idx) => (
+                      <li key={idx}>{file.name}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
+                Teklif Ver
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mesaj Gönder Modalı */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm relative">
+            <button onClick={() => setShowMessageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+              ×
+            </button>
+            <h3 className="text-lg font-bold mb-4">Mesaj Gönder</h3>
+            <form onSubmit={handleSendMessage} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Alıcı</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+                  value={messageTarget?.contact?.name || messageTarget?.contact || ''}
+                  disabled
+                  readOnly
+                  title="Alıcı"
+                  aria-label="Alıcı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Mesajınız</label>
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={messageText}
+                  onChange={e => setMessageText(e.target.value)}
+                  rows={3}
+                  required
+                  title="Mesajınız"
+                  placeholder="Mesajınızı yazın..."
+                  aria-label="Mesajınız"
+                />
+              </div>
+              <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
+                Gönder
+              </button>
+            </form>
           </div>
         </div>
       )}

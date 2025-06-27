@@ -6,3 +6,24 @@
 /* Dinamik konumlandırma için left/top değerlerini data attribute ile ayarlayacağız */
 
 /* Gerekirse daha fazla pin için ekleme yapabilirsiniz */
+
+/*
+  Responsive video container (16:9)
+*/
+.video-embed-responsive {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+  background: #000;
+}
+.video-embed-responsive iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}

@@ -1,45 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Play, 
-  ArrowRight, 
-  CheckCircle, 
-  Star, 
-  Users, 
-  Package, 
-  Truck, 
+import { useNavigate } from 'react-router-dom';
+import {
+  Play,
+  ArrowRight,
+  CheckCircle,
+  Users,
+  Package,
+  Truck,
   Clock,
   Shield,
   Zap,
   Globe,
-  Heart,
   MapPin,
   Eye,
-  MessageCircle,
-  ExternalLink,
-  X
+  X,
+  LogIn
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
+import { listings, type Listing } from '../../data/listings';
 import './HomePage.pins.css';
 
-const HomePage: React.FC = () => {
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+interface HomePageProps {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onShowDashboard: () => void;
+  onShowListings?: () => void;
+}
+
+const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboard, onShowListings }) => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [selectedListing, setSelectedListing] = useState<any>(null);
   const [selectedMapUser, setSelectedMapUser] = useState<any>(null);
   const [mapFilters, setMapFilters] = useState({
     buyers: true,
     sellers: true,
     carriers: true
   });
+  // Geri eklenen state'ler:
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
 
-  // Otomatik slider için
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial(prev => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  // Teklif Ver Modalı için state
+  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
+  const [newOfferForm, setNewOfferForm] = useState({
+    listingId: '',
+    price: '',
+    description: '',
+    transportResponsible: '',
+    origin: '',
+    destination: '',
+    files: [] as File[]
+  });
+
+  // Mesaj modalı için state
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [messageTarget, setMessageTarget] = useState<any>(null);
 
   // Adımlar animasyonu için
   useEffect(() => {
@@ -101,60 +116,6 @@ const HomePage: React.FC = () => {
       description: 'Yükünüzü gerçek zamanlı takip edin',
       icon: Truck,
       color: 'bg-orange-500'
-    }
-  ];
-
-  const activeListings = [
-    {
-      id: 1,
-      title: 'İstanbul-Ankara Tekstil Yükü',
-      route: 'İstanbul → Ankara',
-      loadType: 'Tekstil',
-      weight: '15 ton',
-      offers: 8,
-      price: '₺4.500',
-      urgent: true,
-      coordinates: { lat: 41.0082, lng: 28.9784 },
-      destination: { lat: 39.9334, lng: 32.8597 },
-      contact: {
-        name: 'Mehmet Yılmaz',
-        company: 'Yılmaz Tekstil A.Ş.',
-        phone: '+90 555 123 4567'
-      }
-    },
-    {
-      id: 2,
-      title: 'İzmir-Bursa Elektronik Eşya',
-      route: 'İzmir → Bursa',
-      loadType: 'Elektronik',
-      weight: '8 ton',
-      offers: 12,
-      price: '₺3.200',
-      urgent: false,
-      coordinates: { lat: 38.4192, lng: 27.1287 },
-      destination: { lat: 40.1826, lng: 29.0665 },
-      contact: {
-        name: 'Ayşe Demir',
-        company: 'Demir Elektronik Ltd.',
-        phone: '+90 555 987 6543'
-      }
-    },
-    {
-      id: 3,
-      title: 'Ankara-Antalya Gıda Taşıma',
-      route: 'Ankara → Antalya',
-      loadType: 'Gıda',
-      weight: '20 ton',
-      offers: 6,
-      price: '₺5.800',
-      urgent: true,
-      coordinates: { lat: 39.9334, lng: 32.8597 },
-      destination: { lat: 36.8969, lng: 30.7133 },
-      contact: {
-        name: 'Ali Kaya',
-        company: 'Kaya Gıda San. Tic.',
-        phone: '+90 555 456 7890'
-      }
     }
   ];
 
@@ -266,47 +227,11 @@ const HomePage: React.FC = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      name: 'Mehmet Yılmaz',
-      company: 'Yılmaz Lojistik',
-      role: 'Nakliyeci',
-      content: 'Kargo Market sayesinde iş hacmim %300 arttı. Artık boş dönüş yok!',
-      rating: 5,
-      avatar: '👨‍💼'
-    },
-    {
-      name: 'Ayşe Demir',
-      company: 'Demir Tekstil',
-      role: 'Alıcı/Satıcı',
-      content: 'Nakliye maliyetlerimiz %40 azaldı. Harika bir platform!',
-      rating: 5,
-      avatar: '👩‍💼'
-    },
-    {
-      name: 'Ali Kaya',
-      company: 'Kaya İnşaat',
-      role: 'Nakliyeci',
-      content: 'Güvenli ödeme sistemi ve hızlı eşleşme. Kesinlikle tavsiye ederim.',
-      rating: 5,
-      avatar: '👨‍🔧'
-    }
-  ];
-
-  const partners = [
-    { name: 'Aras Kargo', logo: '🚚' },
-    { name: 'MNG Kargo', logo: '📦' },
-    { name: 'Yurtiçi Kargo', logo: '🚛' },
-    { name: 'UPS', logo: '📮' },
-    { name: 'DHL', logo: '✈️' },
-    { name: 'FedEx', logo: '🌍' }
-  ];
-
-  const stats = [
+  const stats: { number: string; label: string; icon: React.ElementType }[] = [
     { number: '50,000+', label: 'Aktif Kullanıcı', icon: Users },
     { number: '1M+', label: 'Taşınan Yük', icon: Package },
     { number: '5,000+', label: 'Nakliyeci', icon: Truck },
-    { number: '99.8%', label: 'Müşteri Memnuniyeti', icon: Heart }
+    { number: '99.8%', label: 'Müşteri Memnuniyeti', icon: CheckCircle }
   ];
 
   const getUserTypeColor = (type: string) => {
@@ -339,6 +264,65 @@ const HomePage: React.FC = () => {
     window.open(url, '_blank');
   };
 
+  // Kullanıcı adı örneği (gerçek uygulamada auth'dan alınır)
+  const currentUserName = 'Mehmet Yılmaz'; // Örnek, değiştirilebilir
+
+  const isOwnListing = (listing: any) => {
+    if (!listing || !listing.contact) return false;
+    return listing.contact.name === currentUserName;
+  };
+
+  const handleShowOffer = (listing: any) => {
+    if (!isLoggedIn) {
+      onLogin();
+      return;
+    }
+    if (isOwnListing(listing)) {
+      alert('Kendi ilanınıza teklif veremezsiniz!');
+      return;
+    }
+    setNewOfferForm({
+      listingId: listing.ilanNo || listing.id?.toString() || '',
+      price: '',
+      description: '',
+      transportResponsible: '',
+      origin: '',
+      destination: '',
+      files: []
+    });
+    setShowNewOfferModal(true);
+  };
+
+  // Dosya yükleme değişikliği
+  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
+    }
+  };
+
+  // Teklif formu submit
+  const handleNewOfferSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Validasyon örneği
+    if (!newOfferForm.price || !newOfferForm.transportResponsible || !newOfferForm.origin || !newOfferForm.destination) {
+      alert('Lütfen tüm alanları doldurun!');
+      return;
+    }
+    // API çağrısı simülasyonu
+    alert('Teklif gönderildi!');
+    setShowNewOfferModal(false);
+  };
+
+  // Detay modalı içindeki mesaj butonu için
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
+    // Burada API çağrısı yapılabilir
+    alert('Mesaj gönderildi!');
+    setShowMessageModal(false);
+    setMessageText('');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -369,13 +353,31 @@ const HomePage: React.FC = () => {
             
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center">
-              <button className="group bg-white text-primary-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl shadow-xl flex items-center justify-center hover:rotate-1"
-                aria-label="İlan Oluştur" title="İlan Oluştur">
+              <button
+                className="group bg-white text-primary-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl shadow-xl flex items-center justify-center hover:rotate-1"
+                aria-label="İlan Oluştur"
+                title="İlan Oluştur"
+                onClick={() => {
+                  if (isLoggedIn) {
+                    onShowDashboard();
+                  } else {
+                    onLogin();
+                  }
+                }}
+              >
                 <span>İlan Oluştur</span>
                 <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform duration-300" size={24} />
               </button>
-              <button className="group border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:shadow-2xl flex items-center justify-center hover:-rotate-1"
-                aria-label="İlanları Keşfet" title="İlanları Keşfet">
+              <button className="group border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:-rotate-1 flex items-center justify-center"
+                aria-label="İlanları Keşfet" title="İlanları Keşfet"
+                onClick={() => {
+                  if (onShowListings) {
+                    onShowListings();
+                  } else {
+                    navigate('/listings');
+                  }
+                }}
+              >
                 <span>İlanları Keşfet</span>
                 <Package className="ml-2 group-hover:scale-125 transition-transform duration-300" size={20} />
               </button>
@@ -383,8 +385,8 @@ const HomePage: React.FC = () => {
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center group cursor-pointer">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center group cursor-pointer">
                   <div className="flex justify-center mb-2 transform group-hover:scale-125 transition-transform duration-300">
                     <stat.icon className="text-yellow-300 group-hover:text-yellow-200" size={24} />
                   </div>
@@ -408,24 +410,20 @@ const HomePage: React.FC = () => {
               Platformumuzun sunduğu avantajları ve lojistik süreçlerinizi nasıl optimize edebileceğinizi keşfedin.
             </p>
           </div>
-          
           <div className="max-w-5xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-              <div className="aspect-video relative">
-                <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-                  <div className="text-center">
-                    <button 
-                      onClick={() => setVideoModalOpen(true)}
-                      className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-125 transition-all duration-500 mb-4 group hover:shadow-2xl hover:bg-primary-50"
-                      aria-label="Tanıtım videosunu oynat"
-                      title="Tanıtım videosunu oynat"
-                    >
-                      <Play className="text-primary-600 ml-2 group-hover:scale-110 transition-transform duration-300" size={32} />
-                    </button>
-                    <p className="text-white text-lg font-medium">Tanıtım Filmini İzle</p>
-                    <p className="text-gray-300 text-sm mt-2">2:45 dk • HD Kalite • TR/EN Altyazı</p>
-                  </div>
-                </div>
+              {/* Responsive Video Embed */}
+              <div className="video-embed-responsive">
+                <iframe
+                  id="vp1uPtKt"
+                  title="Video Player"
+                  src="https://s3.amazonaws.com/embed.animoto.com/play.html?w=swf/production/vp1&e=1750969143&f=uPtKt76FIJhLEgxM8d1KFA&d=0&m=p&r=360p+720p&volume=100&start_res=720p&i=m&asset_domain=s3-p.animoto.com&animoto_domain=animoto.com&options="
+                  allowFullScreen
+                  width="432"
+                  height="243"
+                  frameBorder="0"
+                  aria-label="Video Player"
+                ></iframe>
               </div>
               <div className="p-8 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex flex-wrap gap-8 justify-center">
@@ -554,6 +552,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Active Listings Section with Live Map */}
+      {/* --- REFACTORED FEATURED LISTINGS SECTION START --- */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -565,83 +564,152 @@ const HomePage: React.FC = () => {
             </p>
           </div>
 
+          {/* Listings Grid - Copied from ListingsPage */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {activeListings.map((listing) => (
-              <div key={listing.id} className="group bg-white rounded-2xl p-6 shadow-lg hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:rotate-1 border border-gray-100 cursor-pointer">
-                {listing.urgent && (
-                  <div className="inline-flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold mb-4 group-hover:animate-pulse">
-                    <Clock size={16} className="mr-1" />
-                    Acil
+            {listings.map((listing) => (
+              <div key={listing.id} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+                {/* Header */}
+                <div className="p-6 pb-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-semibold" title="İlan No">
+                          {listing.ilanNo}
+                        </span>
+                        {listing.urgent && (
+                          <div className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">
+                            <Clock size={12} className="mr-1" />
+                            Acil
+                          </div>
+                        )}
+                        {isOwnListing(listing) && (
+                          <div className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
+                            Sizin İlanınız
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-primary-600 transition-colors cursor-pointer">
+                        {listing.title}
+                      </h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-primary-600">{listing.price}</div>
+                      <div className="text-xs text-gray-500">{listing.offers} teklif</div>
+                    </div>
                   </div>
-                )}
-                
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">
-                  {listing.title}
-                </h3>
-                
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
-                    <MapPin size={16} className="mr-2 text-primary-500 group-hover:scale-110 transition-transform duration-300" />
-                    <span className="text-sm">{listing.route}</span>
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-gray-600">
+                      <MapPin size={14} className="mr-2 text-primary-500" />
+                      <span className="text-sm">{listing.route}</span>
+                    </div>
+                    <div className="flex items-center text-gray-600">
+                      <Package size={14} className="mr-2 text-primary-500" />
+                      <span className="text-sm">{listing.loadType} • {listing.weight}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-gray-600 group-hover:text-gray-700 transition-colors duration-300">
-                    <Package size={16} className="mr-2 text-primary-500 group-hover:scale-110 transition-transform duration-300" />
-                    <span className="text-sm">{listing.loadType} • {listing.weight}</span>
-                  </div>
+
+                  {/* Contact Info - Only for logged in users */}
+                  {isLoggedIn ? (
+                    <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3">
+                          <span className="text-white text-xs font-medium">
+                            {listing.contact.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">{listing.contact.name}</div>
+                          <div className="text-xs text-gray-500">{listing.contact.company}</div>
+                          <div className="text-xs text-gray-500">{listing.contact.phone}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="flex items-center text-yellow-800">
+                        <span className="text-sm font-medium">İletişim bilgilerini görmek için giriş yapın</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Mini Map */}
-                <div className="mb-4 h-32 rounded-lg overflow-hidden border border-gray-200 group-hover:border-primary-300 transition-colors duration-300">
+                <div className="h-32 border-t border-gray-100">
                   <LiveMap 
                     coordinates={[listing.coordinates]}
                     height="128px"
                     onClick={() => setSelectedListing(listing)}
-                    className="cursor-pointer hover:opacity-80 transition-opacity transform group-hover:scale-105 duration-300"
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
                   />
                 </div>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-2xl font-bold text-primary-600 group-hover:text-primary-700 transition-colors duration-300">{listing.price}</div>
-                  <div className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-300">{listing.offers} teklif</div>
-                </div>
 
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 group-hover:shadow-lg transform hover:scale-105 hover:rotate-1"
-                    aria-label="Hemen Teklif Ver" title="Hemen Teklif Ver">
-                    Hemen Teklif Ver
-                  </button>
-                  <button 
-                    onClick={() => setSelectedListing(listing)}
-                    className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all duration-300 transform hover:scale-110 hover:rotate-3"
-                    aria-label="İlanı Görüntüle"
-                    title="İlanı Görüntüle"
-                  >
-                    <Eye size={18} />
-                  </button>
-                  <button className="px-4 py-3 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all duration-300 transform hover:scale-110 hover:-rotate-3"
-                    aria-label="Mesaj Gönder"
-                    title="Mesaj Gönder"
-                  >
-                    <MessageCircle size={18} />
-                  </button>
+                {/* Actions */}
+                <div className="p-6 pt-4 border-t border-gray-100">
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleShowOffer(listing)}
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${
+                        isOwnListing(listing) 
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                      }`}
+                      disabled={isOwnListing(listing)}
+                    >
+                      {isLoggedIn 
+                        ? isOwnListing(listing) 
+                          ? 'Kendi İlanınız' 
+                          : 'Teklif Ver' 
+                        : 'Giriş Yap'}
+                    </button>
+                    <button 
+                      onClick={() => setSelectedListing(listing)}
+                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
+                      title="Detayları Görüntüle"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (!isLoggedIn) {
+                          onLogin();
+                          return;
+                        }
+                        if (isOwnListing(listing)) {
+                          alert('Kendi ilanınıza mesaj gönderemezsiniz!');
+                          return;
+                        }
+                        setMessageTarget(listing);
+                        setShowMessageModal(true);
+                      }}
+                      className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
+                        isOwnListing(listing) 
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                      disabled={isOwnListing(listing)}
+                    >
+                      {isLoggedIn 
+                        ? isOwnListing(listing) 
+                          ? 'Kendi İlanınız' 
+                          : 'Mesaj Gönder' 
+                        : 'Giriş Yap'}
+                    </button>
+                  </div>
                 </div>
-
-                {/* Hover Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-primary-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
             ))}
           </div>
 
+          {/* Load More */}
           <div className="text-center mt-12">
-            <button className="text-primary-600 font-semibold hover:text-primary-700 transition-colors flex items-center mx-auto transform hover:scale-105 hover:rotate-1 duration-300"
-              aria-label="Tüm İlanları Görüntüle"
-              title="Tüm İlanları Görüntüle">
-              <span>Tüm İlanları Görüntüle</span>
-              <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform duration-300" size={20} />
+            <button className="bg-primary-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 shadow-lg hover:shadow-xl">
+              Daha Fazla İlan Yükle
             </button>
           </div>
         </div>
       </section>
+      {/* --- REFACTORED FEATURED LISTINGS SECTION END --- */}
 
       {/* Live Map Section */}
       <section className="py-20 bg-white">
@@ -681,7 +749,7 @@ const HomePage: React.FC = () => {
                     />
                     <div className={`w-5 h-5 rounded-full mr-3 transition-all duration-300 ${mapFilters.sellers ? 'bg-green-500 scale-110' : 'bg-gray-300'}`}></div>
                     <span className={`font-medium transition-colors duration-300 ${mapFilters.sellers ? 'text-green-600' : 'text-gray-500'} group-hover:text-green-600`}>
-                      Satıcılar ({mapUsers.filter(u => u.type === 'seller').length})
+                    Satıcılar ({mapUsers.filter(u => u.type === 'seller').length})
                     </span>
                   </label>
                   
@@ -729,7 +797,6 @@ const HomePage: React.FC = () => {
             >
               <X size={24} />
             </button>
-            
             <div className="text-center mb-6">
               <div className="relative inline-block mb-4">
                 <img
@@ -743,7 +810,6 @@ const HomePage: React.FC = () => {
                   </span>
                 </div>
               </div>
-              
               <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMapUser.name}</h3>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
                 selectedMapUser.type === 'buyer' ? 'bg-blue-100 text-blue-800' :
@@ -753,7 +819,6 @@ const HomePage: React.FC = () => {
                 {getUserTypeLabel(selectedMapUser.type)}
               </span>
             </div>
-
             <div className="mb-6">
               <img
                 src={selectedMapUser.productImage}
@@ -761,21 +826,17 @@ const HomePage: React.FC = () => {
                 className="w-full h-32 object-cover rounded-lg border border-gray-200"
               />
             </div>
-
             <div className="space-y-3 mb-6">
               <h4 className="font-semibold text-gray-900">{selectedMapUser.title}</h4>
-              
               <div className="flex items-center text-gray-600">
                 <MapPin size={16} className="mr-2 text-primary-500" />
                 <span className="text-sm">{selectedMapUser.route}</span>
               </div>
-              
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">Son aktivite: {selectedMapUser.lastActive}</span>
                 <span className="text-lg font-bold text-primary-600">{selectedMapUser.price}</span>
               </div>
             </div>
-
             <div className="flex gap-3">
               <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105"
                 aria-label="Detay Gör" title="Detay Gör">
@@ -786,7 +847,6 @@ const HomePage: React.FC = () => {
                 Teklif Ver
               </button>
             </div>
-
             <div className="mt-4">
               <button
                 onClick={() => openGoogleMaps(selectedMapUser)}
@@ -794,212 +854,334 @@ const HomePage: React.FC = () => {
                 aria-label="Google Maps'te Gör"
                 title="Google Maps'te Gör"
               >
-                <ExternalLink size={16} />
-                <span className="text-sm">Google Maps'te Gör</span>
+                <Globe size={16} className="text-primary-600" />
+                Google Maps'te Gör
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gradient-to-br from-primary-50 to-primary-100">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Müşterilerimiz <span className="text-primary-600">Ne Diyor?</span>
-            </h2>
-            <p className="text-xl text-gray-600">
-              Binlerce memnun kullanıcımızdan bazı yorumlar
-            </p>
-          </div>
-
-          <div className="relative max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl p-8 lg:p-12 shadow-2xl transform hover:scale-105 transition-all duration-500 hover:rotate-1">
-              <div className="text-center">
-                <p className="text-2xl text-gray-700 mb-8 leading-relaxed italic">
-                  "{testimonials[currentTestimonial].content}"
-                </p>
-                
-                <div className="flex items-center justify-center mb-4">
-                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                    <Star key={i} className="text-yellow-400 fill-current hover:scale-125 transition-transform duration-300" size={24} />
-                  ))}
+      {/* Listing Detail Modal (Önizleme) - ListingsPage ile birebir aynı yapı */}
+      {selectedListing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedListing(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+              title="Kapat"
+              aria-label="Kapat"
+            >
+              <X size={24} />
+            </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Sol Kolon */}
+              <div>
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    {selectedListing.urgent && (
+                      <div className="inline-flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        <Clock size={16} className="mr-1" />
+                        Acil İlan
+                      </div>
+                    )}
+                    <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      {selectedListing.loadType}
+                    </div>
+                    {isOwnListing(selectedListing) && (
+                      <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        Sizin İlanınız
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">{selectedListing.title}</h3>
+                  <div className="flex items-center text-gray-600 mb-2">
+                    <MapPin size={18} className="mr-2 text-primary-500" />
+                    <span className="text-lg">{selectedListing.route}</span>
+                  </div>
                 </div>
-                
-                <div className="flex items-center justify-center">
-                  <div className="text-4xl mr-4 hover:scale-125 transition-transform duration-300">{testimonials[currentTestimonial].avatar}</div>
-                  <div className="text-left">
-                    <h4 className="font-bold text-gray-900 text-lg">{testimonials[currentTestimonial].name}</h4>
-                    <p className="text-primary-600 font-semibold">{testimonials[currentTestimonial].company}</p>
-                    <p className="text-gray-500 text-sm">{testimonials[currentTestimonial].role}</p>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Yük Detayları</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Yük Tipi:</span>
+                      <div className="font-medium">{selectedListing.loadType}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Ağırlık:</span>
+                      <div className="font-medium">{selectedListing.weight}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Fiyat:</span>
+                      <div className="font-medium">{selectedListing.price}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Teklif:</span>
+                      <div className="font-medium">{selectedListing.offers} teklif</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Açıklama</h4>
+                  <p className="text-gray-700">{selectedListing.description || 'Açıklama bulunamadı.'}</p>
+                </div>
+                {/* İletişim Bilgileri - Sadece giriş yapan kullanıcılar için */}
+                {isLoggedIn ? (
+                  <div className="bg-primary-50 rounded-lg p-6 border border-primary-200">
+                    <div className="flex items-center mb-4">
+                      <h4 className="font-semibold text-gray-900">İletişim Bilgileri</h4>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div><strong>İsim:</strong> {selectedListing.contact?.name}</div>
+                      <div><strong>Firma:</strong> {selectedListing.contact?.company}</div>
+                      <div><strong>Telefon:</strong> {selectedListing.contact?.phone}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
+                    <div className="flex items-center text-yellow-800 mb-3">
+                      <LogIn size={20} className="mr-2" />
+                      <h4 className="font-semibold">İletişim Bilgileri</h4>
+                    </div>
+                    <p className="text-yellow-700 text-sm mb-4">
+                      İletişim bilgilerini görmek ve teklif vermek için giriş yapmanız gerekiyor.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Sağ Kolon - Büyük Harita ve Diğer Kutular Dikey Hizalı */}
+              <div className="hidden lg:flex flex-col items-stretch gap-6">
+                {/* Büyük Harita */}
+                <div className="h-80 rounded-lg overflow-hidden border border-gray-200 mb-0">
+                  <LiveMap 
+                    coordinates={[selectedListing.coordinates, selectedListing.destination]}
+                    height="320px"
+                    showRoute={true}
+                  />
+                </div>
+                {/* Fiyat ve Teklifler */}
+                <div className="bg-white border-2 border-primary-200 rounded-lg p-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price}</div>
+                    <div className="text-gray-600 mb-4">{selectedListing.offers} teklif alındı</div>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => handleShowOffer(selectedListing)}
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
+                          isOwnListing(selectedListing) 
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                            : 'bg-primary-600 text-white hover:bg-primary-700'
+                        }`}
+                        disabled={isOwnListing(selectedListing)}
+                      >
+                        {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Teklif Ver'}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (!isLoggedIn) {
+                            onLogin();
+                            return;
+                          }
+                          if (isOwnListing(selectedListing)) {
+                            alert('Kendi ilanınıza mesaj gönderemezsiniz!');
+                            return;
+                          }
+                          setMessageTarget(selectedListing);
+                          setShowMessageModal(true);
+                        }}
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
+                          isOwnListing(selectedListing) 
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        disabled={isOwnListing(selectedListing)}
+                      >
+                        {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Mesaj Gönder'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {/* Güvenlik Bilgileri */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Güvenlik Bilgileri</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Doğrulanmış üye
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Sigorta güvencesi
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Güvenli ödeme sistemi
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Navigation */}
-            <div className="flex justify-center mt-8 space-x-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 transform hover:scale-150 ${
-                    currentTestimonial === index ? 'bg-primary-600 w-8' : 'bg-gray-300'
-                  }`}
-                  aria-label={`Referans ${index + 1} seç`}
-                  title={`Referans ${index + 1} seç`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl lg:text-6xl font-bold mb-6">
-            Kargo Market'e Hemen Katılın
-          </h2>
-          <h3 className="text-3xl lg:text-5xl font-bold mb-8 text-yellow-300">
-            Lojistik süreçlerinizi optimize edin!
-          </h3>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-            <button className="group bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 hover:rotate-1 shadow-2xl flex items-center"
-              aria-label="Hemen Üye Olun" title="Hemen Üye Olun">
-              <Users className="mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
-              <span>Hemen Üye Olun</span>
-              <ArrowRight className="ml-3 group-hover:translate-x-2 transition-transform duration-300" size={24} />
-            </button>
-            <button className="group border-2 border-white text-white px-12 py-4 rounded-xl font-bold text-xl hover:bg-white hover:text-primary-600 transition-all duration-300 transform hover:scale-110 hover:-rotate-1 flex items-center"
-              aria-label="Daha Fazla Bilgi" title="Daha Fazla Bilgi">
-              <Package className="mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
-              <span>Daha Fazla Bilgi</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="flex items-center justify-center group cursor-pointer">
-              <CheckCircle className="text-green-300 mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
-              <span className="text-lg group-hover:text-yellow-300 transition-colors duration-300">100% Ücretsiz Kayıt</span>
-            </div>
-            <div className="flex items-center justify-center group cursor-pointer">
-              <Shield className="text-green-300 mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
-              <span className="text-lg group-hover:text-yellow-300 transition-colors duration-300">Güvenli Ödeme</span>
-            </div>
-            <div className="flex items-center justify-center group cursor-pointer">
-              <Clock className="text-green-300 mr-3 group-hover:scale-125 transition-transform duration-300" size={24} />
-              <span className="text-lg group-hover:text-yellow-300 transition-colors duration-300">7/24 Destek</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Güvenilir Partnerlerimiz</h3>
-            <p className="text-gray-600">Sektörün önde gelen firmaları ile çalışıyoruz</p>
-          </div>
-          
-          <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-16">
-            {partners.map((partner, index) => (
-              <div key={index} className="group flex items-center space-x-3 bg-white px-6 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110 hover:rotate-2 cursor-pointer">
-                <span className="text-3xl group-hover:scale-125 transition-transform duration-300">{partner.logo}</span>
-                <span className="font-semibold text-gray-700 group-hover:text-primary-600 transition-colors duration-300">{partner.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Modal */}
-      {videoModalOpen && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full transform scale-100 transition-all duration-300">
-            <button
-              onClick={() => setVideoModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-125 hover:rotate-90 transition-all duration-300"
-              aria-label="Kapat"
-              title="Kapat"
-            >
-              ×
-            </button>
-            <div className="aspect-video bg-gray-900 rounded-xl flex items-center justify-center">
-              <div className="text-white text-center">
-                <Play size={64} className="mx-auto mb-4 hover:scale-125 transition-transform duration-300" />
-                <p className="text-xl">Kargo Market Tanıtım Videosu</p>
-                <p className="text-gray-400">Video yüklenemedi veya henüz hazır değil</p>
-              </div>
-            </div>
           </div>
         </div>
       )}
 
-      {/* Listing Detail Modal */}
-      {selectedListing && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setSelectedListing(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-125 hover:rotate-90 transition-all duration-300"
-              aria-label="Kapat"
-              title="Kapat"
-            >
-              ×
+      {/* Teklif Ver Modalı */}
+      {showNewOfferModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
+            <button onClick={() => setShowNewOfferModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+              <X size={24} />
             </button>
-            
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedListing.title}</h3>
-              <div className="flex items-center text-gray-600 mb-4">
-                <MapPin size={18} className="mr-2 text-primary-500" />
-                <span>{selectedListing.route}</span>
-              </div>
-            </div>
-
-            {/* Large Map */}
-            <div className="mb-6 h-64 rounded-lg overflow-hidden border border-gray-200">
-              <LiveMap 
-                coordinates={[selectedListing.coordinates, selectedListing.destination]}
-                height="256px"
-                showRoute={true}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
+            <form onSubmit={handleNewOfferSubmit} className="space-y-6">
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Yük Detayları</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Tip:</strong> {selectedListing.loadType}</p>
-                  <p><strong>Ağırlık:</strong> {selectedListing.weight}</p>
-                  <p><strong>Fiyat:</strong> {selectedListing.price}</p>
-                  <p><strong>Teklif Sayısı:</strong> {selectedListing.offers}</p>
-                </div>
+                <label className="block text-sm font-medium mb-1">İlan</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+                  value={newOfferForm.listingId}
+                  disabled
+                  readOnly
+                  title="İlan Numarası"
+                  placeholder="İlan Numarası"
+                  aria-label="İlan Numarası"
+                />
               </div>
-              
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">İletişim</h4>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>İsim:</strong> {selectedListing.contact.name}</p>
-                  <p><strong>Firma:</strong> {selectedListing.contact.company}</p>
-                  <p><strong>Telefon:</strong> {selectedListing.contact.phone}</p>
-                </div>
+                <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
+                <select
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.transportResponsible}
+                  onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
+                  required
+                  title="Nakliye Kime Ait"
+                  aria-label="Nakliye Kime Ait"
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="Alıcı">Alıcı</option>
+                  <option value="Satıcı">Satıcı</option>
+                  <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
+                </select>
               </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 hover:rotate-1"
-                aria-label="Teklif Ver" title="Teklif Ver">
+              <div>
+                <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.origin}
+                  onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
+                  required
+                  title="Kalkış Noktası"
+                  placeholder="Kalkış Noktası"
+                  aria-label="Kalkış Noktası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Varış Noktası</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.destination}
+                  onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
+                  required
+                  title="Varış Noktası"
+                  placeholder="Varış Noktası"
+                  aria-label="Varış Noktası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
+                <input
+                  type="number"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.price}
+                  onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
+                  required
+                  min="0"
+                  title="Teklif Tutarı"
+                  placeholder="Teklif Tutarı"
+                  aria-label="Teklif Tutarı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Açıklama</label>
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.description}
+                  onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
+                  rows={3}
+                  title="Açıklama"
+                  placeholder="Açıklama"
+                  aria-label="Açıklama"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
+                <input
+                  type="file"
+                  className="w-full border rounded-lg px-3 py-2"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  onChange={handleNewOfferFileChange}
+                  title="Evrak ve Resim Yükle"
+                  aria-label="Evrak ve Resim Yükle"
+                />
+                {newOfferForm.files && newOfferForm.files.length > 0 && (
+                  <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
+                    {newOfferForm.files.map((file, idx) => (
+                      <li key={idx}>{file.name}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
                 Teklif Ver
               </button>
-              <button className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 hover:-rotate-1"
-                aria-label="Mesaj Gönder" title="Mesaj Gönder">
-                Mesaj Gönder
-              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mesaj Gönder Modalı */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm relative">
+            <button onClick={() => setShowMessageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+              <X size={24} />
+            </button>
+            <h3 className="text-lg font-bold mb-4">Mesaj Gönder</h3>
+            <div className="mb-2 text-sm font-semibold uppercase text-gray-500">
+              Alıcı: <span className="text-primary-600 font-bold underline cursor-pointer">{messageTarget?.contact?.name || messageTarget?.name || ''}</span>
             </div>
+            <form onSubmit={handleSendMessage} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Alıcı</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
+                  value={messageTarget?.contact?.name || messageTarget?.name || ''}
+                  disabled
+                  readOnly
+                  title="Alıcı"
+                  aria-label="Alıcı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Mesajınız</label>
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={messageText}
+                  onChange={e => setMessageText(e.target.value)}
+                  rows={3}
+                  required
+                  title="Mesajınız"
+                  placeholder="Mesajınızı yazın..."
+                  aria-label="Mesajınız"
+                />
+              </div>
+              <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
+                Gönder
+              </button>
+            </form>
           </div>
         </div>
       )}

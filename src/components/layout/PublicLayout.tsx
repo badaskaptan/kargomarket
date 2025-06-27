@@ -29,7 +29,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ isLoggedIn, onLogin, onShow
   const renderPage = () => {
     switch (activePage) {
       case 'home':
-        return <HomePage />;
+        return <HomePage isLoggedIn={isLoggedIn} onLogin={onLogin} onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
       case 'listings':
         return <ListingsPage isLoggedIn={isLoggedIn} onLogin={onLogin} />;
       case 'ads':
@@ -57,7 +57,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ isLoggedIn, onLogin, onShow
       case 'revenue-model':
         return <RevenueModelPage />;
       default:
-        return <HomePage />;
+        return <HomePage isLoggedIn={isLoggedIn} onLogin={onLogin} onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
     }
   };
 

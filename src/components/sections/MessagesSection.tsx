@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Send, Paperclip, Smile } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
 
 const MessagesSection: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState('mehmet-kaya');
   const [messageText, setMessageText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const conversations = [
     {
@@ -90,6 +94,21 @@ const MessagesSection: React.FC = () => {
     if (messageText.trim()) {
       // Add message logic here
       setMessageText('');
+    }
+  };
+
+  const handleSelectEmoji = (emojiData: any) => {
+    setMessageText((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAttachedFile(e.target.files[0]);
     }
   };
 
@@ -207,13 +226,38 @@ const MessagesSection: React.FC = () => {
               {/* Message Input */}
               <div className="p-4 bg-white border-t border-gray-200">
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500">
-                    <button className="text-gray-500 hover:text-gray-700 transition-colors" title="Emoji Ekle">
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 relative">
+                    <button
+                      type="button"
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                      title="Emoji Ekle"
+                      onClick={() => setShowEmojiPicker((v) => !v)}
+                      tabIndex={0}
+                    >
                       <Smile size={20} />
                     </button>
-                    <button className="text-gray-500 hover:text-gray-700 transition-colors" title="Dosya Ekle">
+                    {showEmojiPicker && (
+                      <div className="absolute bottom-12 left-0 z-50">
+                        <EmojiPicker onEmojiClick={handleSelectEmoji} />
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                      title="Dosya Ekle"
+                      onClick={handleAttachClick}
+                      tabIndex={0}
+                    >
                       <Paperclip size={20} />
                     </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleFileChange}
+                      aria-label="Dosya Ekle"
+                      title="Dosya Ekle"
+                    />
                     <input
                       type="text"
                       placeholder="Mesajınızı yazın..."
@@ -222,6 +266,9 @@ const MessagesSection: React.FC = () => {
                       onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                       className="flex-1 bg-transparent border-none focus:ring-0 text-sm"
                     />
+                    {attachedFile && (
+                      <span className="ml-2 text-xs text-gray-500 truncate max-w-[100px]">{attachedFile.name}</span>
+                    )}
                   </div>
                   <button
                     onClick={handleSendMessage}

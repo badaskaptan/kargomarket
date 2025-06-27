@@ -6,7 +6,6 @@ import {
   Trash2, 
   Star, 
   Eye, 
-  Calendar,
   Building,
   MessageCircle,
   ThumbsUp,
@@ -150,6 +149,8 @@ const MyReviewsSection: React.FC = () => {
           <button
             onClick={() => setEditModalOpen(false)}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+            title="Kapat"
+            aria-label="Kapat"
           >
             <X size={24} />
           </button>
@@ -175,11 +176,14 @@ const MyReviewsSection: React.FC = () => {
                     type="button"
                     onClick={() => setEditFormData(prev => ({ ...prev, rating: star }))}
                     className="focus:outline-none"
+                    title={`${star} yıldız ver`}
+                    aria-label={`${star} yıldız ver`}
                   >
                     <Star 
                       size={32} 
                       className={`${star <= editFormData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`} 
                     />
+                    <span className="sr-only">{star} yıldız</span>
                   </button>
                 ))}
                 <span className="ml-3 text-lg font-medium text-gray-700">{editFormData.rating}/5</span>
@@ -255,6 +259,8 @@ const MyReviewsSection: React.FC = () => {
           <button
             onClick={() => setNewReviewModalOpen(false)}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+            title="Kapat"
+            aria-label="Kapat"
           >
             <X size={24} />
           </button>
@@ -281,7 +287,11 @@ const MyReviewsSection: React.FC = () => {
                           <p className="text-sm text-gray-500">Son işlem: {company.lastTransaction}</p>
                         </div>
                       </div>
-                      <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
+                      <button 
+                        className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                        title={`'${company.name}' için yorum yap`}
+                        aria-label={`'${company.name}' için yorum yap`}
+                      >
                         Yorum Yap
                       </button>
                     </div>
@@ -322,6 +332,8 @@ const MyReviewsSection: React.FC = () => {
           <button 
             onClick={handleNewReview}
             className="bg-primary-600 text-white py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
+            title="Yeni Yorum Ekle"
+            aria-label="Yeni Yorum Ekle"
           >
             <Plus size={20} className="mr-2" />
             <span>Yeni Yorum Ekle</span>
@@ -380,12 +392,14 @@ const MyReviewsSection: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              aria-label="Yorum ara"
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+            aria-label="Durum Filtrele"
           >
             <option value="">Tüm Durumlar</option>
             <option value="published">Yayınlanan</option>
@@ -424,14 +438,17 @@ const MyReviewsSection: React.FC = () => {
                       onClick={() => handleEdit(review)}
                       className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
                       title="Düzenle"
+                      aria-label="Düzenle"
                     >
                       <Edit size={16} />
                     </button>
                     <button 
                       className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
                       title="Sil"
+                      aria-label="Sil"
                     >
                       <Trash2 size={16} />
+                      <span className="sr-only">Sil</span>
                     </button>
                   </div>
                 </div>

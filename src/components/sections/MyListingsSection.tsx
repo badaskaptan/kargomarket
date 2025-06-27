@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   Search, 
-  Filter, 
   Edit, 
   Pause, 
   Play, 
@@ -364,6 +363,8 @@ const MyListingsSection: React.FC = () => {
           <button
             onClick={() => setEditModalOpen(false)}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+            title="Düzenleme modunu kapat"
+            aria-label="Düzenleme modunu kapat"
           >
             <X size={24} />
           </button>
@@ -492,6 +493,8 @@ const MyListingsSection: React.FC = () => {
           <button
             onClick={() => setPreviewModalOpen(false)}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+            title="Ön izlemeyi kapat"
+            aria-label="Ön izlemeyi kapat"
           >
             <X size={24} />
           </button>
@@ -831,29 +834,33 @@ const MyListingsSection: React.FC = () => {
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            >
-              <option value="">Tüm Durumlar</option>
-              <option value="active">Aktif</option>
-              <option value="pending">Beklemede</option>
-              <option value="completed">Tamamlandı</option>
-              <option value="cancelled">İptal Edildi</option>
-            </select>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            >
-              <option value="">Tüm İlan Tipleri</option>
-              <option value="Yük İlanı">📦 Yük İlanı</option>
-              <option value="Nakliye Talebi">🚚 Nakliye Talebi</option>
-              <option value="Nakliye İlanı">🚛 Nakliye İlanı</option>
-            </select>
-          </div>
+          <label htmlFor="statusFilter" className="sr-only">Durum Filtrele</label>
+          <select
+            id="statusFilter"
+            aria-label="Durum Filtrele"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+          >
+            <option value="">Tüm Durumlar</option>
+            <option value="active">Aktif</option>
+            <option value="pending">Beklemede</option>
+            <option value="completed">Tamamlandı</option>
+            <option value="cancelled">İptal Edildi</option>
+          </select>
+          <label htmlFor="typeFilter" className="sr-only">İlan Tipi Filtrele</label>
+          <select
+            id="typeFilter"
+            aria-label="İlan Tipi Filtrele"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+          >
+            <option value="">Tüm İlan Tipleri</option>
+            <option value="Yük İlanı">📦 Yük İlanı</option>
+            <option value="Nakliye Talebi">🚚 Nakliye Talebi</option>
+            <option value="Nakliye İlanı">🚛 Nakliye İlanı</option>
+          </select>
         </div>
 
         {/* Table */}
@@ -926,16 +933,16 @@ const MyListingsSection: React.FC = () => {
             Toplam 5 kayıttan 1-5 arası gösteriliyor
           </div>
           <div className="flex space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors" disabled>
+            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors" disabled title="Önceki Sayfa" aria-label="Önceki Sayfa">
               <ChevronLeft size={20} />
             </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-primary-600 text-white">
+            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-primary-600 text-white" title="1. Sayfa" aria-label="1. Sayfa">
               1
             </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors">
+            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors" title="2. Sayfa" aria-label="2. Sayfa">
               2
             </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 transition-colors">
+            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 transition-colors" title="Sonraki Sayfa" aria-label="Sonraki Sayfa">
               <ChevronRight size={20} />
             </button>
           </div>
