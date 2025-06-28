@@ -219,7 +219,7 @@ const MyListingsSection: React.FC = () => {
     
     return (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses]}`}>
-        {label}
+        {status === 'active' ? 'Aktif' : status === 'paused' ? 'Pasif' : label}
       </span>
     );
   };
@@ -366,9 +366,15 @@ const MyListingsSection: React.FC = () => {
         >
           <Eye size={18} />
         </button>
-        <button onClick={() => handlePause(listing.id)} className="text-yellow-600 hover:text-yellow-900 transition-colors" title="Pasif Yap">
-          <Pause size={18} />
-        </button>
+        {status === 'active' ? (
+          <button onClick={() => handlePause(listing.id)} className="text-yellow-600 hover:text-yellow-900 transition-colors" title="Pasif Yap">
+            <Pause size={18} />
+          </button>
+        ) : status === 'paused' ? (
+          <button onClick={() => handleActivate(listing.id)} className="text-green-600 hover:text-green-900 transition-colors" title="Aktif Yap">
+            <Play size={18} />
+          </button>
+        ) : null}
         <button onClick={() => handleDelete(listing.id)} className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
           <Trash2 size={18} />
         </button>
@@ -689,6 +695,12 @@ const MyListingsSection: React.FC = () => {
                       Kalan Süre: {selectedListing.remainingDays}
                     </div>
                   )}
+                  {/* Duruma göre bilgilendirme */}
+                  {selectedListing.status === 'active' ? (
+                    <div className="mt-3 text-green-700 text-sm font-medium">Bu ilan yayında ve herkes tarafından görüntülenebilir.</div>
+                  ) : selectedListing.status === 'paused' ? (
+                    <div className="mt-3 text-yellow-700 text-sm font-medium">Bu ilan pasif durumda, yayında değildir.</div>
+                  ) : null}
                 </div>
               </div>
 
