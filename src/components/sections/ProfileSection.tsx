@@ -78,25 +78,31 @@ const ProfileSection: React.FC = () => {
                 <h4 className="font-medium mb-3 text-gray-900">Roller</h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Alıcı/Satıcı</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <span className="text-sm text-gray-700" id="role-buyer-label">Alıcı/Satıcı</span>
+                    <label className="relative inline-flex items-center cursor-pointer" htmlFor="role-buyer-checkbox">
                       <input
                         type="checkbox"
+                        id="role-buyer-checkbox"
+                        aria-labelledby="role-buyer-label"
                         checked={buyerRole}
                         onChange={(e) => setBuyerRole(e.target.checked)}
                         className="sr-only peer"
+                        title="Alıcı/Satıcı rolünü seç"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Nakliyeci</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <span className="text-sm text-gray-700" id="role-carrier-label">Nakliyeci</span>
+                    <label className="relative inline-flex items-center cursor-pointer" htmlFor="role-carrier-checkbox">
                       <input
                         type="checkbox"
+                        id="role-carrier-checkbox"
+                        aria-labelledby="role-carrier-label"
                         checked={carrierRole}
                         onChange={(e) => setCarrierRole(e.target.checked)}
                         className="sr-only peer"
+                        title="Nakliyeci rolünü seç"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                     </label>
@@ -109,37 +115,46 @@ const ProfileSection: React.FC = () => {
                 <h4 className="font-medium mb-3 text-gray-900">Bildirim Tercihleri</h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">E-posta Bildirimleri</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <span className="text-sm text-gray-700" id="notif-email-label">E-posta Bildirimleri</span>
+                    <label className="relative inline-flex items-center cursor-pointer" htmlFor="notif-email-checkbox">
                       <input
                         type="checkbox"
+                        id="notif-email-checkbox"
+                        aria-labelledby="notif-email-label"
                         checked={emailNotifications}
                         onChange={(e) => setEmailNotifications(e.target.checked)}
                         className="sr-only peer"
+                        title="E-posta bildirimlerini aç/kapat"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">SMS Bildirimleri</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <span className="text-sm text-gray-700" id="notif-sms-label">SMS Bildirimleri</span>
+                    <label className="relative inline-flex items-center cursor-pointer" htmlFor="notif-sms-checkbox">
                       <input
                         type="checkbox"
+                        id="notif-sms-checkbox"
+                        aria-labelledby="notif-sms-label"
                         checked={smsNotifications}
                         onChange={(e) => setSmsNotifications(e.target.checked)}
                         className="sr-only peer"
+                        title="SMS bildirimlerini aç/kapat"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Yeni Teklif Bildirimleri</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <span className="text-sm text-gray-700" id="notif-offer-label">Yeni Teklif Bildirimleri</span>
+                    <label className="relative inline-flex items-center cursor-pointer" htmlFor="notif-offer-checkbox">
                       <input
                         type="checkbox"
+                        id="notif-offer-checkbox"
+                        aria-labelledby="notif-offer-label"
                         checked={offerNotifications}
                         onChange={(e) => setOfferNotifications(e.target.checked)}
                         className="sr-only peer"
+                        title="Yeni teklif bildirimlerini aç/kapat"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                     </label>

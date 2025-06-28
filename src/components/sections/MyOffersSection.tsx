@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   PlusCircle
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const MyOffersSection: React.FC = () => {
   // --- STATE TANIMLARI ---
@@ -44,6 +45,9 @@ const MyOffersSection: React.FC = () => {
     destination: '',
     files: [] as File[]
   });
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [chatOffer, setChatOffer] = useState<any>(null);
+  const [chatMessage, setChatMessage] = useState('');
 
   // --- SABİT VERİLER ---
   const currentUserId = 'user_123'; // Simulated user id
@@ -372,7 +376,9 @@ const MyOffersSection: React.FC = () => {
     alert(`Teklif reddedildi: ${offer.listingId}`);
   };
   const handleChat = (offer: any) => {
-    alert(`Mesajlaşma başlatıldı: ${offer.listingId}`);
+    setChatOffer(offer);
+    setShowChatModal(true);
+    setChatMessage('');
   };
 
   // Dosya yükleme değişikliği
@@ -403,7 +409,7 @@ const MyOffersSection: React.FC = () => {
           <button onClick={() => handlePreview(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Ön İzleme">
             <Eye size={18} />
           </button>
-          <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
+          <button onClick={() => handleChat(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
             <MessageCircle size={18} />
           </button>
         </div>
@@ -444,7 +450,7 @@ const MyOffersSection: React.FC = () => {
         <button onClick={() => handlePreview(offer)} className="text-purple-600 hover:text-purple-900 transition-colors" title="Ön İzleme">
           <Eye size={18} />
         </button>
-        <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
+        <button onClick={() => handleChat(offer)} className="text-blue-600 hover:text-blue-900 transition-colors" title="Mesaj Gönder">
           <MessageCircle size={18} />
         </button>
       </div>
@@ -1078,10 +1084,59 @@ const MyOffersSection: React.FC = () => {
     );
   };
 
+  const renderChatModal = () => {
+    if (!showChatModal || !chatOffer) return null;
+    const recipient = activeTab === 'incoming' ? chatOffer.offerContact : chatOffer.contact;
+    return (
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="chat-modal-title">
+        <div className="relative bg-white rounded-2xl p-6 max-w-md w-full shadow-lg">
+          <button
+            onClick={() => setShowChatModal(false)}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+            title="Kapat"
+            aria-label="Kapat"
+          >
+            <X size={24} />
+          </button>
+          <h3 id="chat-modal-title" className="text-xl font-bold text-gray-900 mb-2">Mesaj Gönder</h3>
+          <div className="mb-4 text-gray-700 text-sm">
+            <span className="font-semibold">İlan:</span> {chatOffer.listingId} - {chatOffer.listingTitle}
+          </div>
+          <div className="mb-4 text-gray-700 text-sm">
+            <span className="font-semibold">Alıcı:</span> {recipient.name} ({recipient.company})
+          </div>
+          <form onSubmit={e => {
+            e.preventDefault();
+            setShowChatModal(false);
+            toast.success('Mesaj gönderildi!');
+          }}>
+            <label htmlFor="chat-message" className="block text-sm font-medium mb-1">Mesajınız</label>
+            <textarea
+              id="chat-message"
+              className="w-full border rounded-lg px-3 py-2 mb-4"
+              value={chatMessage}
+              onChange={e => setChatMessage(e.target.value)}
+              rows={4}
+              required
+              title="Mesajınız"
+              aria-label="Mesajınız"
+              placeholder="Mesajınızı yazın..."
+              autoFocus
+            />
+            <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
+              <MessageCircle size={18} /> Gönder
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   // --- RETURN ---
   return (
     <div className="space-y-6 animate-fade-in">
       {renderNewOfferModal()}
+      {renderChatModal()}
       <button onClick={() => setShowNewOfferModal(true)} className="mb-4 bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 flex items-center gap-2">
         <PlusCircle size={20} /> Yeni Teklif Ver
       </button>

@@ -241,6 +241,7 @@ const CreateShipmentRequestSection: React.FC = () => {
           'Crew List / Personel Sertifikaları',
           'ISM/ISPS Belgeleri',
           'Gemi Fotoğrafları',
+          'Son 3 Yük (Last 3 Cargo)',
           'Diğer (Belirtiniz): __________'
         ]
       }

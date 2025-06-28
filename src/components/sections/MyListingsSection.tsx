@@ -43,7 +43,8 @@ const MyListingsSection: React.FC = () => {
   // Simulated current user ID - gerçek uygulamada authentication context'ten gelecek
   const currentUserId = 'user_123'; // Bu değer gerçek uygulamada auth context'ten gelecek
 
-  const listings = [
+  // İlanlar state olarak tanımlandı
+  const [listings, setListings] = useState([
     {
       id: 'ILN2506230001',
       title: 'İstanbul-Ankara Tekstil Yükü',
@@ -206,7 +207,7 @@ const MyListingsSection: React.FC = () => {
         address: 'Atatürk Mah. Sanayi Cad. No:45 Kadıköy/İstanbul'
       }
     }
-  ];
+  ]);
 
   const getStatusBadge = (status: string, label: string) => {
     const statusClasses = {
@@ -280,6 +281,27 @@ const MyListingsSection: React.FC = () => {
     }));
   };
 
+  // İlanı aktif yap
+  const handleActivate = (listingId: string) => {
+    setListings((prev: any) => prev.map((l: any) => l.id === listingId ? { ...l, status: 'active', statusLabel: 'Aktif' } : l));
+  };
+  // İlanı pasif yap
+  const handlePause = (listingId: string) => {
+    setListings((prev: any) => prev.map((l: any) => l.id === listingId ? { ...l, status: 'paused', statusLabel: 'Pasif' } : l));
+  };
+  // İlanı sil
+  const handleDelete = (listingId: string) => {
+    setListings((prev: any) => prev.filter((l: any) => l.id !== listingId));
+  };
+  // İlanı değerlendir (örnek: toast veya alert ile)
+  const handleEvaluate = () => {
+    alert('Değerlendirme fonksiyonu henüz aktif değil.');
+  };
+  // İlanı arşivle (örnek: toast veya alert ile)
+  const handleArchive = () => {
+    alert('Arşivleme fonksiyonu henüz aktif değil.');
+  };
+
   const getActionButtons = (status: string, listing: any) => {
     if (status === 'completed') {
       return (
@@ -291,10 +313,10 @@ const MyListingsSection: React.FC = () => {
           >
             <Eye size={18} />
           </button>
-          <button className="text-green-600 hover:text-green-900 transition-colors" title="Değerlendir">
+          <button onClick={handleEvaluate} className="text-green-600 hover:text-green-900 transition-colors" title="Değerlendir">
             <Star size={18} />
           </button>
-          <button className="text-gray-600 hover:text-gray-900 transition-colors" title="Arşivle">
+          <button onClick={handleArchive} className="text-gray-600 hover:text-gray-900 transition-colors" title="Arşivle">
             <Archive size={18} />
           </button>
         </div>
@@ -318,10 +340,10 @@ const MyListingsSection: React.FC = () => {
           >
             <Eye size={18} />
           </button>
-          <button className="text-green-600 hover:text-green-900 transition-colors" title="Aktif Yap">
+          <button onClick={() => handleActivate(listing.id)} className="text-green-600 hover:text-green-900 transition-colors" title="Aktif Yap">
             <Play size={18} />
           </button>
-          <button className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
+          <button onClick={() => handleDelete(listing.id)} className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
             <Trash2 size={18} />
           </button>
         </div>
@@ -344,10 +366,10 @@ const MyListingsSection: React.FC = () => {
         >
           <Eye size={18} />
         </button>
-        <button className="text-yellow-600 hover:text-yellow-900 transition-colors" title="Pasif Yap">
+        <button onClick={() => handlePause(listing.id)} className="text-yellow-600 hover:text-yellow-900 transition-colors" title="Pasif Yap">
           <Pause size={18} />
         </button>
-        <button className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
+        <button onClick={() => handleDelete(listing.id)} className="text-red-600 hover:text-red-900 transition-colors" title="Sil">
           <Trash2 size={18} />
         </button>
       </div>

@@ -5,11 +5,8 @@ import {
   ThumbsUp, 
   ThumbsDown, 
   MessageCircle, 
-  Filter,
-  TrendingUp,
   Award,
   Users,
-  Calendar,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -18,7 +15,6 @@ const ReviewsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
-  const [expandedReview, setExpandedReview] = useState<number | null>(null);
 
   const companies = [
     {
@@ -275,6 +271,8 @@ const ReviewsPage: React.FC = () => {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              aria-label="Sırala"
+              title="Sırala"
             >
               <option value="rating">Puana Göre</option>
               <option value="reviews">Yorum Sayısına Göre</option>
