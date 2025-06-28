@@ -183,7 +183,17 @@ const CreateTransportServiceSection: React.FC = () => {
       'İrsaliye / Sevk Fişi',
       'ADR Belgesi (Tehlikeli madde için)',
       'Frigo Sertifikası (Soğutmalı araçlar için)',
-      'Ağırlık ve Ölçüm Raporu (Low-bed için)'
+      'Ağırlık ve Ölçüm Raporu (Low-bed için)',
+      'Hamule Senedi / CMR Waybill (Consignment Note)',
+      'Araç Takip Sistemi Kaydı / Sefer Defteri',
+      'Araç Fotoğrafı',
+      'Şoför Kimlik ve Ehliyet Fotokopisi',
+      'Araç Muayene Belgesi',
+      'Teslimat Tutanakları / Tesellüm/Kabul Belgesi',
+      'Karayolu Taşıyıcı Yetki Belgesi (Bakanlık onayı)',
+      'ISO/Kalite Belgesi (varsa)',
+      'Kaza Geçmişi / Track Record (isteğe bağlı, büyük projelerde)',
+      'Diğer (Belirtiniz): __________'
     ],
     sea: [
       'Konşimento (B/L)',
@@ -202,23 +212,41 @@ const CreateTransportServiceSection: React.FC = () => {
       'CDI Raporu'
     ],
     air: [
-      'AWB (Air Waybill)',
-      'Gümrük Beyannamesi',
-      'Tehlikeli Madde Beyanı (DGR)',
-      'Kargo Listesi',
-      'İthalat/İhracat Belgeleri',
-      'Taşıma Yetki Sertifikası',
-      'Uçuş Planı',
-      'Güvenlik Onay Belgesi'
+      'Air Waybill (AWB)',
+      'Booking Confirmation / Reservation',
+      'Yükleme Listesi / Packing List',
+      'Dangerous Goods Declaration (DGD) – Tehlikeli Yük Sertifikası',
+      'Uçak Uygunluk Belgeleri (Airworthiness)',
+      'Aircraft Registration Certificate',
+      'Operator’s Certificate (AOC)',
+      'Crew License ve Personel Belgeleri',
+      'Sigorta Poliçeleri (P&I, H&M)',
+      'Arrival Notice',
+      'Cargo Manifest',
+      'Teslimat Tutanakları / Teslim Tesellüm Belgesi',
+      'MSDS',
+      'Fumigasyon Sertifikası (gerekiyorsa)',
+      'Havayolu ISO/Kalite Belgesi (varsa)',
+      'Diğer (Belirtiniz): __________'
     ],
     rail: [
       'CIM Belgesi',
-      'Vagon Uygunluk Sertifikası',
-      'Taşıma Talimatnamesi',
-      'Yükleme Planı',
-      'Tehlikeli Madde Sertifikası',
-      'Raylı Sistem Sertifikaları',
-      'Sevk Emri ve Onay Yazısı'
+    'Hamule Senedi / Railway Consignment Note (CIM)',
+      'Taşıma Sözleşmesi',
+      'Vagon Sertifikası / Vagon Muayene Belgesi',
+      'Vagon Numarası / Tipi',
+      'Demiryolu İşletme Yetki Belgesi',
+      'Yükleme Talimatı',
+      'Yükleme Listesi',
+      'Yük Manifestosu',
+      'Sevk ve Teslim Belgesi',
+      'Vagon Takip/Teslim Formu',
+      'Tesellüm/Teslimat Tutanakları',
+      'Sigorta Poliçesi',
+      'Fumigasyon Sertifikası (gerekiyorsa)',
+      'Demiryolu Kaza/Kusur Kayıtları (büyük projelerde)',
+      'ISO/Kalite Belgesi (varsa)',
+      'Diğer (Belirtiniz): __________'
     ]
   };
 
@@ -871,22 +899,86 @@ const CreateTransportServiceSection: React.FC = () => {
                 <FileText className="mr-2 text-primary-600" size={20} />
                 📋 Gerekli Evraklar ({formData.serviceTransportMode === 'road' ? 'Karayolu' : formData.serviceTransportMode === 'sea' ? 'Denizyolu' : formData.serviceTransportMode === 'air' ? 'Havayolu' : 'Demiryolu'})
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {requiredDocuments[formData.serviceTransportMode as keyof typeof requiredDocuments]?.map((document, index) => (
-                  <div key={index} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`document-${index}`}
-                      checked={selectedDocuments.includes(document)}
-                      onChange={() => handleDocumentSelect(document)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                    />
-                    <label htmlFor={`document-${index}`} className="ml-2 text-sm text-gray-700">
-                      📄 {document}
-                    </label>
-                  </div>
-                ))}
-              </div>
+              {formData.serviceTransportMode === 'sea' ? (
+                <>
+                  {[
+                    {
+                      group: 'GEMİ OPERASYONEL & UYGUNLUK BELGELERİ (Vetting/Yeterlilik)',
+                      documents: [
+                        'Q88 Formu (Tanker teknik bilgi formu)',
+                        'SIRE Inspection Report (Son, temiz)',
+                        'CDI Certificate (Kimyasal taşımada)',
+                        'PSC Inspection Records (Son liman devleti kontrolü)',
+                        'Vetting Approval Record / Broker Questionnaire',
+                        'DOC/SMC/ISPS Sertifikaları',
+                        'Class Certificate / Class Status Report',
+                        'P&I Insurance Certificate (Sorumluluk sigortası)',
+                        'Hull & Machinery Insurance (Gövde/Makina Sigortası)',
+                        'Last Drydock/Special Survey Report',
+                        'Vessel Particulars / Registration Certificate'
+                      ]
+                    },
+                    {
+                      group: 'STANDART DENİZYOLU TAŞIMA BELGELERİ',
+                      documents: [
+                        'Bill of Lading (B/L) – Konşimento / Sea Waybill',
+                        'Charter Party / Fixture Note (Varsa, kiralama)',
+                        'Yükleme Listesi / Manifesto',
+                        'Loading Certificate / Yükleme Sertifikası',
+                        'Yükleme Planı (Loading Plan)',
+                        'Mate’s Receipt',
+                        'Surveyor Raporları (Ullage, Draft, SGS, Intertek)',
+                        'IMO Deklarasyonu (Tehlikeli yük için)',
+                        'Arrival Notice / Delivery Order',
+                        'Liman Belgeleri (Tally Sheet, EIR)',
+                        'Tank/Ambar Temizlik Sertifikası',
+                        'Fumigasyon Sertifikası (gerekiyorsa)',
+                        'Crew List / Personel Sertifikaları',
+                        'ISM/ISPS Belgeleri',
+                        'Gemi Fotoğrafları',
+                        'Diğer (Belirtiniz): __________'
+                      ]
+                    }
+                  ].map((group, groupIdx) => (
+                    <div key={groupIdx} className="mb-6">
+                      <div className="font-semibold text-primary-700 mb-2">{group.group}</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {group.documents.map((document, idx) => (
+                          <div key={idx} className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id={`sea_doc_${groupIdx}_${idx}`}
+                              checked={selectedDocuments.includes(document)}
+                              onChange={() => handleDocumentSelect(document)}
+                              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                            />
+                            <label htmlFor={`sea_doc_${groupIdx}_${idx}`} className="ml-3 text-sm text-gray-700">
+                              {document}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {requiredDocuments[formData.serviceTransportMode as keyof typeof requiredDocuments]?.map((document, index) => (
+                    <div key={index} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`document-${index}`}
+                        checked={selectedDocuments.includes(document)}
+                        onChange={() => handleDocumentSelect(document)}
+                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      />
+                      <label htmlFor={`document-${index}`} className="ml-2 text-sm text-gray-700">
+                        📄 {document}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
               {selectedDocuments.length > 0 && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-2xl border border-blue-200">
                   <p className="text-sm text-blue-800 font-medium">
