@@ -282,7 +282,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
       return;
     }
     setNewOfferForm({
-      listingId: listing.ilanNo || listing.id?.toString() || '',
+      listingId: listing.ilanNo || '', // Sadece ilanNo kullanılacak
       price: '',
       description: '',
       transportResponsible: '',
@@ -1036,7 +1036,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
             <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
             <form onSubmit={handleNewOfferSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-1">İlan</label>
+                <label className="block text-sm font-medium mb-1">İlan Numarası</label>
                 <input
                   className="w-full border rounded-lg px-3 py-2 bg-gray-100"
                   value={newOfferForm.listingId}

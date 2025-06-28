@@ -106,7 +106,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
       return;
     }
     setNewOfferForm({
-      listingId: listing.id?.toString() || '',
+      listingId: listing.ilanNo || '', // Sadece ilanNo kullanılacak
       price: '',
       description: '',
       transportResponsible: '',
@@ -709,7 +709,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
             <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
             <form onSubmit={handleNewOfferSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium mb-1">İlan</label>
+                <label className="block text-sm font-medium mb-1">İlan Numarası</label>
                 <input
                   className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
                   value={newOfferForm.listingId}
@@ -717,6 +717,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                   readOnly
                   title="İlan Numarası"
                   aria-label="İlan Numarası"
+                  placeholder="İlan Numarası"
                 />
               </div>
               <div>
