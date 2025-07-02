@@ -41,7 +41,10 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
       
       <div className="flex items-center space-x-4">
         <div className="relative">
-          <button className="flex items-center text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-110">
+          <button 
+            onClick={() => setActiveSection('notifications')}
+            className="flex items-center text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-110"
+          >
             <Bell size={20} />
             {notifications > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-bounce-subtle">
