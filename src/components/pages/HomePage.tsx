@@ -17,8 +17,42 @@ import {
   LogIn
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
-import { listings, type Listing } from '../../data/listings';
+import { listings } from '../../data/listings';
+import type { Listing } from '../../types/Listing';
 import './HomePage.pins.css';
+
+interface Step {
+  number: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+interface Feature {
+  icon: React.ElementType;
+  title: string;
+  subtitle: string;
+  description: string;
+  color: string;
+}
+
+interface MapUser {
+  id: number;
+  name: string;
+  type: 'buyer' | 'seller' | 'carrier';
+  title: string;
+  location: string;
+  route: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  avatar: string;
+  productImage: string;
+  lastActive: string;
+  price: string;
+}
 
 interface HomePageProps {
   isLoggedIn: boolean;
@@ -30,7 +64,7 @@ interface HomePageProps {
 const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboard, onShowListings }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedMapUser, setSelectedMapUser] = useState<any>(null);
+  const [selectedMapUser, setSelectedMapUser] = useState<MapUser | null>(null);
   const [mapFilters, setMapFilters] = useState({
     buyers: true,
     sellers: true,
@@ -54,7 +88,31 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
   // Mesaj modalı için state
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageText, setMessageText] = useState('');
-  const [messageTarget, setMessageTarget] = useState<any>(null);
+  const [messageTarget, setMessageTarget] = useState<Listing | null>(null);
+
+  const steps: Step[] = [
+    {
+      number: '01',
+      title: 'İlan Oluştur',
+      description: 'Yük veya nakliye ilanınızı kolayca oluşturun',
+      icon: Package,
+      color: 'bg-blue-500'
+    },
+    {
+      number: '02',
+      title: 'Teklif Al',
+      description: 'Hızlıca teklifler almaya başlayın',
+      icon: Truck,
+      color: 'bg-green-500'
+    },
+    {
+      number: '03',
+      title: 'Anlaşma Yap',
+      description: 'En uygun teklifi seçip anlaşmayı tamamlayın',
+      icon: CheckCircle,
+      color: 'bg-purple-500'
+    }
+  ];
 
   // Adımlar animasyonu için
   useEffect(() => {
@@ -62,9 +120,9 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
       setCurrentStep(prev => (prev + 1) % steps.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [steps.length]);
 
-  const features = [
+  const features: Feature[] = [
     {
       icon: Zap,
       title: 'Hızlı Eşleşme',
@@ -88,39 +146,8 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     }
   ];
 
-  const steps = [
-    {
-      number: '01',
-      title: 'İlan Oluştur',
-      description: 'Yük veya nakliye ilanınızı kolayca oluşturun',
-      icon: Package,
-      color: 'bg-blue-500'
-    },
-    {
-      number: '02',
-      title: 'Teklif Al',
-      description: 'Dakikalar içinde çoklu teklif alın',
-      icon: Clock,
-      color: 'bg-green-500'
-    },
-    {
-      number: '03',
-      title: 'Karşılaştır ve Onayla',
-      description: 'En uygun teklifi seçin ve onaylayın',
-      icon: CheckCircle,
-      color: 'bg-purple-500'
-    },
-    {
-      number: '04',
-      title: 'Teslimatı Takip Et',
-      description: 'Yükünüzü gerçek zamanlı takip edin',
-      icon: Truck,
-      color: 'bg-orange-500'
-    }
-  ];
-
   // Harita üzerindeki kullanıcılar
-  const mapUsers = [
+  const mapUsers: MapUser[] = [
     {
       id: 1,
       name: 'Mehmet Yılmaz',
@@ -234,7 +261,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     { number: '99.8%', label: 'Müşteri Memnuniyeti', icon: CheckCircle }
   ];
 
-  const getUserTypeColor = (type: string) => {
+  const getUserTypeColor = (type: MapUser['type']) => {
     switch (type) {
       case 'buyer': return 'bg-blue-500';
       case 'seller': return 'bg-green-500';
@@ -243,7 +270,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     }
   };
 
-  const getUserTypeLabel = (type: string) => {
+  const getUserTypeLabel = (type: MapUser['type']) => {
     switch (type) {
       case 'buyer': return 'Alıcı';
       case 'seller': return 'Satıcı';
@@ -259,7 +286,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     return true;
   });
 
-  const openGoogleMaps = (user: any) => {
+  const openGoogleMaps = (user: MapUser) => {
     const url = `https://www.google.com/maps/search/?api=1&query=${user.coordinates.lat},${user.coordinates.lng}`;
     window.open(url, '_blank');
   };
@@ -267,12 +294,12 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
   // Kullanıcı adı örneği (gerçek uygulamada auth'dan alınır)
   const currentUserName = 'Mehmet Yılmaz'; // Örnek, değiştirilebilir
 
-  const isOwnListing = (listing: any) => {
+  const isOwnListing = (listing: Listing) => {
     if (!listing || !listing.contact) return false;
     return listing.contact.name === currentUserName;
   };
 
-  const handleShowOffer = (listing: any) => {
+  const handleShowOffer = (listing: Listing) => {
     if (!isLoggedIn) {
       onLogin();
       return;
@@ -1151,14 +1178,14 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
             </button>
             <h3 className="text-lg font-bold mb-4">Mesaj Gönder</h3>
             <div className="mb-2 text-sm font-semibold uppercase text-gray-500">
-              Alıcı: <span className="text-primary-600 font-bold underline cursor-pointer">{messageTarget?.contact?.name || messageTarget?.name || ''}</span>
+              Alıcı: <span className="text-primary-600 font-bold underline cursor-pointer">{messageTarget?.contact?.name || ''}</span>
             </div>
             <form onSubmit={handleSendMessage} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Alıcı</label>
                 <input
                   className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
-                  value={messageTarget?.contact?.name || messageTarget?.name || ''}
+                  value={messageTarget?.contact?.name || ''}
                   disabled
                   readOnly
                   title="Alıcı"

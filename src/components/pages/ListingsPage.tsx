@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Search, Filter, MapPin, Package, Clock, Eye, Star, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
-import { listings, type Listing } from '../../data/listings';
+import { listings } from '../../data/listings';
+import type { Listing } from '../../types/Listing';
 
 interface ListingsPageProps {
   isLoggedIn?: boolean;
@@ -31,7 +32,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
   // Mesaj modalı için state
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageText, setMessageText] = useState('');
-  const [messageTarget, setMessageTarget] = useState<any>(null);
+  const [messageTarget, setMessageTarget] = useState<Listing | null>(null);
 
   // Simulated current user ID - gerçek uygulamada authentication context'ten gelecek
   const currentUserId = 'user_123'; // Bu değer gerçek uygulamada auth context'ten gelecek
@@ -91,12 +92,12 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
     return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const isOwnListing = (listing: any) => {
+  const isOwnListing = (listing: Listing) => {
     return isLoggedIn && listing.ownerId === currentUserId;
   };
 
   // Teklif Ver butonu işlevi
-  const handleShowOffer = (listing: any) => {
+  const handleShowOffer = (listing: Listing) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -117,7 +118,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
     setShowNewOfferModal(true);
   };
   // Mesaj Gönder butonu işlevi
-  const handleShowMessage = (listing: any) => {
+  const handleShowMessage = (listing: Listing) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
@@ -828,7 +829,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                 <label className="block text-sm font-medium mb-1">Alıcı</label>
                 <input
                   className="w-full border rounded-lg px-3 py-2 bg-gray-100"
-                  value={messageTarget?.contact?.name || messageTarget?.contact || ''}
+                  value={messageTarget?.contact?.name || ''}
                   disabled
                   readOnly
                   title="Alıcı"
