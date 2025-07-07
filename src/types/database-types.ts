@@ -250,12 +250,11 @@ export interface Database {
           listing_type: 'shipment_request' | 'load_listing'
           title: string
           description: string | null
-          pickup_location: string
-          delivery_location: string
+          origin: string
+          destination: string
           pickup_date: string | null
           delivery_date: string | null
           price: number | null
-          currency: string
           status: 'active' | 'inactive' | 'completed' | 'cancelled'
           priority: 'low' | 'medium' | 'high' | 'urgent'
           views_count: number
@@ -280,7 +279,6 @@ export interface Database {
           pickup_date?: string | null
           delivery_date?: string | null
           price?: number | null
-          currency?: string
           status?: 'active' | 'inactive' | 'completed' | 'cancelled'
           priority?: 'low' | 'medium' | 'high' | 'urgent'
           views_count?: number
@@ -300,12 +298,11 @@ export interface Database {
           listing_type?: 'shipment_request' | 'load_listing'
           title?: string
           description?: string | null
-          pickup_location?: string
-          delivery_location?: string
+          origin?: string
+          destination?: string
           pickup_date?: string | null
           delivery_date?: string | null
           price?: number | null
-          currency?: string
           status?: 'active' | 'inactive' | 'completed' | 'cancelled'
           priority?: 'low' | 'medium' | 'high' | 'urgent'
           views_count?: number

@@ -8,30 +8,41 @@ type ListingUpdate = Database['public']['Tables']['listings']['Update'];
 export class ListingService {
   // Yeni ilan oluştur
   static async createListing(listingData: ListingInsert): Promise<Listing> {
-    // En minimal data ile deneyelim + UUID
-    const minimalData = {
-      id: crypto.randomUUID(),
-      user_id: listingData.user_id,
-      listing_type: listingData.listing_type,
-      title: listingData.title,
-      pickup_location: listingData.pickup_location,
-      delivery_location: listingData.delivery_location
-    };
+    try {
+      console.log('Creating listing with real schema...');
+      
+      // Gerçek şemaya uygun minimal data - daha önceden çalışan alanları kullan
+      const realData = {
+        user_id: listingData.user_id,
+        listing_type: listingData.listing_type,
+        title: listingData.title,
+        description: listingData.description,
+        origin: listingData.pickup_location,
+        destination: listingData.delivery_location,
+        transport_mode: 'road', // Zorunlu alan, varsayılan değer
+        listing_number: this.generateListingNumber(), // Manuel olarak listing_number ekle
+      };
 
-    console.log('Attempting to create listing with minimal data:', minimalData);
+      console.log('Attempting to create listing with real schema:', realData);
 
-    const { data, error } = await supabase
-      .from('listings')
-      .insert([minimalData])
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from('listings')
+        .insert([realData])
+        .select()
+        .single();
 
-    if (error) {
+      if (error) {
+        console.error('Error creating listing:', error);
+        throw new Error(`İlan oluşturulurken hata oluştu: ${error.message}`);
+      }
+
+      console.log('✅ Listing created successfully:', data);
+      return data;
+      
+    } catch (error) {
       console.error('Error creating listing:', error);
-      throw new Error(`İlan oluşturulurken hata oluştu: ${error.message}`);
+      throw new Error(`İlan oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
     }
-
-    return data;
   }
 
   // Kullanıcının ilanlarını getir
@@ -167,11 +178,11 @@ export class ListingService {
     }
 
     if (pickupLocation) {
-      query = query.ilike('pickup_location', `%${pickupLocation}%`);
+      query = query.ilike('origin', `%${pickupLocation}%`);
     }
 
     if (deliveryLocation) {
-      query = query.ilike('delivery_location', `%${deliveryLocation}%`);
+      query = query.ilike('destination', `%${deliveryLocation}%`);
     }
 
     if (minPrice) {

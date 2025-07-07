@@ -97,7 +97,7 @@ const MessagesSection: React.FC = () => {
     }
   };
 
-  const handleSelectEmoji = (emojiData: any) => {
+  const handleSelectEmoji = (emojiData: { emoji: string }) => {
     setMessageText((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
   };

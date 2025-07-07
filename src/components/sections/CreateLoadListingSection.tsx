@@ -60,13 +60,14 @@ const CreateLoadListingSection: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Supabase için veri formatı - en minimal
+      // Supabase için veri formatı - gerçek şemaya uygun
       const listingData = {
         user_id: user.id,
         listing_type: 'load_listing' as const,
         title: formData.loadTitle,
-        pickup_location: formData.loadOrigin,
-        delivery_location: formData.loadDestination
+        description: formData.loadDescription,
+        pickup_location: formData.loadOrigin, // Bu origin olacak
+        delivery_location: formData.loadDestination // Bu destination olacak
       };
 
       await ListingService.createListing(listingData);

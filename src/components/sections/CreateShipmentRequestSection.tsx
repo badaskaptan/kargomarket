@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { ArrowLeft, Calendar, Package, MapPin, Truck, Ship, Plane, Train, ChevronDown, FileText, Upload, Eye, Download, Trash2 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
+// Document interface tanımı
+interface Document {
+  id: string;
+  name: string;
+  size: string;
+  type: string;
+  url: string;
+}
+
 const CreateShipmentRequestSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const [transportMode, setTransportMode] = useState('');
@@ -363,14 +372,14 @@ const CreateShipmentRequestSection: React.FC = () => {
     setUploadedDocuments(prev => prev.filter(doc => doc.id !== id));
   };
 
-  const handleDocumentPreview = (document: any) => {
-    window.open(document.url, '_blank');
+  const handleDocumentPreview = (doc: Document) => {
+    window.open(doc.url, '_blank');
   };
 
-  const handleDocumentDownload = (document: any) => {
+  const handleDocumentDownload = (doc: Document) => {
     const link = document.createElement('a');
-    link.href = document.url;
-    link.download = document.name;
+    link.href = doc.url;
+    link.download = doc.name;
     link.click();
   };
 

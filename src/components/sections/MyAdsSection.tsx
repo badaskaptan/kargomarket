@@ -2,6 +2,22 @@ import React, { useState } from 'react';
 import { Plus, Search, Edit, Pause, Play, Trash2, Eye, BarChart3, CreditCard, X, CheckCircle } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 
+// Ad interface tanımı
+interface Ad {
+  id: number;
+  title: string;
+  type: string;
+  duration: string;
+  targetRole: string;
+  status: string;
+  statusLabel: string;
+  remainingDays: string;
+  views: number;
+  clicks: number;
+  budget: string;
+  spent: string;
+}
+
 // Reklamlar dizisi en üste taşındı
 const initialAds = [
   {
@@ -53,7 +69,7 @@ const MyAdsSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
-  const [selectedAd, setSelectedAd] = useState<any>(null);
+  const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
   const [showBalanceModal, setShowBalanceModal] = useState(false);
   const [balance, setBalance] = useState(1250); // Varsayılan bakiye
   const [balanceForm, setBalanceForm] = useState({
@@ -90,7 +106,7 @@ const MyAdsSection: React.FC = () => {
     );
   };
 
-  const handleEdit = (ad: any) => {
+  const handleEdit = (ad: Ad) => {
     setSelectedAd(ad);
     setEditForm({
       title: ad.title,
@@ -101,25 +117,26 @@ const MyAdsSection: React.FC = () => {
     });
     setShowEditModal(true);
   };
-  const handlePreview = (ad: any) => {
+  const handlePreview = (ad: Ad) => {
     setSelectedAd(ad);
     setShowPreviewModal(true);
   };
-  const handlePause = (ad: any) => {
+  const handlePause = (ad: Ad) => {
     setAdsState(prev => prev.map(a => a.id === ad.id ? { ...a, status: 'paused', statusLabel: 'Pasif' } : a));
     setInfoMessage('Reklam pasif hale getirildi.');
     setTimeout(() => setInfoMessage(''), 2000);
   };
-  const handleActivate = (ad: any) => {
+  const handleActivate = (ad: Ad) => {
     setAdsState(prev => prev.map(a => a.id === ad.id ? { ...a, status: 'active', statusLabel: 'Aktif' } : a));
     setInfoMessage('Reklam aktif hale getirildi.');
     setTimeout(() => setInfoMessage(''), 2000);
   };
-  const handleDelete = (ad: any) => {
+  const handleDelete = (ad: Ad) => {
     setSelectedAd(ad);
     setShowDeleteModal(true);
   };
   const confirmDelete = () => {
+    if (!selectedAd) return;
     setAdsState(prev => prev.filter(a => a.id !== selectedAd.id));
     setShowDeleteModal(false);
     setInfoMessage('Reklam silindi.');
@@ -130,6 +147,7 @@ const MyAdsSection: React.FC = () => {
     setEditForm(f => ({ ...f, [name]: value }));
   };
   const saveEdit = () => {
+    if (!selectedAd) return;
     setAdsState(prev => prev.map(a => a.id === selectedAd.id ? {
       ...a,
       title: editForm.title,
@@ -143,7 +161,7 @@ const MyAdsSection: React.FC = () => {
     setTimeout(() => setInfoMessage(''), 2000);
   };
 
-  const getActionButtons = (status: string, ad: any) => {
+  const getActionButtons = (status: string, ad: Ad) => {
     if (status === 'pending') {
       return (
         <div className="flex space-x-2">
@@ -587,7 +605,7 @@ const MyAdsSection: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAds.map((ad: any) => (
+              {filteredAds.map((ad: Ad) => (
                 <tr key={ad.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{ad.title}</div>
