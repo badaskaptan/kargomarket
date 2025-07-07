@@ -1,12 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PublicLayout from './components/layout/PublicLayout.tsx';
 import DashboardLayout from './components/layout/DashboardLayout.tsx';
 import { DashboardProvider } from './context/DashboardContext.tsx';
 import { AuthProvider, useAuth } from './context/SupabaseAuthContext.tsx';
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const [showDashboard, setShowDashboard] = useState(false);
+
+  // Kullanıcı giriş yaptığında otomatik Dashboard'ı aç
+  useEffect(() => {
+    if (user && profile && !loading) {
+      console.log('🚀 User logged in, opening Dashboard automatically');
+      setShowDashboard(true);
+    }
+  }, [user, profile, loading]);
+
+  // Debug logs (production'da kaldırılabilir)
+  if (import.meta.env.DEV) {
+    console.log('App Debug:', JSON.stringify({ user: !!user, profile: !!profile, showDashboard, loading }));
+    console.log('🎯 Dashboard Decision:', JSON.stringify({ 
+      showDashboard, 
+      hasUser: !!user, 
+      hasProfile: !!profile
+    }));
+  }
 
   if (loading) {
     return (

@@ -15,7 +15,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'pkce' // Modern auth flow
   }
 })
 
@@ -23,24 +24,30 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 export const auth = {
   // Sign up with email and password
   signUp: async (email: string, password: string, fullName: string) => {
+    console.log('🔑 Attempting signup:', { email, fullName });
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName
-        }
+        },
+        // Development: Skip email confirmation for testing
+        emailRedirectTo: window.location.origin
       }
     })
+    console.log('📝 Signup result:', { data: !!data, error: error?.message });
     return { data, error }
   },
 
   // Sign in with email and password
   signIn: async (email: string, password: string) => {
+    console.log('🔐 Attempting signin:', { email });
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
+    console.log('🔓 Signin result:', { data: !!data, error: error?.message });
     return { data, error }
   },
 

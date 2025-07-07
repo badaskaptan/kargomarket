@@ -27,22 +27,37 @@ const AuthModal: React.FC<AuthModalProps> = ({
     rememberMe: false
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+    setSuccess(null);
 
     try {
       if (isLogin) {
         const identifier = loginType === "email" ? formData.email : formData.username;
         await onLogin(identifier, formData.password);
+        setSuccess("Giriş başarılı! Yönlendiriliyorsunuz...");
+        setTimeout(() => {
+          onClose();
+        }, 1500);
       } else {
         await onRegister(formData.fullName, formData.email, formData.password);
+        setSuccess("Kayıt başarılı! Email adresinizi kontrol edin.");
+        setTimeout(() => {
+          setIsLogin(true);
+          setSuccess(null);
+        }, 2000);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Authentication error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Bir hata oluştu. Lütfen tekrar deneyin.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -50,10 +65,19 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleGoogleAuth = async () => {
     setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
     try {
       await onGoogleLogin();
-    } catch (error) {
+      setSuccess("Google ile giriş başarılı!");
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error: unknown) {
       console.error("Google authentication error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Google ile giriş başarısız. Lütfen tekrar deneyin.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -124,6 +148,18 @@ const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Giriş veya Kayıt formu */}
         <form onSubmit={handleSubmit} className="space-y-5 w-full">
+          {/* Hata ve Başarı Mesajları */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm animate-slideDown">
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm animate-slideDown">
+              {success}
+            </div>
+          )}
           {isLogin ? (
             <>
               {/* Kullanıcı adı/eposta seçimi */}

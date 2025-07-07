@@ -13,9 +13,11 @@ import {
   Activity
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useAuth } from '../../context/SupabaseAuthContext';
 
 const OverviewSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
+  const { profile } = useAuth();
 
   const stats = [
     {
@@ -117,7 +119,9 @@ const OverviewSection: React.FC = () => {
       <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-8 text-white shadow-xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Hoş Geldiniz, Ahmet Yılmaz!</h1>
+            <h1 className="text-3xl font-bold mb-2">
+              Hoş Geldiniz, {profile?.full_name || 'Kullanıcı'}!
+            </h1>
             <p className="text-primary-100 text-lg">Bugün nasıl yardımcı olabiliriz?</p>
           </div>
           <div className="hidden md:block">

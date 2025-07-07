@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, Bell, User, ArrowLeft } from 'lucide-react';
 import { useDashboard } from '../context/DashboardContext';
+import { useAuth } from '../context/SupabaseAuthContext';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
   const { userRole, setUserRole, notifications } = useDashboard();
+  const { profile } = useAuth();
 
   return (
     <header className="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-20 glass-effect">
@@ -58,7 +60,9 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
             <User size={20} className="text-white" />
           </div>
           <div className="hidden md:block">
-            <p className="text-sm font-medium text-gray-900">Merhaba, Ahmet Yılmaz</p>
+            <p className="text-sm font-medium text-gray-900">
+              Merhaba, {profile?.full_name || 'Kullanıcı'}
+            </p>
             <select
               value={userRole}
               onChange={(e) => setUserRole(e.target.value as 'alici-satici' | 'nakliyeci')}

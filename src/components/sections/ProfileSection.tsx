@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star } from 'lucide-react';
+import { useAuth } from '../../context/SupabaseAuthContext';
 
 const ProfileSection: React.FC = () => {
+  const { profile } = useAuth();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [offerNotifications, setOfferNotifications] = useState(true);
@@ -58,8 +60,10 @@ const ProfileSection: React.FC = () => {
                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mb-4 shadow-lg">
                   <User size={48} className="text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">Ahmet Yılmaz</h3>
-                <p className="text-gray-600 mb-4">ahmet.yilmaz@example.com</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                  {profile?.full_name || 'Kullanıcı'}
+                </h3>
+                <p className="text-gray-600 mb-4">{profile?.email || 'Email yükleniyor...'}</p>
                 
                 <div className="w-full space-y-3">
                   <button className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl">
@@ -177,7 +181,9 @@ const ProfileSection: React.FC = () => {
                   <User className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Ad Soyad</p>
-                    <p className="font-medium text-gray-900">Ahmet Yılmaz</p>
+                    <p className="font-medium text-gray-900">
+                      {profile?.full_name || 'Kullanıcı'}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center">

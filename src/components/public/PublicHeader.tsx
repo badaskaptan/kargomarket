@@ -37,6 +37,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
   };
 
   const handleDashboardClick = () => {
+    console.log('Dashboard button clicked!');
     setUserMenuOpen(false);
     onShowDashboard();
   };
@@ -47,6 +48,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
       setAuthModalOpen(false);
     } catch (error) {
       console.error('Login error:', error);
+      // Hata AuthModal tarafından yakalanıp gösterilecek
+      throw error;
     }
   };
 
@@ -56,6 +59,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
       setAuthModalOpen(false);
     } catch (error) {
       console.error('Register error:', error);
+      // Hata AuthModal tarafından yakalanıp gösterilecek
+      throw error;
     }
   };
 
@@ -65,6 +70,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
       setAuthModalOpen(false);
     } catch (error) {
       console.error('Google login error:', error);
+      // Hata AuthModal tarafından yakalanıp gösterilecek
+      throw error;
     }
   };
 
