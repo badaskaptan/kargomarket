@@ -18,7 +18,7 @@ import { ListingService } from '../../services/listingService';
 import type { Listing } from '../../types/database-types';
 
 // Gerçek Supabase verileriyle extended Listing interface
-interface ExtendedListing extends Listing {
+interface ExtendedListing extends Omit<Listing, 'listing_number'> {
   listing_number?: string;
 }
 
@@ -52,17 +52,21 @@ const MyListingsSection: React.FC = () => {
   const getStatusBadge = (status: string) => {
     const statusClasses = {
       active: 'bg-green-100 text-green-800',
-      inactive: 'bg-gray-100 text-gray-800',
+      paused: 'bg-gray-100 text-gray-800',
       completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-red-100 text-red-800'
+      cancelled: 'bg-red-100 text-red-800',
+      draft: 'bg-yellow-100 text-yellow-800',
+      expired: 'bg-red-100 text-red-800'
     };
     
     return (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses] || 'bg-gray-100 text-gray-800'}`}>
         {status === 'active' ? 'Aktif' : 
-         status === 'inactive' ? 'Pasif' : 
+         status === 'paused' ? 'Duraklatılmış' : 
          status === 'completed' ? 'Tamamlandı' :
-         status === 'cancelled' ? 'İptal' : status}
+         status === 'cancelled' ? 'İptal' : 
+         status === 'draft' ? 'Taslak' :
+         status === 'expired' ? 'Süresi Dolmuş' : status}
       </span>
     );
   };
@@ -163,9 +167,9 @@ const MyListingsSection: React.FC = () => {
           <div className="flex items-center">
             <Pause className="h-8 w-8 text-orange-600" />
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Pasif</p>
+              <p className="text-sm font-medium text-gray-600">Duraklatılan</p>
               <p className="text-2xl font-bold text-gray-900">
-                {listings.filter(l => l.status === 'inactive').length}
+                {listings.filter(l => l.status === 'paused').length}
               </p>
             </div>
           </div>
@@ -249,6 +253,11 @@ const MyListingsSection: React.FC = () => {
                         {listing.description && (
                           <div className="text-xs text-gray-600 mt-1 max-w-xs truncate">
                             {listing.description}
+                          </div>
+                        )}
+                        {listing.required_documents && Array.isArray(listing.required_documents) && listing.required_documents.length > 0 && (
+                          <div className="text-xs text-blue-600 mt-1">
+                            📋 {listing.required_documents.length} evrak gerekli
                           </div>
                         )}
                       </div>

@@ -26,6 +26,7 @@ interface FormListingData {
   price_currency?: string;
   offer_type?: string | null;
   transport_responsible?: string | null;
+  required_documents?: string[] | null;
   status?: string;
 }
 
@@ -56,6 +57,7 @@ export class ListingService {
         price_currency: listingData.price_currency,
         offer_type: listingData.offer_type,
         transport_responsible: listingData.transport_responsible,
+        required_documents: listingData.required_documents, // Evrak listesi
         status: listingData.status || 'active',
         listing_number: this.generateListingNumber(), // Manuel olarak listing_number ekle
       };

@@ -244,75 +244,204 @@ export interface Database {
       listings: {
         Row: {
           id: string
-          created_at: string
-          updated_at: string
-          user_id: string
-          listing_type: 'shipment_request' | 'load_listing'
+          listing_number: string
+          user_id: string | null
+          listing_type: 'load_listing' | 'shipment_request' | 'transport_service'
+          role_type: 'buyer' | 'seller' | null
           title: string
           description: string | null
+          category: string | null
+          subcategory: string | null
           origin: string
           destination: string
-          pickup_date: string | null
+          origin_coordinates: unknown | null
+          destination_coordinates: unknown | null
+          origin_details: Record<string, unknown> | null
+          destination_details: Record<string, unknown> | null
+          route_waypoints: unknown[] | null
+          load_type: string | null
+          load_category: string | null
+          weight_value: number | null
+          weight_unit: string | null
+          volume_value: number | null
+          volume_unit: string | null
+          dimensions: Record<string, unknown> | null
+          quantity: number | null
+          packaging_type: string | null
+          special_handling_requirements: string[] | null
+          loading_date: string | null
+          loading_time: string | null
           delivery_date: string | null
-          price: number | null
-          status: 'active' | 'inactive' | 'completed' | 'cancelled'
-          priority: 'low' | 'medium' | 'high' | 'urgent'
-          views_count: number
-          offers_count: number
-          is_featured: boolean
+          delivery_time: string | null
+          available_from_date: string | null
+          available_until_date: string | null
+          flexible_dates: boolean | null
+          transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal'
+          vehicle_types: string[] | null
+          transport_responsible: 'buyer' | 'seller' | 'carrier' | 'negotiable' | null
+          special_requirements: string | null
+          temperature_controlled: boolean | null
+          temperature_range: Record<string, unknown> | null
+          humidity_controlled: boolean | null
+          hazardous_materials: boolean | null
+          fragile_cargo: boolean | null
+          offer_type: 'fixed_price' | 'negotiable' | 'auction' | 'free_quote' | null
+          price_amount: number | null
+          price_currency: string | null
+          price_per: 'total' | 'ton' | 'km' | 'day' | 'hour' | null
+          budget_min: number | null
+          budget_max: number | null
+          required_documents: string[] | null
+          insurance_required: boolean | null
+          insurance_value: number | null
+          customs_clearance_required: boolean | null
+          status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired' | null
+          is_urgent: boolean | null
+          priority_level: number | null
+          visibility: 'public' | 'private' | 'premium' | null
+          view_count: number | null
+          offer_count: number | null
+          favorite_count: number | null
+          search_tags: string[] | null
+          seo_keywords: string[] | null
+          created_at: string | null
+          updated_at: string | null
+          published_at: string | null
           expires_at: string | null
-          cargo_details: CargoDetails
-          transport_details: TransportDetails
-          additional_requirements: AdditionalRequirements
-          metadata: GenericMetadata
         }
         Insert: {
           id?: string
-          created_at?: string
-          updated_at?: string
-          user_id: string
-          listing_type: 'shipment_request' | 'load_listing'
+          listing_number?: string
+          user_id?: string | null
+          listing_type: 'load_listing' | 'shipment_request' | 'transport_service'
+          role_type?: 'buyer' | 'seller' | null
           title: string
           description?: string | null
-          pickup_location: string
-          delivery_location: string
-          pickup_date?: string | null
+          category?: string | null
+          subcategory?: string | null
+          origin: string
+          destination: string
+          origin_coordinates?: unknown | null
+          destination_coordinates?: unknown | null
+          origin_details?: Record<string, unknown> | null
+          destination_details?: Record<string, unknown> | null
+          route_waypoints?: unknown[] | null
+          load_type?: string | null
+          load_category?: string | null
+          weight_value?: number | null
+          weight_unit?: string | null
+          volume_value?: number | null
+          volume_unit?: string | null
+          dimensions?: Record<string, unknown> | null
+          quantity?: number | null
+          packaging_type?: string | null
+          special_handling_requirements?: string[] | null
+          loading_date?: string | null
+          loading_time?: string | null
           delivery_date?: string | null
-          price?: number | null
-          status?: 'active' | 'inactive' | 'completed' | 'cancelled'
-          priority?: 'low' | 'medium' | 'high' | 'urgent'
-          views_count?: number
-          offers_count?: number
-          is_featured?: boolean
+          delivery_time?: string | null
+          available_from_date?: string | null
+          available_until_date?: string | null
+          flexible_dates?: boolean | null
+          transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal'
+          vehicle_types?: string[] | null
+          transport_responsible?: 'buyer' | 'seller' | 'carrier' | 'negotiable' | null
+          special_requirements?: string | null
+          temperature_controlled?: boolean | null
+          temperature_range?: Record<string, unknown> | null
+          humidity_controlled?: boolean | null
+          hazardous_materials?: boolean | null
+          fragile_cargo?: boolean | null
+          offer_type?: 'fixed_price' | 'negotiable' | 'auction' | 'free_quote' | null
+          price_amount?: number | null
+          price_currency?: string | null
+          price_per?: 'total' | 'ton' | 'km' | 'day' | 'hour' | null
+          budget_min?: number | null
+          budget_max?: number | null
+          required_documents?: string[] | null
+          insurance_required?: boolean | null
+          insurance_value?: number | null
+          customs_clearance_required?: boolean | null
+          status?: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired' | null
+          is_urgent?: boolean | null
+          priority_level?: number | null
+          visibility?: 'public' | 'private' | 'premium' | null
+          view_count?: number | null
+          offer_count?: number | null
+          favorite_count?: number | null
+          search_tags?: string[] | null
+          seo_keywords?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+          published_at?: string | null
           expires_at?: string | null
-          cargo_details?: CargoDetails
-          transport_details?: TransportDetails
-          additional_requirements?: AdditionalRequirements
-          metadata?: GenericMetadata
         }
         Update: {
           id?: string
-          created_at?: string
-          updated_at?: string
-          user_id?: string
-          listing_type?: 'shipment_request' | 'load_listing'
+          listing_number?: string
+          user_id?: string | null
+          listing_type?: 'load_listing' | 'shipment_request' | 'transport_service'
+          role_type?: 'buyer' | 'seller' | null
           title?: string
           description?: string | null
+          category?: string | null
+          subcategory?: string | null
           origin?: string
           destination?: string
-          pickup_date?: string | null
+          origin_coordinates?: unknown | null
+          destination_coordinates?: unknown | null
+          origin_details?: Record<string, unknown> | null
+          destination_details?: Record<string, unknown> | null
+          route_waypoints?: unknown[] | null
+          load_type?: string | null
+          load_category?: string | null
+          weight_value?: number | null
+          weight_unit?: string | null
+          volume_value?: number | null
+          volume_unit?: string | null
+          dimensions?: Record<string, unknown> | null
+          quantity?: number | null
+          packaging_type?: string | null
+          special_handling_requirements?: string[] | null
+          loading_date?: string | null
+          loading_time?: string | null
           delivery_date?: string | null
-          price?: number | null
-          status?: 'active' | 'inactive' | 'completed' | 'cancelled'
-          priority?: 'low' | 'medium' | 'high' | 'urgent'
-          views_count?: number
-          offers_count?: number
-          is_featured?: boolean
+          delivery_time?: string | null
+          available_from_date?: string | null
+          available_until_date?: string | null
+          flexible_dates?: boolean | null
+          transport_mode?: 'road' | 'sea' | 'air' | 'rail' | 'multimodal'
+          vehicle_types?: string[] | null
+          transport_responsible?: 'buyer' | 'seller' | 'carrier' | 'negotiable' | null
+          special_requirements?: string | null
+          temperature_controlled?: boolean | null
+          temperature_range?: Record<string, unknown> | null
+          humidity_controlled?: boolean | null
+          hazardous_materials?: boolean | null
+          fragile_cargo?: boolean | null
+          offer_type?: 'fixed_price' | 'negotiable' | 'auction' | 'free_quote' | null
+          price_amount?: number | null
+          price_currency?: string | null
+          price_per?: 'total' | 'ton' | 'km' | 'day' | 'hour' | null
+          budget_min?: number | null
+          budget_max?: number | null
+          required_documents?: string[] | null
+          insurance_required?: boolean | null
+          insurance_value?: number | null
+          customs_clearance_required?: boolean | null
+          status?: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired' | null
+          is_urgent?: boolean | null
+          priority_level?: number | null
+          visibility?: 'public' | 'private' | 'premium' | null
+          view_count?: number | null
+          offer_count?: number | null
+          favorite_count?: number | null
+          search_tags?: string[] | null
+          seo_keywords?: string[] | null
+          created_at?: string | null
+          updated_at?: string | null
+          published_at?: string | null
           expires_at?: string | null
-          cargo_details?: CargoDetails
-          transport_details?: TransportDetails
-          additional_requirements?: AdditionalRequirements
-          metadata?: GenericMetadata
         }
       }
       transport_services: {

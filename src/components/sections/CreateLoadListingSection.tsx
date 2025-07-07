@@ -33,6 +33,32 @@ const CreateLoadListingSection: React.FC = () => {
     loadRoleSelection: ''
   });
   const [loadImages, setLoadImages] = useState<(string | null)[]>([null, null, null]);
+  const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
+
+  // Evrak etiketleri
+  const documentLabels: Record<string, string> = {
+    invoice: '📄 Fatura / Proforma Fatura',
+    salesContract: '📝 Satış Sözleşmesi',
+    waybill: '📋 İrsaliye / Sevk Fişi',
+    originCertificate: '🌍 Menşe Şahadetnamesi',
+    analysis: '🔬 Analiz Sertifikası / Laboratuvar Raporları',
+    complianceCertificates: '📑 TSE, CE, ISO Uygunluk Sertifikaları',
+    productPhotos: '🖼️ Ürün Fotoğrafları',
+    packingList: '📦 Ambalaj / Packing List',
+    warehouseReceipt: '🏪 Depo Teslim Fişi / Stok Belgesi',
+    producerReceipt: '🌾 Müstahsil Makbuzu',
+    customsDeclaration: '🛃 Gümrük Beyannamesi',
+    msds: '🧪 MSDS',
+    fumigationCertificate: '🌫️ Fumigasyon Sertifikası',
+    inspectionReports: '🔎 SGS / Intertek Raporları',
+    paymentDocuments: '💳 Ödeme Belgeleri',
+    healthCertificates: '🩺 Sağlık/Veteriner/Fitosaniter Sertifika',
+    specialCertificates: '🕋 Helal/Kosher/ECO Sertifikaları',
+    importExportLicense: '📜 İthalat/İhracat Lisansı',
+    antidampingCertificates: '🌱 Anti-damping/Orijinallik Belgeleri',
+    productManuals: '📘 Ürün Teknik Bilgi Formları',
+    other: '➕ Diğer'
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -40,6 +66,16 @@ const CreateLoadListingSection: React.FC = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = e.target;
+    
+    if (checked) {
+      setRequiredDocuments(prev => [...prev, value]);
+    } else {
+      setRequiredDocuments(prev => prev.filter(doc => doc !== value));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,6 +117,8 @@ const CreateLoadListingSection: React.FC = () => {
         price_currency: 'TRY',
         offer_type: offerType === 'price' ? 'fixed_price' : 'negotiable',
         transport_responsible: formData.loadRoleSelection || null,
+        required_documents: requiredDocuments.length > 0 ? requiredDocuments : null,
+        listing_number: formData.listingNumber, // Otomatik generate edilen numara
         status: 'active'
       };
 
@@ -515,7 +553,8 @@ const CreateLoadListingSection: React.FC = () => {
                 <option value="">Seçiniz</option>
                 <option value="buyer">🛒 Alıcı</option>
                 <option value="seller">🏪 Satıcı</option>
-                <option value="none">❌ Nakliye Gerekmiyor</option>
+                <option value="carrier">🚛 Nakliyeci</option>
+                <option value="negotiable">🤝 Pazarlık Edilebilir</option>
               </select>
             </div>
           </div>
@@ -602,115 +641,319 @@ const CreateLoadListingSection: React.FC = () => {
           <div className="border-t border-gray-200 pt-6">
             <fieldset>
               <legend className="text-lg font-medium text-gray-900 mb-4">📦 Yük İlanı Evrak Listesi (Opsiyonel/İsteğe Bağlı Yüklenebilir)</legend>
+              
+              {/* Hızlı Seçim Butonları */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => setRequiredDocuments(Object.keys(documentLabels))}
+                  className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+                >
+                  ✓ Tümünü Seç
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRequiredDocuments([])}
+                  className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                  ✕ Tümünü Temizle
+                </button>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Fatura / Proforma Fatura */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="invoice" name="documents" value="invoice" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="invoice" 
+                    name="documents" 
+                    value="invoice" 
+                    checked={requiredDocuments.includes('invoice')}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="invoice" className="ml-3 text-sm font-medium text-gray-700">📄 Fatura / Proforma Fatura</label>
                 </div>
                 {/* Satış Sözleşmesi */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="salesContract" name="documents" value="salesContract" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="salesContract" 
+                    name="documents" 
+                    value="salesContract" 
+                    checked={requiredDocuments.includes('salesContract')}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="salesContract" className="ml-3 text-sm font-medium text-gray-700">📝 Satış Sözleşmesi</label>
                 </div>
                 {/* İrsaliye / Sevk Fişi */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="waybill" name="documents" value="waybill" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="waybill" 
+                    name="documents" 
+                    value="waybill" 
+                    checked={requiredDocuments.includes('waybill')}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="waybill" className="ml-3 text-sm font-medium text-gray-700">📋 İrsaliye / Sevk Fişi</label>
                 </div>
                 {/* Menşe Şahadetnamesi (Certificate of Origin) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="originCertificate" name="documents" value="originCertificate" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="originCertificate" 
+                    name="documents" 
+                    value="originCertificate" 
+                    checked={requiredDocuments.includes('originCertificate')}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="originCertificate" className="ml-3 text-sm font-medium text-gray-700">🌍 Menşe Şahadetnamesi (Certificate of Origin)</label>
                 </div>
                 {/* Analiz Sertifikası / Laboratuvar Raporları (Quality/Quantity) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="analysis" name="documents" value="analysis" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="analysis" 
+                    name="documents" 
+                    value="analysis" 
+                    checked={requiredDocuments.includes('analysis')}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="analysis" className="ml-3 text-sm font-medium text-gray-700">🔬 Analiz Sertifikası / Laboratuvar Raporları (Quality/Quantity)</label>
                 </div>
                 {/* TSE, CE, ISO, vb. Uygunluk Sertifikaları */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="complianceCertificates" name="documents" value="complianceCertificates" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="complianceCertificates" 
+                    name="documents" 
+                    value="complianceCertificates" 
+                    checked={requiredDocuments.includes('complianceCertificates')}
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="complianceCertificates" className="ml-3 text-sm font-medium text-gray-700">📑 TSE, CE, ISO, vb. Uygunluk Sertifikaları</label>
                 </div>
                 {/* Ürün Fotoğrafları */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="productPhotos" name="documents" value="productPhotos" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="productPhotos" 
+                    name="documents" 
+                    value="productPhotos" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="productPhotos" className="ml-3 text-sm font-medium text-gray-700">🖼️ Ürün Fotoğrafları</label>
                 </div>
                 {/* Ambalaj / Packing List */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="packingList" name="documents" value="packingList" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="packingList" 
+                    name="documents" 
+                    value="packingList" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="packingList" className="ml-3 text-sm font-medium text-gray-700">📦 Ambalaj / Packing List</label>
                 </div>
                 {/* Depo Teslim Fişi / Stok Belgesi */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="warehouseReceipt" name="documents" value="warehouseReceipt" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="warehouseReceipt" 
+                    name="documents" 
+                    value="warehouseReceipt" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="warehouseReceipt" className="ml-3 text-sm font-medium text-gray-700">🏪 Depo Teslim Fişi / Stok Belgesi</label>
                 </div>
                 {/* Müstahsil Makbuzu (Tarım ürünleri) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="producerReceipt" name="documents" value="producerReceipt" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="producerReceipt" 
+                    name="documents" 
+                    value="producerReceipt" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="producerReceipt" className="ml-3 text-sm font-medium text-gray-700">🌾 Müstahsil Makbuzu (Tarım ürünleri)</label>
                 </div>
                 {/* Gümrük Beyannamesi (İhracat/İthalat) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="customsDeclaration" name="documents" value="customsDeclaration" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="customsDeclaration" 
+                    name="documents" 
+                    value="customsDeclaration" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="customsDeclaration" className="ml-3 text-sm font-medium text-gray-700">🛃 Gümrük Beyannamesi (İhracat/İthalat)</label>
                 </div>
                 {/* MSDS (Malzeme Güvenlik Bilgi Formu) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="msds" name="documents" value="msds" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="msds" 
+                    name="documents" 
+                    value="msds" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="msds" className="ml-3 text-sm font-medium text-gray-700">🧪 MSDS (Malzeme Güvenlik Bilgi Formu)</label>
                 </div>
                 {/* Fumigasyon Sertifikası (gerekiyorsa) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="fumigationCertificate" name="documents" value="fumigationCertificate" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="fumigationCertificate" 
+                    name="documents" 
+                    value="fumigationCertificate" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="fumigationCertificate" className="ml-3 text-sm font-medium text-gray-700">🌫️ Fumigasyon Sertifikası (gerekiyorsa)</label>
                 </div>
                 {/* SGS / Intertek / Third Party Inspection Raporları */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="inspectionReports" name="documents" value="inspectionReports" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="inspectionReports" 
+                    name="documents" 
+                    value="inspectionReports" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="inspectionReports" className="ml-3 text-sm font-medium text-gray-700">🔎 SGS / Intertek / Third Party Inspection Raporları</label>
                 </div>
                 {/* Ödeme Belgeleri (Banka Dekontu, Akreditif, Teminat Mektubu) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="paymentDocuments" name="documents" value="paymentDocuments" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="paymentDocuments" 
+                    name="documents" 
+                    value="paymentDocuments" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="paymentDocuments" className="ml-3 text-sm font-medium text-gray-700">💳 Ödeme Belgeleri (Banka Dekontu, Akreditif, Teminat Mektubu)</label>
                 </div>
                 {/* Sağlık Sertifikası / Veteriner Sertifikası / Fitosaniter Sertifika */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="healthCertificates" name="documents" value="healthCertificates" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="healthCertificates" 
+                    name="documents" 
+                    value="healthCertificates" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="healthCertificates" className="ml-3 text-sm font-medium text-gray-700">🩺 Sağlık/Veteriner/Fitosaniter Sertifika</label>
                 </div>
                 {/* Helal/Kosher/ECO/Özel Ülke Sertifikaları */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="specialCertificates" name="documents" value="specialCertificates" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="specialCertificates" 
+                    name="documents" 
+                    value="specialCertificates" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="specialCertificates" className="ml-3 text-sm font-medium text-gray-700">🕋 Helal/Kosher/ECO/Özel Ülke Sertifikaları</label>
                 </div>
                 {/* İthalat/İhracat Lisansı / Kota Belgesi */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="importExportLicense" name="documents" value="importExportLicense" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="importExportLicense" 
+                    name="documents" 
+                    value="importExportLicense" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="importExportLicense" className="ml-3 text-sm font-medium text-gray-700">📜 İthalat/İhracat Lisansı / Kota Belgesi</label>
                 </div>
                 {/* Anti-damping/Orijinallik/Çevre/Emisyon Belgeleri */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="antidampingCertificates" name="documents" value="antidampingCertificates" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="antidampingCertificates" 
+                    name="documents" 
+                    value="antidampingCertificates" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="antidampingCertificates" className="ml-3 text-sm font-medium text-gray-700">🌱 Anti-damping/Orijinallik/Çevre/Emisyon Belgeleri</label>
                 </div>
                 {/* Ürün Teknik Bilgi Formları / Kullanım Kılavuzu */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="productManuals" name="documents" value="productManuals" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="productManuals" 
+                    name="documents" 
+                    value="productManuals" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="productManuals" className="ml-3 text-sm font-medium text-gray-700">📘 Ürün Teknik Bilgi Formları / Kullanım Kılavuzu</label>
                 </div>
                 {/* Diğer (Belirtiniz) */}
                 <div className="flex items-center">
-                  <input type="checkbox" id="other" name="documents" value="other" className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" />
+                  <input 
+                    type="checkbox" 
+                    id="other" 
+                    name="documents" 
+                    value="other" 
+                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" 
+                    onChange={handleDocumentChange}
+                  />
                   <label htmlFor="other" className="ml-3 text-sm font-medium text-gray-700">➕ Diğer (Belirtiniz): __________</label>
                 </div>
               </div>
             </fieldset>
           </div>
+
+          {/* Seçilen Evraklar Gösterimi */}
+          {requiredDocuments.length > 0 && (
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <Package className="mr-2 text-primary-600" size={20} />
+                Seçilen Evraklar ({requiredDocuments.length})
+              </h3>
+              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {requiredDocuments.map((doc, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3 border border-blue-100">
+                      <span className="text-sm text-gray-700">
+                        {documentLabels[doc] || doc}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setRequiredDocuments(prev => prev.filter(d => d !== doc))}
+                        className="text-red-500 hover:text-red-700 text-xs"
+                        title="Kaldır"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-xs text-blue-600">
+                  💡 İpucu: Seçilen evraklar ilanınızla birlikte görüntülenecektir. İstemediğiniz evrakları ✕ ile kaldırabilirsiniz.
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Evrak Yükleme Alanı */}
           <div className="border-t border-gray-200 pt-6">
