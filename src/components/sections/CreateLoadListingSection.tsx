@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Upload, Calendar, Package, MapPin, FileText, Download, Eye, Trash2 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import { ListingService } from '../../services/listingService';
 import toast, { Toaster } from 'react-hot-toast';
 
 const CreateLoadListingSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
+  const { user } = useAuth();
   const [roleType, setRoleType] = useState('');
   const [offerType, setOfferType] = useState('direct');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{
     id: string;
     name: string;
@@ -38,18 +42,44 @@ const CreateLoadListingSection: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form validasyon örneği (zorunlu alanlar kontrolü)
+    
+    // Kullanıcı kontrolü
+    if (!user) {
+      toast.error('Giriş yapmanız gerekiyor!');
+      return;
+    }
+
+    // Form validasyonu
     if (!formData.loadTitle || !formData.loadType || !formData.loadingDate || !formData.deliveryDate || !formData.loadWeight || !formData.loadVolume || !formData.loadRoleSelection || !formData.loadDescription) {
       toast.error('Lütfen tüm zorunlu alanları doldurun!');
       return;
     }
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    toast.success('Yük ilanı başarıyla oluşturuldu!');
-    // Show success message and redirect
-    setTimeout(() => setActiveSection('my-listings'), 1200);
+
+    setIsSubmitting(true);
+
+    try {
+      // Supabase için veri formatı - en minimal
+      const listingData = {
+        user_id: user.id,
+        listing_type: 'load_listing' as const,
+        title: formData.loadTitle,
+        pickup_location: formData.loadOrigin,
+        delivery_location: formData.loadDestination
+      };
+
+      await ListingService.createListing(listingData);
+      toast.success('Yük ilanı başarıyla oluşturuldu!');
+      
+      // Success message and redirect
+      setTimeout(() => setActiveSection('my-listings'), 1200);
+    } catch (error) {
+      console.error('Error creating listing:', error);
+      toast.error(error instanceof Error ? error.message : 'İlan oluşturulurken bir hata oluştu!');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,12 +118,12 @@ const CreateLoadListingSection: React.FC = () => {
     setUploadedDocuments(prev => prev.filter(doc => doc.id !== id));
   };
 
-  const handleDocumentPreview = (document: any) => {
+  const handleDocumentPreview = (document: { id: string; name: string; size: string; type: string; url: string }) => {
     window.open(document.url, '_blank');
   };
 
-  const handleDocumentDownload = (document: any) => {
-    const link = document.createElement('a');
+  const handleDocumentDownload = (document: { id: string; name: string; size: string; type: string; url: string }) => {
+    const link = window.document.createElement('a');
     link.href = document.url;
     link.download = document.name;
     link.click();
@@ -754,9 +784,10 @@ const CreateLoadListingSection: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
+              disabled={isSubmitting}
+              className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              İlanı Oluştur
+              {isSubmitting ? 'İlan Oluşturuluyor...' : 'İlanı Oluştur'}
             </button>
           </div>
         </form>
