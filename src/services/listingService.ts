@@ -2,24 +2,61 @@ import { supabase } from '../lib/supabase';
 import type { Database } from '../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
-type ListingInsert = Database['public']['Tables']['listings']['Insert'];
+// type ListingInsert = Database['public']['Tables']['listings']['Insert']; // Şu an kullanılmıyor
 type ListingUpdate = Database['public']['Tables']['listings']['Update'];
+
+// Form'dan gelen veri tipi
+interface FormListingData {
+  user_id: string;
+  listing_type: 'load_listing' | 'shipment_request';
+  title: string;
+  description?: string;
+  origin: string;
+  destination: string;
+  transport_mode?: string;
+  role_type?: string | null;
+  load_type?: string | null;
+  weight_value?: number | null;
+  weight_unit?: string;
+  volume_value?: number | null;
+  volume_unit?: string;
+  loading_date?: string | null;
+  delivery_date?: string | null;
+  price_amount?: number | null;
+  price_currency?: string;
+  offer_type?: string | null;
+  transport_responsible?: string | null;
+  status?: string;
+}
 
 export class ListingService {
   // Yeni ilan oluştur
-  static async createListing(listingData: ListingInsert): Promise<Listing> {
+  static async createListing(listingData: FormListingData): Promise<Listing> {
     try {
       console.log('Creating listing with real schema...');
       
-      // Gerçek şemaya uygun minimal data - daha önceden çalışan alanları kullan
+      // Gerçek şemaya uygun data mapping
       const realData = {
         user_id: listingData.user_id,
         listing_type: listingData.listing_type,
         title: listingData.title,
         description: listingData.description,
-        origin: listingData.pickup_location,
-        destination: listingData.delivery_location,
-        transport_mode: 'road', // Zorunlu alan, varsayılan değer
+        origin: listingData.origin, // Doğru alan adı
+        destination: listingData.destination, // Doğru alan adı
+        transport_mode: listingData.transport_mode || 'road', // Zorunlu alan
+        role_type: listingData.role_type,
+        load_type: listingData.load_type,
+        weight_value: listingData.weight_value,
+        weight_unit: listingData.weight_unit,
+        volume_value: listingData.volume_value,
+        volume_unit: listingData.volume_unit,
+        loading_date: listingData.loading_date,
+        delivery_date: listingData.delivery_date,
+        price_amount: listingData.price_amount,
+        price_currency: listingData.price_currency,
+        offer_type: listingData.offer_type,
+        transport_responsible: listingData.transport_responsible,
+        status: listingData.status || 'active',
         listing_number: this.generateListingNumber(), // Manuel olarak listing_number ekle
       };
 

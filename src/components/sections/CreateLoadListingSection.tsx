@@ -60,14 +60,28 @@ const CreateLoadListingSection: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Supabase için veri formatı - gerçek şemaya uygun
+      // Supabase için veri formatı - tam şemaya uygun
       const listingData = {
         user_id: user.id,
         listing_type: 'load_listing' as const,
         title: formData.loadTitle,
         description: formData.loadDescription,
-        pickup_location: formData.loadOrigin, // Bu origin olacak
-        delivery_location: formData.loadDestination // Bu destination olacak
+        origin: formData.loadOrigin, // Doğru alan adı
+        destination: formData.loadDestination, // Doğru alan adı
+        transport_mode: 'road', // Zorunlu alan
+        role_type: roleType || null, // Alıcı/Satıcı seçimi
+        load_type: formData.loadType || null,
+        weight_value: formData.loadWeight ? parseFloat(formData.loadWeight) : null,
+        weight_unit: 'ton',
+        volume_value: formData.loadVolume ? parseFloat(formData.loadVolume) : null,
+        volume_unit: 'm3',
+        loading_date: formData.loadingDate || null,
+        delivery_date: formData.deliveryDate || null,
+        price_amount: formData.setPrice ? parseFloat(formData.setPrice) : null,
+        price_currency: 'TRY',
+        offer_type: offerType === 'price' ? 'fixed_price' : 'negotiable',
+        transport_responsible: formData.loadRoleSelection || null,
+        status: 'active'
       };
 
       await ListingService.createListing(listingData);
