@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Search, 
-  Filter, 
   Star, 
   Phone, 
   Mail, 
@@ -9,21 +8,52 @@ import {
   Play, 
   Eye, 
   MessageCircle,
-  LogIn,
-  UserPlus,
   Heart,
   Share2
 } from 'lucide-react';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import AuthModal from '../auth/AuthModal';
 
-interface AdsPageProps {
-  isLoggedIn?: boolean;
-  onLogin?: () => void;
+// Frontend Ad interface (for mock data - will be replaced with real Supabase data later)
+interface AdDisplay {
+  id: number | string;
+  companyName: string;
+  title: string;
+  description: string;
+  rating: number;
+  reviewCount: number;
+  category: string;
+  type: 'premium' | 'standard';
+  hasVideo?: boolean;
+  videoThumbnail?: string;
+  logo: string;
+  specialOffer?: string;
+  contact: {
+    phone: string;
+    email: string;
+    website: string;
+  };
+  location?: string;
+  established?: string;
+  services?: string[];
+  images?: string[];
+  stats?: {
+    deliveryTime: string;
+    coverage: string;
+    satisfaction: string;
+  };
+  features: string[];
+  views: number;
+  clicks: number;
 }
 
-const AdsPage: React.FC<AdsPageProps> = ({ isLoggedIn = false, onLogin }) => {
+// AdsPage component - no props needed since we use context
+
+const AdsPage: React.FC = () => {
+  const { isLoggedIn, login, register, googleLogin } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const categories = [
     { id: 'all', label: 'Tüm Reklamlar', count: 24 },
@@ -32,7 +62,7 @@ const AdsPage: React.FC<AdsPageProps> = ({ isLoggedIn = false, onLogin }) => {
     { id: 'insurance', label: 'Sigorta Hizmetleri', count: 4 }
   ];
 
-  const ads = [
+  const ads: AdDisplay[] = [
     {
       id: 1,
       companyName: 'Aras Kargo',
@@ -164,9 +194,37 @@ const AdsPage: React.FC<AdsPageProps> = ({ isLoggedIn = false, onLogin }) => {
     }
   ];
 
-  const handleContactClick = (ad: any, type: 'phone' | 'email' | 'website') => {
+  // Auth handlers
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      await register(fullName, email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Register error:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin();
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
+  };
+
+  const handleContactClick = (ad: AdDisplay, type: 'phone' | 'email' | 'website') => {
     if (!isLoggedIn) {
-      setShowLoginModal(true);
+      setAuthModalOpen(true);
       return;
     }
 
@@ -437,52 +495,14 @@ const AdsPage: React.FC<AdsPageProps> = ({ isLoggedIn = false, onLogin }) => {
       </div>
 
       {/* Login Modal */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-8 max-w-md w-full">
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-            >
-              ×
-            </button>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <LogIn className="text-primary-600" size={32} />
-              </div>
-              
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Giriş Gerekli</h3>
-              <p className="text-gray-600 mb-6">
-                Firmalarla iletişime geçmek için giriş yapmanız gerekiyor.
-              </p>
-              
-              <div className="flex flex-col gap-3">
-                <button 
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    onLogin?.();
-                  }}
-                  className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center"
-                >
-                  <LogIn size={18} className="mr-2" />
-                  Giriş Yap
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    onLogin?.();
-                  }}
-                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors transform hover:scale-105 flex items-center justify-center"
-                >
-                  <UserPlus size={18} className="mr-2" />
-                  Üye Ol
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* AuthModal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </div>
   );
 };

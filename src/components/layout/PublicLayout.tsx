@@ -18,22 +18,20 @@ import RefundPolicyPage from '../pages/RefundPolicyPage.tsx';
 import RevenueModelPage from '../pages/RevenueModelPage.tsx';
 
 interface PublicLayoutProps {
-  isLoggedIn: boolean;
-  onLogin: () => void;
   onShowDashboard: () => void;
 }
 
-const PublicLayout: React.FC<PublicLayoutProps> = ({ isLoggedIn, onLogin, onShowDashboard }) => {
+const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard }) => {
   const [activePage, setActivePage] = useState('home');
 
   const renderPage = () => {
     switch (activePage) {
       case 'home':
-        return <HomePage isLoggedIn={isLoggedIn} onLogin={onLogin} onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
+        return <HomePage onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
       case 'listings':
-        return <ListingsPage isLoggedIn={isLoggedIn} onLogin={onLogin} />;
+        return <ListingsPage />;
       case 'ads':
-        return <AdsPage isLoggedIn={isLoggedIn} onLogin={onLogin} />;
+        return <AdsPage />;
       case 'reviews':
         return <ReviewsPage />;
       case 'ad-panel':
@@ -57,7 +55,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ isLoggedIn, onLogin, onShow
       case 'revenue-model':
         return <RevenueModelPage />;
       default:
-        return <HomePage isLoggedIn={isLoggedIn} onLogin={onLogin} onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
+        return <HomePage onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
     }
   };
 
@@ -65,12 +63,9 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ isLoggedIn, onLogin, onShow
     <div className="min-h-screen bg-gray-50 font-inter">
       {/* Beta Banner - Site genelinde görünür */}
       <BetaBanner />
-      
-      <PublicHeader 
+       <PublicHeader
         activePage={activePage}
         setActivePage={setActivePage}
-        isLoggedIn={isLoggedIn}
-        onLogin={onLogin}
         onShowDashboard={onShowDashboard}
       />
       

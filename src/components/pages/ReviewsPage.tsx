@@ -8,24 +8,20 @@ import {
   Award,
   Users,
   ChevronDown,
-  ChevronUp,
-  X
+  ChevronUp
 } from 'lucide-react';
 
 const ReviewsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
-  const [showReplyModal, setShowReplyModal] = useState(false);
-  const [replyText, setReplyText] = useState('');
-  const [replyToReviewId, setReplyToReviewId] = useState<number | null>(null);
 
   const companies = [
     {
       id: 1,
       name: 'Aras Kargo',
       logo: '🚚',
-      description: "Türkiye'nin önde gelen kargo şirketi",
+      description: 'Türkiye\'nin önde gelen kargo şirketi',
       rating: 4.8,
       reviewCount: 1247,
       totalTransactions: 15420,
@@ -37,7 +33,7 @@ const ReviewsPage: React.FC = () => {
           userName: 'Mehmet Y.',
           rating: 5,
           date: '2 gün önce',
-          comment: "Çok hızlı ve güvenilir hizmet. Paketim zamanında geldi, hiçbir sorun yaşamadım.",
+          comment: 'Çok hızlı ve güvenilir hizmet. Paketim zamanında geldi, hiçbir sorun yaşamadım.',
           helpful: 12,
           type: 'positive',
           verified: true
@@ -47,30 +43,10 @@ const ReviewsPage: React.FC = () => {
           userName: 'Ayşe K.',
           rating: 4,
           date: '1 hafta önce',
-          comment: "Genel olarak memnunum ama bazen teslimat saatleri değişebiliyor.",
+          comment: 'Genel olarak memnunum ama bazen teslimat saatleri değişebiliyor.',
           helpful: 8,
           type: 'neutral',
           verified: true
-        },
-        {
-          id: 9,
-          userName: 'Can D.',
-          rating: 5,
-          date: '3 hafta önce',
-          comment: "Harika bir deneyim! Kargo süreci sorunsuzdu.",
-          helpful: 5,
-          type: 'positive',
-          verified: true
-        },
-        {
-          id: 10,
-          userName: 'Elif G.',
-          rating: 3,
-          date: '1 ay önce',
-          comment: "Biraz yavaş olsa da sonunda ulaştı. İyileştirme bekliyorum.",
-          helpful: 2,
-          type: 'neutral',
-          verified: false
         }
       ]
     },
@@ -90,7 +66,7 @@ const ReviewsPage: React.FC = () => {
           userName: 'Ali D.',
           rating: 5,
           date: '3 gün önce',
-          comment: "Müşteri hizmetleri çok iyi, sorunumu hemen çözdüler.",
+          comment: 'Müşteri hizmetleri çok iyi, sorunumu hemen çözdüler.',
           helpful: 15,
           type: 'positive',
           verified: true
@@ -100,20 +76,10 @@ const ReviewsPage: React.FC = () => {
           userName: 'Fatma S.',
           rating: 3,
           date: '5 gün önce',
-          comment: "Fiyatlar biraz yüksek ama hizmet kalitesi iyi.",
+          comment: 'Fiyatlar biraz yüksek ama hizmet kalitesi iyi.',
           helpful: 6,
           type: 'neutral',
           verified: false
-        },
-        {
-          id: 11,
-          userName: 'Berk T.',
-          rating: 4,
-          date: '2 hafta önce',
-          comment: "Paketim sağlam geldi, genel olarak iyiydi.",
-          helpful: 7,
-          type: 'positive',
-          verified: true
         }
       ]
     },
@@ -121,7 +87,7 @@ const ReviewsPage: React.FC = () => {
       id: 3,
       name: 'Yurtiçi Kargo',
       logo: '🚛',
-      description: "Türkiye'nin en geniş şube ağı",
+      description: 'Türkiye\'nin en geniş şube ağı',
       rating: 4.7,
       reviewCount: 2134,
       totalTransactions: 18750,
@@ -133,7 +99,7 @@ const ReviewsPage: React.FC = () => {
           userName: 'Hasan M.',
           rating: 5,
           date: '1 gün önce',
-          comment: "Her zaman tercih ettiğim kargo şirketi. Güvenilir ve hızlı.",
+          comment: 'Her zaman tercih ettiğim kargo şirketi. Güvenilir ve hızlı.',
           helpful: 20,
           type: 'positive',
           verified: true
@@ -143,30 +109,10 @@ const ReviewsPage: React.FC = () => {
           userName: 'Zeynep A.',
           rating: 2,
           date: '4 gün önce',
-          comment: "Paketim zarar görmüş halde geldi, daha dikkatli olunmalı.",
+          comment: 'Paketim zarar görmüş halde geldi, daha dikkatli olunmalı.',
           helpful: 9,
           type: 'negative',
           verified: true
-        },
-        {
-          id: 12,
-          userName: 'Emre B.',
-          rating: 4,
-          date: '10 gün önce',
-          comment: "Şubeleri çok yaygın, bu büyük avantaj.",
-          helpful: 11,
-          type: 'positive',
-          verified: true
-        },
-        {
-          id: 13,
-          userName: 'Deniz C.',
-          rating: 1,
-          date: '2 hafta önce',
-          comment: "Kargom kayboldu, iletişim kurmak çok zordu.",
-          helpful: 15,
-          type: 'negative',
-          verified: false
         }
       ]
     },
@@ -186,18 +132,8 @@ const ReviewsPage: React.FC = () => {
           userName: 'Murat K.',
           rating: 5,
           date: '6 gün önce',
-          comment: "Hasar durumunda çok hızlı ödeme yaptılar, teşekkürler.",
+          comment: 'Hasar durumunda çok hızlı ödeme yaptılar, teşekkürler.',
           helpful: 18,
-          type: 'positive',
-          verified: true
-        },
-        {
-          id: 14,
-          userName: 'Selin E.',
-          rating: 5,
-          date: '3 hafta önce',
-          comment: "İşlemler çok kolay ve hızlıydı. Tavsiye ederim.",
-          helpful: 10,
           type: 'positive',
           verified: true
         }
@@ -219,18 +155,8 @@ const ReviewsPage: React.FC = () => {
           userName: 'Ahmet T.',
           rating: 5,
           date: '2 gün önce',
-          comment: "Profesyonel ekip, mükemmel hizmet kalitesi.",
+          comment: 'Profesyonel ekip, mükemmel hizmet kalitesi.',
           helpful: 25,
-          type: 'positive',
-          verified: true
-        },
-        {
-          id: 15,
-          userName: 'Gizem Y.',
-          rating: 5,
-          date: '1 ay önce',
-          comment: "Tüm lojistik süreçlerimizi kolaylaştırdılar.",
-          helpful: 18,
           type: 'positive',
           verified: true
         }
@@ -301,21 +227,6 @@ const ReviewsPage: React.FC = () => {
         return 0;
     }
   });
-
-  const handleReplySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!replyText.trim()) {
-      alert('Lütfen yanıtınızı yazın!');
-      return;
-    }
-    // Gerçek uygulamada burada API çağrısı yaparak yanıtı backend'e göndereceksiniz.
-    // Şimdilik sadece bir alert gösterip modalı kapatıyoruz.
-    console.log(`Yanıt gönderildi - Yorum ID: ${replyToReviewId}, Yanıt: ${replyText}`);
-    alert('Yanıtınız başarıyla gönderildi!');
-    setReplyText('');
-    setReplyToReviewId(null);
-    setShowReplyModal(false);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -461,10 +372,7 @@ const ReviewsPage: React.FC = () => {
                             <span className="text-sm">0</span>
                           </button>
                         </div>
-                        <button
-                          onClick={() => { setReplyToReviewId(review.id); setShowReplyModal(true); }}
-                          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                        >
+                        <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
                           Yanıtla
                         </button>
                       </div>
@@ -494,36 +402,6 @@ const ReviewsPage: React.FC = () => {
             Yorum Yap
           </button>
         </div>
-
-        {/* Yanıtla Modalı */}
-        {showReplyModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
-              <button onClick={() => setShowReplyModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
-                <X size={24} />
-              </button>
-              <h3 className="text-xl font-bold mb-6">Yorumu Yanıtla</h3>
-              <form onSubmit={handleReplySubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="reply-text" className="block text-sm font-medium mb-1">Yanıtınız</label>
-                  <textarea
-                    id="reply-text"
-                    className="w-full border rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
-                    value={replyText}
-                    onChange={e => setReplyText(e.target.value)}
-                    rows={4}
-                    required
-                    placeholder="Yanıtınızı buraya yazın..."
-                    aria-label="Yanıt metni"
-                  />
-                </div>
-                <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
-                  Yanıtı Gönder
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

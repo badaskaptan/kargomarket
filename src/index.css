@@ -15,6 +15,7 @@
   
   input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 }
 
@@ -43,6 +44,7 @@
   }
   
   .glass-effect {
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.95);
   }
@@ -126,5 +128,34 @@
       transform: none;
       animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
     }
+  }
+
+  /* Authentication Modal Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-slideUp {
+    animation: slideUp 0.4s ease-out;
   }
 }

@@ -3,7 +3,6 @@ import {
   LayoutDashboard, 
   FileText, 
   Plus, 
-  PlusCircle, 
   Truck, 
   Ship, 
   Tag, 
@@ -17,7 +16,7 @@ import {
   Package,
   X
 } from 'lucide-react';
-import { useDashboard } from '../context/DashboardContext';
+import { useDashboard, type ActiveSection } from '../context/DashboardContext';
 import clsx from 'clsx';
 
 interface SidebarProps {
@@ -120,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     if (id === 'new-listing') {
       setNewListingOpen(!newListingOpen);
     } else {
-      setActiveSection(id as any);
+      setActiveSection(id as ActiveSection);
       onClose();
     }
   };
@@ -143,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       )}>
         {/* Mobile close button */}
         <div className="md:hidden flex justify-end p-4">
-          <button onClick={onClose} className="text-gray-300 hover:text-white">
+          <button onClick={onClose} className="text-gray-300 hover:text-white" title="Kapat" aria-label="Menüyü kapat">
             <X size={24} />
           </button>
         </div>

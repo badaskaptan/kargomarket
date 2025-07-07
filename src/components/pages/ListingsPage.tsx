@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Package, Clock, Eye, Star, LogIn, UserPlus, AlertTriangle } from 'lucide-react';
+import { Search, Filter, MapPin, Package, Clock, Eye, Star, LogIn, AlertTriangle } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
-import { listings } from '../../data/listings';
-import type { Listing } from '../../types/Listing';
+import { listings, type Listing as MockListing } from '../../data/listings';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import AuthModal from '../auth/AuthModal';
 
-interface ListingsPageProps {
-  isLoggedIn?: boolean;
-  onLogin?: () => void;
-}
+// For now we use the mock listing type since we're using mock data
+type Listing = MockListing;
 
-const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin }) => {
+// ListingsPage component - no props needed since we use context
+
+const ListingsPage: React.FC = () => {
+  const { isLoggedIn, login, register, googleLogin } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedTransport, setSelectedTransport] = useState('all');
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSelfOfferWarning, setShowSelfOfferWarning] = useState(false);
 
   // Teklif Ver Modalı için state
@@ -92,6 +94,34 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
     return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  // Auth handlers
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      await register(fullName, email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Register error:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin();
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
+  };
+
   const isOwnListing = (listing: Listing) => {
     return isLoggedIn && listing.ownerId === currentUserId;
   };
@@ -99,7 +129,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
   // Teklif Ver butonu işlevi
   const handleShowOffer = (listing: Listing) => {
     if (!isLoggedIn) {
-      setShowLoginModal(true);
+      setAuthModalOpen(true);
       return;
     }
     if (listing.ownerId === currentUserId) {
@@ -120,7 +150,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
   // Mesaj Gönder butonu işlevi
   const handleShowMessage = (listing: Listing) => {
     if (!isLoggedIn) {
-      setShowLoginModal(true);
+      setAuthModalOpen(true);
       return;
     }
     if (listing.ownerId === currentUserId) {
@@ -437,53 +467,6 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
       </div>
 
       {/* Login Modal */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-8 max-w-md w-full">
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-            >
-              ×
-            </button>
-            
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <LogIn className="text-primary-600" size={32} />
-              </div>
-              
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Giriş Gerekli</h3>
-              <p className="text-gray-600 mb-6">
-                Teklif vermek ve iletişim bilgilerini görmek için giriş yapmanız gerekiyor.
-              </p>
-              
-              <div className="flex flex-col gap-3">
-                <button 
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    onLogin?.();
-                  }}
-                  className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center"
-                >
-                  <LogIn size={18} className="mr-2" />
-                  Giriş Yap
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    onLogin?.();
-                  }}
-                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors transform hover:scale-105 flex items-center justify-center"
-                >
-                  <UserPlus size={18} className="mr-2" />
-                  Üye Ol
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Self Offer Warning Modal */}
       {showSelfOfferWarning && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -615,7 +598,7 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
                     <button 
                       onClick={() => {
                         setSelectedListing(null);
-                        setShowLoginModal(true);
+                        setAuthModalOpen(true);
                       }}
                       className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
                     >
@@ -856,6 +839,15 @@ const ListingsPage: React.FC<ListingsPageProps> = ({ isLoggedIn = false, onLogin
           </div>
         </div>
       )}
+
+      {/* AuthModal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </div>
   );
 };

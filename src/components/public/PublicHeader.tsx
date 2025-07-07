@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
-import { Menu, X, User, LogIn, LayoutDashboard, ChevronDown, Settings, LogOut } from 'lucide-react';
+import { Menu, X, User, LayoutDashboard, ChevronDown, Settings, LogOut } from 'lucide-react';
+import AuthModal from '../auth/AuthModal';
+import { useAuth } from '../../context/SupabaseAuthContext';
 
 interface PublicHeaderProps {
   activePage: string;
   setActivePage: (page: string) => void;
-  isLoggedIn: boolean;
-  onLogin: () => void;
   onShowDashboard: () => void;
 }
 
 const PublicHeader: React.FC<PublicHeaderProps> = ({ 
   activePage, 
   setActivePage, 
-  isLoggedIn, 
-  onLogin, 
   onShowDashboard 
 }) => {
+  const { user, profile, loading, login, register, googleLogin, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [userRole, setUserRole] = useState('alici-satici');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState(profile?.user_type || 'buyer_seller');
 
   const menuItems = [
     { id: 'home', label: 'Ana Sayfa' },
@@ -30,14 +30,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
     { id: 'about', label: 'Hakkımızda' }
   ];
 
-  const handleLogout = () => {
-    setUserMenuOpen(false);
-    // Çıkış işlemi burada yapılacak
-    console.log('Kullanıcı çıkış yaptı');
-    // onLogout fonksiyonu çağrılabilir
-  };
-
-  const handleRoleChange = (newRole: string) => {
+  const handleRoleChange = (newRole: 'buyer_seller' | 'carrier' | 'both') => {
     setUserRole(newRole);
     setUserMenuOpen(false);
     console.log('Rol değiştirildi:', newRole);
@@ -46,6 +39,38 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
   const handleDashboardClick = () => {
     setUserMenuOpen(false);
     onShowDashboard();
+  };
+
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      await register(fullName, email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Register error:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin();
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
+  };
+
+  const handleLogout = () => {
+    setUserMenuOpen(false);
+    logout();
   };
 
   return (
@@ -79,17 +104,19 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
-            {!isLoggedIn ? (
+            {!user ? (
               <>
                 <button 
-                  onClick={onLogin}
+                  onClick={() => setAuthModalOpen(true)}
                   className="text-gray-700 hover:text-primary-600 transition-all duration-300 font-medium transform hover:scale-110"
+                  disabled={loading}
                 >
                   Giriş Yap
                 </button>
                 <button 
-                  onClick={onLogin}
+                  onClick={() => setAuthModalOpen(true)}
                   className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition-all duration-300 transform hover:scale-110 hover:rotate-1 shadow-lg hover:shadow-xl"
+                  disabled={loading}
                 >
                   Üye Ol
                 </button>
@@ -105,9 +132,9 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                     <User size={18} className="text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="text-sm font-semibold text-gray-900">Ahmet Yılmaz</div>
+                    <div className="text-sm font-semibold text-gray-900">{profile?.full_name || 'Kullanıcı'}</div>
                     <div className="text-xs text-gray-500 capitalize">
-                      {userRole === 'alici-satici' ? 'Alıcı/Satıcı' : 'Nakliyeci'}
+                      {profile?.user_type === 'buyer_seller' ? 'Alıcı/Satıcı' : profile?.user_type === 'carrier' ? 'Nakliyeci' : profile?.user_type === 'both' ? 'Her İkisi' : 'Kullanıcı'}
                     </div>
                   </div>
                   <ChevronDown 
@@ -128,8 +155,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                           <User size={20} className="text-white" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">Ahmet Yılmaz</div>
-                          <div className="text-sm text-gray-500">ahmet.yilmaz@example.com</div>
+                          <div className="font-semibold text-gray-900">{profile?.full_name || 'Kullanıcı'}</div>
+                          <div className="text-sm text-gray-500">{user?.email}</div>
                         </div>
                       </div>
                     </div>
@@ -141,9 +168,9 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                       </div>
                       <div className="space-y-1">
                         <button
-                          onClick={() => handleRoleChange('alici-satici')}
+                          onClick={() => handleRoleChange('buyer_seller')}
                           className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            userRole === 'alici-satici'
+                            userRole === 'buyer_seller'
                               ? 'bg-primary-100 text-primary-800 font-medium'
                               : 'text-gray-700 hover:bg-gray-100'
                           }`}
@@ -151,9 +178,9 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                           🛒 Alıcı/Satıcı
                         </button>
                         <button
-                          onClick={() => handleRoleChange('nakliyeci')}
+                          onClick={() => handleRoleChange('carrier')}
                           className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            userRole === 'nakliyeci'
+                            userRole === 'carrier'
                               ? 'bg-primary-100 text-primary-800 font-medium'
                               : 'text-gray-700 hover:bg-gray-100'
                           }`}
@@ -240,11 +267,11 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
               
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200 space-y-2">
-                {!isLoggedIn ? (
+                {!user ? (
                   <>
                     <button 
                       onClick={() => {
-                        onLogin();
+                        setAuthModalOpen(true);
                         setMobileMenuOpen(false);
                       }}
                       className="w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-105"
@@ -253,7 +280,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                     </button>
                     <button 
                       onClick={() => {
-                        onLogin();
+                        setAuthModalOpen(true);
                         setMobileMenuOpen(false);
                       }}
                       className="w-full bg-primary-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-primary-700 transition-all duration-300 transform hover:scale-105"
@@ -270,9 +297,9 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                           <User size={20} className="text-white" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">Ahmet Yılmaz</div>
+                          <div className="font-semibold text-gray-900">{profile?.full_name || 'Kullanıcı'}</div>
                           <div className="text-sm text-gray-500 capitalize">
-                            {userRole === 'alici-satici' ? 'Alıcı/Satıcı' : 'Nakliyeci'}
+                            {profile?.user_type === 'buyer_seller' ? 'Alıcı/Satıcı' : profile?.user_type === 'carrier' ? 'Nakliyeci' : profile?.user_type === 'both' ? 'Her İkisi' : 'Kullanıcı'}
                           </div>
                         </div>
                       </div>
@@ -284,9 +311,9 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                         </div>
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleRoleChange('alici-satici')}
+                            onClick={() => handleRoleChange('buyer_seller')}
                             className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                              userRole === 'alici-satici'
+                              userRole === 'buyer_seller'
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-white text-gray-700 border border-gray-300'
                             }`}
@@ -294,9 +321,9 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                             🛒 Alıcı/Satıcı
                           </button>
                           <button
-                            onClick={() => handleRoleChange('nakliyeci')}
+                            onClick={() => handleRoleChange('carrier')}
                             className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                              userRole === 'nakliyeci'
+                              userRole === 'carrier'
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-white text-gray-700 border border-gray-300'
                             }`}
@@ -345,6 +372,15 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
           </div>
         )}
       </div>
+
+      {/* AuthModal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </header>
   );
 };

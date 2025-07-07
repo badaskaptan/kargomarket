@@ -12,7 +12,6 @@ import CreateAdSection from './sections/CreateAdSection';
 import MyReviewsSection from './sections/MyReviewsSection';
 import ProfileSection from './sections/ProfileSection';
 import SettingsSection from './sections/SettingsSection';
-import NotificationsSection from './sections/NotificationsSection'; // Yeni eklenen import
 
 const MainContent: React.FC = () => {
   const { activeSection } = useDashboard();
@@ -43,8 +42,6 @@ const MainContent: React.FC = () => {
         return <ProfileSection />;
       case 'settings':
         return <SettingsSection />;
-      case 'notifications': // Yeni eklenen case
-        return <NotificationsSection />;
       default:
         return <OverviewSection />;
     }

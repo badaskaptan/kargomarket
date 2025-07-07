@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
-  const { userRole, setUserRole, notifications, setActiveSection } = useDashboard();
+  const { userRole, setUserRole, notifications } = useDashboard();
 
   return (
     <header className="bg-white shadow-sm p-4 flex items-center justify-between sticky top-0 z-20 glass-effect">
@@ -25,6 +25,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
         <button
           onClick={onToggleSidebar}
           className="mr-4 md:hidden text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-110"
+          aria-label="Yan menüyü aç/kapat"
+          title="Yan menüyü aç/kapat"
         >
           <Menu size={24} />
         </button>
@@ -41,10 +43,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
       
       <div className="flex items-center space-x-4">
         <div className="relative">
-          <button 
-            onClick={() => setActiveSection('notifications')}
-            className="flex items-center text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-110"
-          >
+          <button className="flex items-center text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-110">
             <Bell size={20} />
             {notifications > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-bounce-subtle">
@@ -62,8 +61,10 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
             <p className="text-sm font-medium text-gray-900">Merhaba, Ahmet Yılmaz</p>
             <select
               value={userRole}
-              onChange={(e) => setUserRole(e.target.value as any)}
+              onChange={(e) => setUserRole(e.target.value as 'alici-satici' | 'nakliyeci')}
               className="text-xs text-gray-500 bg-transparent border-none focus:ring-0 p-0 cursor-pointer hover:text-primary-600 transition-colors"
+              aria-label="Kullanıcı rolü seçin"
+              title="Kullanıcı rolünüzü değiştirin"
             >
               <option value="alici-satici">Alıcı/Satıcı</option>
               <option value="nakliyeci">Nakliyeci</option>

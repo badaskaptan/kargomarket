@@ -8,61 +8,44 @@ import {
   Package,
   Truck,
   Clock,
-  Shield,
-  Zap,
-  Globe,
   MapPin,
   Eye,
   X,
-  LogIn
+  LogIn,
+  Zap,
+  Shield,
+  Globe
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap.tsx';
-import { listings } from '../../data/listings';
-import type { Listing } from '../../types/Listing';
+import { listings, type Listing } from '../../data/listings';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import AuthModal from '../auth/AuthModal';
 import './HomePage.pins.css';
 
-interface Step {
-  number: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-}
-
-interface Feature {
-  icon: React.ElementType;
-  title: string;
-  subtitle: string;
-  description: string;
-  color: string;
-}
-
+// Type definitions for HomePage
 interface MapUser {
   id: number;
   name: string;
-  type: 'buyer' | 'seller' | 'carrier';
-  title: string;
-  location: string;
-  route: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  avatar: string;
-  productImage: string;
-  lastActive: string;
-  price: string;
+  type: 'transport' | 'shipper' | 'buyer' | 'seller';
+  coordinates: [number, number];
+  details: string;
+  avatar?: string;
+  title?: string;
+  route?: string;
+  lastActive?: string;
+  price?: string;
+  productImage?: string;
 }
 
 interface HomePageProps {
-  isLoggedIn: boolean;
-  onLogin: () => void;
   onShowDashboard: () => void;
   onShowListings?: () => void;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboard, onShowListings }) => {
+const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) => {
   const navigate = useNavigate();
+  const { isLoggedIn, login, register, googleLogin } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedMapUser, setSelectedMapUser] = useState<MapUser | null>(null);
   const [mapFilters, setMapFilters] = useState({
@@ -90,39 +73,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
   const [messageText, setMessageText] = useState('');
   const [messageTarget, setMessageTarget] = useState<Listing | null>(null);
 
-  const steps: Step[] = [
-    {
-      number: '01',
-      title: 'İlan Oluştur',
-      description: 'Yük veya nakliye ilanınızı kolayca oluşturun',
-      icon: Package,
-      color: 'bg-blue-500'
-    },
-    {
-      number: '02',
-      title: 'Teklif Al',
-      description: 'Hızlıca teklifler almaya başlayın',
-      icon: Truck,
-      color: 'bg-green-500'
-    },
-    {
-      number: '03',
-      title: 'Anlaşma Yap',
-      description: 'En uygun teklifi seçip anlaşmayı tamamlayın',
-      icon: CheckCircle,
-      color: 'bg-purple-500'
-    }
-  ];
-
-  // Adımlar animasyonu için
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentStep(prev => (prev + 1) % steps.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [steps.length]);
-
-  const features: Feature[] = [
+  const features = [
     {
       icon: Zap,
       title: 'Hızlı Eşleşme',
@@ -146,8 +97,46 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     }
   ];
 
-  // Harita üzerindeki kullanıcılar
-  const mapUsers: MapUser[] = [
+  const steps = [
+    {
+      number: '01',
+      title: 'İlan Oluştur',
+      description: 'Yük veya nakliye ilanınızı kolayca oluşturun',
+      icon: Package,
+      color: 'bg-blue-500'
+    },
+    {
+      number: '02',
+      title: 'Teklif Al',
+      description: 'Dakikalar içinde çoklu teklif alın',
+      icon: Clock,
+      color: 'bg-green-500'
+    },
+    {
+      number: '03',
+      title: 'Karşılaştır ve Onayla',
+      description: 'En uygun teklifi seçin ve onaylayın',
+      icon: CheckCircle,
+      color: 'bg-purple-500'
+    },
+    {
+      number: '04',
+      title: 'Teslimatı Takip Et',
+      description: 'Yükünüzü gerçek zamanlı takip edin',
+      icon: Truck,
+      color: 'bg-orange-500'
+    }
+  ];
+
+  // Adımlar animasyonu için
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStep(prev => (prev + 1) % steps.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [steps.length]);
+
+  const mapUsers = [
     {
       id: 1,
       name: 'Mehmet Yılmaz',
@@ -261,7 +250,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     { number: '99.8%', label: 'Müşteri Memnuniyeti', icon: CheckCircle }
   ];
 
-  const getUserTypeColor = (type: MapUser['type']) => {
+  const getUserTypeColor = (type: string) => {
     switch (type) {
       case 'buyer': return 'bg-blue-500';
       case 'seller': return 'bg-green-500';
@@ -270,7 +259,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
     }
   };
 
-  const getUserTypeLabel = (type: MapUser['type']) => {
+  const getUserTypeLabel = (type: string) => {
     switch (type) {
       case 'buyer': return 'Alıcı';
       case 'seller': return 'Satıcı';
@@ -287,12 +276,40 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
   });
 
   const openGoogleMaps = (user: MapUser) => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${user.coordinates.lat},${user.coordinates.lng}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${user.coordinates[0]},${user.coordinates[1]}`;
     window.open(url, '_blank');
   };
 
   // Kullanıcı adı örneği (gerçek uygulamada auth'dan alınır)
   const currentUserName = 'Mehmet Yılmaz'; // Örnek, değiştirilebilir
+
+  // Auth handlers
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      await register(fullName, email, password);
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Register error:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await googleLogin();
+      setAuthModalOpen(false);
+    } catch (error) {
+      console.error('Google login error:', error);
+    }
+  };
 
   const isOwnListing = (listing: Listing) => {
     if (!listing || !listing.contact) return false;
@@ -301,7 +318,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
 
   const handleShowOffer = (listing: Listing) => {
     if (!isLoggedIn) {
-      onLogin();
+      setAuthModalOpen(true);
       return;
     }
     if (isOwnListing(listing)) {
@@ -388,7 +405,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
                   if (isLoggedIn) {
                     onShowDashboard();
                   } else {
-                    onLogin();
+                    setAuthModalOpen(true);
                   }
                 }}
               >
@@ -699,7 +716,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
                     <button 
                       onClick={() => {
                         if (!isLoggedIn) {
-                          onLogin();
+                          setAuthModalOpen(true);
                           return;
                         }
                         if (isOwnListing(listing)) {
@@ -1007,7 +1024,7 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
                       <button 
                         onClick={() => {
                           if (!isLoggedIn) {
-                            onLogin();
+                            setAuthModalOpen(true);
                             return;
                           }
                           if (isOwnListing(selectedListing)) {
@@ -1212,6 +1229,15 @@ const HomePage: React.FC<HomePageProps> = ({ isLoggedIn, onLogin, onShowDashboar
           </div>
         </div>
       )}
+
+      {/* AuthModal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </div>
   );
 };
