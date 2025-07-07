@@ -120,9 +120,9 @@ export interface Database {
           total_completed_transactions?: number
           rating?: number
           rating_count?: number
-          preferences?: any
-          settings?: any
-          metadata?: any
+          preferences?: Record<string, unknown>
+          settings?: Record<string, unknown>
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -147,9 +147,9 @@ export interface Database {
           total_completed_transactions?: number
           rating?: number
           rating_count?: number
-          preferences?: any
-          settings?: any
-          metadata?: any
+          preferences?: UserPreferences
+          settings?: UserSettings
+          metadata?: GenericMetadata
         }
       }
       listings: {
@@ -173,10 +173,10 @@ export interface Database {
           offers_count: number
           is_featured: boolean
           expires_at: string | null
-          cargo_details: any // JSONB
-          transport_details: any // JSONB
-          additional_requirements: any // JSONB
-          metadata: any // JSONB
+          cargo_details: CargoDetails
+          transport_details: TransportDetails
+          additional_requirements: AdditionalRequirements
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -198,10 +198,10 @@ export interface Database {
           offers_count?: number
           is_featured?: boolean
           expires_at?: string | null
-          cargo_details?: any
-          transport_details?: any
-          additional_requirements?: any
-          metadata?: any
+          cargo_details?: CargoDetails
+          transport_details?: TransportDetails
+          additional_requirements?: AdditionalRequirements
+          metadata?: GenericMetadata
         }
         Update: {
           id?: string
@@ -223,10 +223,10 @@ export interface Database {
           offers_count?: number
           is_featured?: boolean
           expires_at?: string | null
-          cargo_details?: any
-          transport_details?: any
-          additional_requirements?: any
-          metadata?: any
+          cargo_details?: CargoDetails
+          transport_details?: TransportDetails
+          additional_requirements?: AdditionalRequirements
+          metadata?: GenericMetadata
         }
       }
       transport_services: {
@@ -239,17 +239,17 @@ export interface Database {
           description: string | null
           vehicle_type: string
           capacity: string | null
-          coverage_areas: any // JSONB
-          pricing: any // JSONB
-          availability: any // JSONB
+          coverage_areas: GenericMetadata
+          pricing: GenericMetadata
+          availability: GenericMetadata
           status: 'active' | 'inactive' | 'busy' | 'maintenance'
           rating: number
           rating_count: number
           total_jobs: number
           is_verified: boolean
-          contact_info: any // JSONB
-          additional_services: any // JSONB
-          metadata: any // JSONB
+          contact_info: GenericMetadata
+          additional_services: GenericMetadata
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -260,17 +260,17 @@ export interface Database {
           description?: string | null
           vehicle_type: string
           capacity?: string | null
-          coverage_areas?: any
-          pricing?: any
-          availability?: any
+          coverage_areas?: Record<string, unknown>
+          pricing?: Record<string, unknown>
+          availability?: Record<string, unknown>
           status?: 'active' | 'inactive' | 'busy' | 'maintenance'
           rating?: number
           rating_count?: number
           total_jobs?: number
           is_verified?: boolean
-          contact_info?: any
-          additional_services?: any
-          metadata?: any
+          contact_info?: Record<string, unknown>
+          additional_services?: Record<string, unknown>
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -281,17 +281,17 @@ export interface Database {
           description?: string | null
           vehicle_type?: string
           capacity?: string | null
-          coverage_areas?: any
-          pricing?: any
-          availability?: any
+          coverage_areas?: Record<string, unknown>
+          pricing?: Record<string, unknown>
+          availability?: Record<string, unknown>
           status?: 'active' | 'inactive' | 'busy' | 'maintenance'
           rating?: number
           rating_count?: number
           total_jobs?: number
           is_verified?: boolean
-          contact_info?: any
-          additional_services?: any
-          metadata?: any
+          contact_info?: Record<string, unknown>
+          additional_services?: Record<string, unknown>
+          metadata?: Record<string, unknown>
         }
       }
       offers: {
@@ -307,9 +307,9 @@ export interface Database {
           status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
           message: string | null
           expires_at: string | null
-          terms_conditions: any // JSONB
-          additional_services: any // JSONB
-          metadata: any // JSONB
+          terms_conditions: GenericMetadata
+          additional_services: GenericMetadata
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -323,9 +323,9 @@ export interface Database {
           status?: 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
           message?: string | null
           expires_at?: string | null
-          terms_conditions?: any
-          additional_services?: any
-          metadata?: any
+          terms_conditions?: Record<string, unknown>
+          additional_services?: Record<string, unknown>
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -339,9 +339,9 @@ export interface Database {
           status?: 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
           message?: string | null
           expires_at?: string | null
-          terms_conditions?: any
-          additional_services?: any
-          metadata?: any
+          terms_conditions?: Record<string, unknown>
+          additional_services?: Record<string, unknown>
+          metadata?: Record<string, unknown>
         }
       }
       messages: {
@@ -358,8 +358,8 @@ export interface Database {
           message_type: 'general' | 'offer_related' | 'listing_inquiry' | 'system'
           is_read: boolean
           is_archived: boolean
-          attachments: any[] // JSONB array
-          metadata: any // JSONB
+          attachments: Record<string, unknown>[] // JSONB array
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -374,8 +374,8 @@ export interface Database {
           message_type?: 'general' | 'offer_related' | 'listing_inquiry' | 'system'
           is_read?: boolean
           is_archived?: boolean
-          attachments?: any[]
-          metadata?: any
+          attachments?: Record<string, unknown>[]
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -390,8 +390,8 @@ export interface Database {
           message_type?: 'general' | 'offer_related' | 'listing_inquiry' | 'system'
           is_read?: boolean
           is_archived?: boolean
-          attachments?: any[]
-          metadata?: any
+          attachments?: Record<string, unknown>[]
+          metadata?: Record<string, unknown>
         }
       }
       reviews: {
@@ -410,7 +410,7 @@ export interface Database {
           status: 'active' | 'hidden' | 'reported'
           response: string | null
           response_date: string | null
-          metadata: any // JSONB
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -427,7 +427,7 @@ export interface Database {
           status?: 'active' | 'hidden' | 'reported'
           response?: string | null
           response_date?: string | null
-          metadata?: any
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -444,7 +444,7 @@ export interface Database {
           status?: 'active' | 'hidden' | 'reported'
           response?: string | null
           response_date?: string | null
-          metadata?: any
+          metadata?: Record<string, unknown>
         }
       }
       ads: {
@@ -456,9 +456,9 @@ export interface Database {
           title: string
           description: string | null
           ad_type: 'banner' | 'featured_listing' | 'sponsored_post' | 'premium_placement'
-          target_audience: any // JSONB
-          target_locations: any[] // JSONB array
-          target_categories: any[] // JSONB array
+          target_audience: GenericMetadata
+          target_locations: Record<string, unknown>[] // JSONB array
+          target_categories: Record<string, unknown>[] // JSONB array
           budget_total: number | null
           budget_daily: number | null
           cost_per_click: number | null
@@ -469,10 +469,10 @@ export interface Database {
           start_date: string
           end_date: string
           status: 'draft' | 'pending_approval' | 'active' | 'paused' | 'completed' | 'rejected'
-          images: any[] // JSONB array
+          images: Record<string, unknown>[] // JSONB array
           call_to_action: string | null
           landing_url: string | null
-          metadata: any // JSONB
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -482,9 +482,9 @@ export interface Database {
           title: string
           description?: string | null
           ad_type: 'banner' | 'featured_listing' | 'sponsored_post' | 'premium_placement'
-          target_audience?: any
-          target_locations?: any[]
-          target_categories?: any[]
+          target_audience?: Record<string, unknown>
+          target_locations?: Record<string, unknown>[]
+          target_categories?: Record<string, unknown>[]
           budget_total?: number | null
           budget_daily?: number | null
           cost_per_click?: number | null
@@ -495,10 +495,10 @@ export interface Database {
           start_date: string
           end_date: string
           status?: 'draft' | 'pending_approval' | 'active' | 'paused' | 'completed' | 'rejected'
-          images?: any[]
+          images?: Record<string, unknown>[]
           call_to_action?: string | null
           landing_url?: string | null
-          metadata?: any
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -508,9 +508,9 @@ export interface Database {
           title?: string
           description?: string | null
           ad_type?: 'banner' | 'featured_listing' | 'sponsored_post' | 'premium_placement'
-          target_audience?: any
-          target_locations?: any[]
-          target_categories?: any[]
+          target_audience?: Record<string, unknown>
+          target_locations?: Record<string, unknown>[]
+          target_categories?: Record<string, unknown>[]
           budget_total?: number | null
           budget_daily?: number | null
           cost_per_click?: number | null
@@ -521,10 +521,10 @@ export interface Database {
           start_date?: string
           end_date?: string
           status?: 'draft' | 'pending_approval' | 'active' | 'paused' | 'completed' | 'rejected'
-          images?: any[]
+          images?: Record<string, unknown>[]
           call_to_action?: string | null
           landing_url?: string | null
-          metadata?: any
+          metadata?: Record<string, unknown>
         }
       }
       transactions: {
@@ -548,8 +548,8 @@ export interface Database {
           delivery_date: string | null
           estimated_delivery: string | null
           tracking_number: string | null
-          tracking_updates: any[] // JSONB array
-          metadata: any // JSONB
+          tracking_updates: Record<string, unknown>[] // JSONB array
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -571,8 +571,8 @@ export interface Database {
           delivery_date?: string | null
           estimated_delivery?: string | null
           tracking_number?: string | null
-          tracking_updates?: any[]
-          metadata?: any
+          tracking_updates?: Record<string, unknown>[]
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -594,8 +594,8 @@ export interface Database {
           delivery_date?: string | null
           estimated_delivery?: string | null
           tracking_number?: string | null
-          tracking_updates?: any[]
-          metadata?: any
+          tracking_updates?: Record<string, unknown>[]
+          metadata?: Record<string, unknown>
         }
       }
       notifications: {
@@ -615,7 +615,7 @@ export interface Database {
           is_sent: boolean
           sent_at: string | null
           action_url: string | null
-          metadata: any // JSONB
+          metadata: GenericMetadata
         }
         Insert: {
           id?: string
@@ -633,7 +633,7 @@ export interface Database {
           is_sent?: boolean
           sent_at?: string | null
           action_url?: string | null
-          metadata?: any
+          metadata?: Record<string, unknown>
         }
         Update: {
           id?: string
@@ -651,7 +651,7 @@ export interface Database {
           is_sent?: boolean
           sent_at?: string | null
           action_url?: string | null
-          metadata?: any
+          metadata?: Record<string, unknown>
         }
       }
     }
