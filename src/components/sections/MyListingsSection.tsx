@@ -17,10 +17,15 @@ import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
 import type { Listing } from '../../types/database-types';
 
+// Gerçek Supabase verileriyle extended Listing interface
+interface ExtendedListing extends Listing {
+  listing_number?: string;
+}
+
 const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
-  const [listings, setListings] = useState<Listing[]>([]);
+  const [listings, setListings] = useState<ExtendedListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -239,7 +244,7 @@ const MyListingsSection: React.FC = () => {
                           {listing.title}
                         </div>
                         <div className="text-xs text-gray-500 font-mono">
-                          #{listing.id.substring(0, 8)}
+                          #{listing.listing_number || listing.id.substring(0, 8)}
                         </div>
                         {listing.description && (
                           <div className="text-xs text-gray-600 mt-1 max-w-xs truncate">
