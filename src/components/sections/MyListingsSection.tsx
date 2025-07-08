@@ -398,140 +398,350 @@ const MyListingsSection: React.FC = () => {
 
       {/* İlan Detay Modalı */}
       {selectedListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">İlan Detayı</h2>
-                <button
-                  onClick={() => setSelectedListing(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                  title="Modalı Kapat"
-                  aria-label="Modalı Kapat"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-auto shadow-2xl border border-gray-100">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 px-8 py-6 rounded-t-2xl relative overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0 bg-white bg-opacity-10" />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">İlan Başlığı</label>
-                    <p className="text-sm text-gray-900">{selectedListing.title}</p>
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                      <Package className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">İlan Detayı</h2>
+                      <p className="text-white/80 text-sm mt-1">Detaylı ilan bilgileri ve dosyalar</p>
+                    </div>
+                    <div className="transform scale-110">
+                      {getListingTypeBadge(selectedListing.listing_type)}
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
-                    <p className="text-sm text-gray-900">{selectedListing.description || '-'}</p>
+                  <button
+                    onClick={() => setSelectedListing(null)}
+                    className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-xl backdrop-blur-sm"
+                    title="Modalı Kapat"
+                    aria-label="Modalı Kapat"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+                
+                {/* İlan Numarası ve Durum */}
+                <div className="mt-6 flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/20">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white/90 text-sm font-medium">İlan No:</span>
+                        <span className="text-white font-bold text-lg">{selectedListing.listing_number}</span>
+                      </div>
+                    </div>
+                    <div className="transform scale-110">
+                      {getStatusBadge(selectedListing.status)}
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Yük Tipi</label>
-                    <p className="text-sm text-gray-900">{selectedListing.load_type || '-'}</p>
+                  <div className="text-white/80 text-sm bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm">
+                    <span className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {formatDate(selectedListing.created_at)} tarihinde oluşturuldu
+                    </span>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ağırlık</label>
-                    <p className="text-sm text-gray-900">
-                      {selectedListing.weight_value ? `${selectedListing.weight_value} ${selectedListing.weight_unit}` : '-'}
-                    </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8">
+              {/* Ana Bilgiler */}
+              <div className="mb-8">
+                <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100 shadow-sm">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <div className="bg-primary-100 p-2 rounded-lg mr-3">
+                      <FileText className="h-6 w-6 text-primary-600" />
+                    </div>
+                    İlan Bilgileri
+                  </h3>
+                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <h4 className="text-xl font-semibold text-gray-900 mb-4 leading-relaxed">
+                      {selectedListing.title}
+                    </h4>
+                    {selectedListing.description && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
+                        <p className="text-gray-700 leading-relaxed">{selectedListing.description}</p>
+                      </div>
+                    )}
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Hacim</label>
-                    <p className="text-sm text-gray-900">
-                      {selectedListing.volume_value ? `${selectedListing.volume_value} ${selectedListing.volume_unit}` : '-'}
-                    </p>
+                </div>
+              </div>
+
+              {/* Grid Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Sol Kolon - Yük Bilgileri */}
+                <div className="space-y-6">
+                  {/* Yük Detayları */}
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100 shadow-sm">
+                    <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
+                      <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                        <Package className="h-6 w-6 text-blue-600" />
+                      </div>
+                      Yük Detayları
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm">
+                        <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Yük Tipi</div>
+                        <div className="text-gray-900 font-semibold text-lg">{selectedListing.load_type || 'Belirtilmemiş'}</div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm">
+                          <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Ağırlık</div>
+                          <div className="text-gray-900 font-semibold">
+                            {selectedListing.weight_value ? 
+                              `${selectedListing.weight_value} ${selectedListing.weight_unit}` : 
+                              'Belirtilmemiş'
+                            }
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm">
+                          <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Hacim</div>
+                          <div className="text-gray-900 font-semibold">
+                            {selectedListing.volume_value ? 
+                              `${selectedListing.volume_value} ${selectedListing.volume_unit}` : 
+                              'Belirtilmemiş'
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fiyat Bilgileri */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100 shadow-sm">
+                    <h3 className="text-xl font-semibold text-green-900 mb-4 flex items-center">
+                      <div className="bg-green-100 p-2 rounded-lg mr-3">
+                        <span className="text-2xl">💰</span>
+                      </div>
+                      Fiyat Bilgileri
+                    </h3>
+                    <div className="bg-white rounded-xl p-6 border border-green-200 shadow-sm">
+                      <div className="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wide">Teklif Edilen Fiyat</div>
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        {selectedListing.price_amount ? 
+                          `${selectedListing.price_amount.toLocaleString('tr-TR')} ${selectedListing.price_currency || 'TL'}` : 
+                          'Fiyat belirtilmemiş'
+                        }
+                      </div>
+                      {selectedListing.price_per && selectedListing.price_amount && (
+                        <div className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full inline-block">
+                          {selectedListing.price_per} başına
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Çıkış Noktası</label>
-                    <p className="text-sm text-gray-900">{selectedListing.origin}</p>
+                {/* Sağ Kolon - Lokasyon ve Tarih */}
+                <div className="space-y-6">
+                  {/* Lokasyon Bilgileri */}
+                  <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-100 shadow-sm">
+                    <h3 className="text-xl font-semibold text-purple-900 mb-4 flex items-center">
+                      <div className="bg-purple-100 p-2 rounded-lg mr-3">
+                        <MapPin className="h-6 w-6 text-purple-600" />
+                      </div>
+                      Rota Bilgileri
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-xl p-4 border border-purple-200 shadow-sm">
+                        <div className="text-sm font-semibold text-purple-700 mb-2 uppercase tracking-wide">Yükleme Noktası</div>
+                        <div className="text-gray-900 font-semibold flex items-center">
+                          <div className="w-4 h-4 bg-green-500 rounded-full mr-3 shadow-sm"></div>
+                          {selectedListing.origin}
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-center">
+                        <div className="w-px h-8 bg-gradient-to-b from-purple-300 to-purple-400"></div>
+                      </div>
+                      
+                      <div className="bg-white rounded-xl p-4 border border-purple-200 shadow-sm">
+                        <div className="text-sm font-semibold text-purple-700 mb-2 uppercase tracking-wide">Teslimat Noktası</div>
+                        <div className="text-gray-900 font-semibold flex items-center">
+                          <div className="w-4 h-4 bg-red-500 rounded-full mr-3 shadow-sm"></div>
+                          {selectedListing.destination}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Varış Noktası</label>
-                    <p className="text-sm text-gray-900">{selectedListing.destination}</p>
+
+                  {/* Tarih Bilgileri */}
+                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-100 shadow-sm">
+                    <h3 className="text-xl font-semibold text-orange-900 mb-4 flex items-center">
+                      <div className="bg-orange-100 p-2 rounded-lg mr-3">
+                        <Calendar className="h-6 w-6 text-orange-600" />
+                      </div>
+                      Tarih Bilgileri
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="bg-white rounded-xl p-4 border border-orange-200 shadow-sm">
+                        <div className="text-sm font-semibold text-orange-700 mb-2 uppercase tracking-wide">Yükleme Tarihi</div>
+                        <div className="text-gray-900 font-semibold">{formatDate(selectedListing.loading_date)}</div>
+                      </div>
+                      
+                      <div className="bg-white rounded-xl p-4 border border-orange-200 shadow-sm">
+                        <div className="text-sm font-semibold text-orange-700 mb-2 uppercase tracking-wide">Teslimat Tarihi</div>
+                        <div className="text-gray-900 font-semibold">{formatDate(selectedListing.delivery_date)}</div>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Yükleme Tarihi</label>
-                    <p className="text-sm text-gray-900">{formatDate(selectedListing.loading_date)}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Teslimat Tarihi</label>
-                    <p className="text-sm text-gray-900">{formatDate(selectedListing.delivery_date)}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Fiyat</label>
-                    <p className="text-sm text-gray-900">
-                      {selectedListing.price_amount ? `${selectedListing.price_amount} ${selectedListing.price_currency || 'TL'} / ${selectedListing.price_per}` : '-'}
-                    </p>
-                  </div>
-                  
+
+                  {/* İlan Sahibi Bilgileri */}
                   {selectedListing.owner_name && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">İlan Sahibi</label>
-                      <p className="text-sm text-gray-900">{selectedListing.owner_name}</p>
-                      {selectedListing.owner_phone && (
-                        <p className="text-sm text-gray-600">{selectedListing.owner_phone}</p>
-                      )}
+                    <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <div className="bg-gray-100 p-2 rounded-lg mr-3">
+                          <span className="text-2xl">👤</span>
+                        </div>
+                        İlan Sahibi
+                      </h3>
+                      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                        <div className="text-gray-900 font-semibold text-xl mb-3">{selectedListing.owner_name}</div>
+                        {selectedListing.owner_phone && (
+                          <div className="flex items-center bg-primary-50 px-4 py-3 rounded-lg border border-primary-200">
+                            <div className="bg-primary-100 p-2 rounded-lg mr-3">
+                              <span className="text-lg">📞</span>
+                            </div>
+                            <span className="text-primary-700 font-semibold">{selectedListing.owner_phone}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Dosyalar */}
+              {/* Dosyalar ve Görseller */}
               {(selectedListing.document_urls && selectedListing.document_urls.length > 0) || 
                (selectedListing.image_urls && selectedListing.image_urls.length > 0) ? (
-                <div className="mt-6 border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Dosyalar</h3>
-                  
-                  {selectedListing.document_urls && selectedListing.document_urls.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Evraklar</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {selectedListing.document_urls.map((url, index) => (
-                          <a
-                            key={index}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <FileText className="h-4 w-4 text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-700 truncate">Evrak {index + 1}</span>
-                            <ExternalLink className="h-3 w-3 text-gray-400 ml-auto" />
-                          </a>
-                        ))}
+                <div className="mt-8 border-t border-gray-200 pt-6">
+                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-6">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                      <span className="text-2xl mr-3">📎</span>
+                      Ekli Dosyalar
+                    </h3>
+                    
+                    {/* Evraklar */}
+                    {selectedListing.document_urls && selectedListing.document_urls.length > 0 && (
+                      <div className="mb-8">
+                        <div className="flex items-center mb-4">
+                          <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <h4 className="text-lg font-medium text-gray-800">
+                            Evraklar ({selectedListing.document_urls.length})
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {selectedListing.document_urls.map((url, index) => {
+                            const fileName = url.split('/').pop() || `Evrak ${index + 1}`;
+                            const fileExtension = fileName.split('.').pop()?.toUpperCase() || 'DOC';
+                            
+                            return (
+                              <a
+                                key={index}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200 transform hover:-translate-y-1"
+                              >
+                                <div className="flex items-start space-x-3">
+                                  <div className="flex-shrink-0">
+                                    <div className="bg-blue-100 group-hover:bg-blue-200 p-3 rounded-lg transition-colors">
+                                      <FileText className="h-6 w-6 text-blue-600" />
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <h5 className="text-sm font-medium text-gray-900 truncate">
+                                        Evrak {index + 1}
+                                      </h5>
+                                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                                        {fileExtension}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1 truncate">
+                                      {fileName}
+                                    </p>
+                                    <div className="flex items-center mt-2 text-blue-600 group-hover:text-blue-700">
+                                      <span className="text-xs font-medium">İndir</span>
+                                      <ExternalLink className="h-3 w-3 ml-1" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </a>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {selectedListing.image_urls && selectedListing.image_urls.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Görseller</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {selectedListing.image_urls.map((url, index) => (
-                          <a
-                            key={index}
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <ImageIcon className="h-4 w-4 text-gray-400 mr-2" />
-                            <span className="text-sm text-gray-700 truncate">Görsel {index + 1}</span>
-                            <ExternalLink className="h-3 w-3 text-gray-400 ml-auto" />
-                          </a>
-                        ))}
+                    )}
+                    
+                    {/* Görseller */}
+                    {selectedListing.image_urls && selectedListing.image_urls.length > 0 && (
+                      <div>
+                        <div className="flex items-center mb-4">
+                          <div className="bg-green-100 p-2 rounded-lg mr-3">
+                            <ImageIcon className="h-5 w-5 text-green-600" />
+                          </div>
+                          <h4 className="text-lg font-medium text-gray-800">
+                            Görseller ({selectedListing.image_urls.length})
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {selectedListing.image_urls.map((url, index) => {
+                            const fileName = url.split('/').pop() || `Görsel ${index + 1}`;
+                            
+                            return (
+                              <a
+                                key={index}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-green-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1"
+                              >
+                                <div className="aspect-w-16 aspect-h-12 bg-gradient-to-br from-gray-100 to-gray-200">
+                                  <div className="flex items-center justify-center">
+                                    <div className="bg-green-100 group-hover:bg-green-200 p-4 rounded-full transition-colors">
+                                      <ImageIcon className="h-8 w-8 text-green-600" />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="p-3">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h5 className="text-sm font-medium text-gray-900 truncate">
+                                      Görsel {index + 1}
+                                    </h5>
+                                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                                      IMG
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 truncate mb-2">
+                                    {fileName}
+                                  </p>
+                                  <div className="flex items-center text-green-600 group-hover:text-green-700">
+                                    <span className="text-xs font-medium">Görüntüle</span>
+                                    <ExternalLink className="h-3 w-3 ml-1" />
+                                  </div>
+                                </div>
+                              </a>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ) : null}
             </div>
