@@ -10,7 +10,11 @@ import {
   MapPin,
   Package,
   Calendar,
-  Loader2
+  Loader2,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  ExternalLink
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
@@ -453,6 +457,104 @@ const MyListingsSection: React.FC = () => {
                     <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price_amount ? `${selectedListing.price_amount} ${selectedListing.price_currency}` : '-'}</div>
                   </div>
                 </div>
+
+                {/* Yüklenen Resimler */}
+                {selectedListing.image_urls && Array.isArray(selectedListing.image_urls) && selectedListing.image_urls.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <ImageIcon className="h-5 w-5 mr-2 text-blue-600" />
+                      Yük Görselleri ({selectedListing.image_urls.length})
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedListing.image_urls.map((imageUrl, index) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={imageUrl} 
+                            alt={`Yük görseli ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => window.open(imageUrl, '_blank')}
+                                className="p-2 bg-white bg-opacity-90 rounded-full text-gray-700 hover:text-blue-600 transition-colors"
+                                title="Büyük boyutta görüntüle"
+                              >
+                                <ExternalLink size={16} />
+                              </button>
+                              <a
+                                href={imageUrl}
+                                download={`yuk-gorseli-${index + 1}.jpg`}
+                                className="p-2 bg-white bg-opacity-90 rounded-full text-gray-700 hover:text-green-600 transition-colors"
+                                title="İndir"
+                              >
+                                <Download size={16} />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Yüklenen Evraklar */}
+                {selectedListing.document_urls && Array.isArray(selectedListing.document_urls) && selectedListing.document_urls.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <FileText className="h-5 w-5 mr-2 text-orange-600" />
+                      Yüklenen Evraklar ({selectedListing.document_urls.length})
+                    </h4>
+                    <div className="space-y-3">
+                      {selectedListing.document_urls.map((documentUrl, index) => {
+                        const fileName = documentUrl.split('/').pop() || `evrak-${index + 1}`;
+                        const fileExtension = fileName.split('.').pop()?.toLowerCase() || '';
+                        
+                        const getFileIcon = (ext: string) => {
+                          if (['pdf'].includes(ext)) return '📄';
+                          if (['doc', 'docx'].includes(ext)) return '📝';
+                          if (['xls', 'xlsx'].includes(ext)) return '📊';
+                          if (['jpg', 'jpeg', 'png'].includes(ext)) return '🖼️';
+                          return '📎';
+                        };
+
+                        return (
+                          <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
+                            <div className="flex items-center flex-1">
+                              <span className="text-2xl mr-3">{getFileIcon(fileExtension)}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {fileName}
+                                </p>
+                                <p className="text-xs text-gray-500 uppercase">
+                                  {fileExtension} dosyası
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex space-x-2 ml-4">
+                              <button
+                                onClick={() => window.open(documentUrl, '_blank')}
+                                className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                                title="Görüntüle"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <a
+                                href={documentUrl}
+                                download={fileName}
+                                className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                                title="İndir"
+                              >
+                                <Download size={16} />
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Güvenlik Bilgileri */}
                 <div className="bg-gray-50 rounded-lg p-6">
                   <h4 className="font-semibold text-gray-900 mb-3">Güvenlik Bilgileri</h4>

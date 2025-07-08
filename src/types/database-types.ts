@@ -304,6 +304,8 @@ export interface Database {
           favorite_count: number | null
           search_tags: string[] | null
           seo_keywords: string[] | null
+          document_urls: string[] | null
+          image_urls: string[] | null
           created_at: string | null
           updated_at: string | null
           published_at: string | null
@@ -371,6 +373,8 @@ export interface Database {
           favorite_count?: number | null
           search_tags?: string[] | null
           seo_keywords?: string[] | null
+          document_urls?: string[] | null
+          image_urls?: string[] | null
           created_at?: string | null
           updated_at?: string | null
           published_at?: string | null
@@ -438,6 +442,8 @@ export interface Database {
           favorite_count?: number | null
           search_tags?: string[] | null
           seo_keywords?: string[] | null
+          document_urls?: string[] | null
+          image_urls?: string[] | null
           created_at?: string | null
           updated_at?: string | null
           published_at?: string | null

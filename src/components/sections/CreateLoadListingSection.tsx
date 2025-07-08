@@ -3,6 +3,7 @@ import { ArrowLeft, Upload, Calendar, Package, MapPin, FileText, Download, Eye, 
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
+import { storage } from '../../lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 
 const CreateLoadListingSection: React.FC = () => {
@@ -17,9 +18,16 @@ const CreateLoadListingSection: React.FC = () => {
     size: string;
     type: string;
     url: string;
+    file?: File;
+    documentType?: string;
+  }>>([]);
+  const [uploadedImages, setUploadedImages] = useState<Array<{
+    index: number;
+    file: File;
+    preview: string;
   }>>([]);
   const [formData, setFormData] = useState({
-    listingNumber: `ILN${new Date().getFullYear().toString().substr(-2)}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+    listingNumber: `ILN${Math.floor(Math.random() * 100000).toString().padStart(5, '0')}`,
     loadTitle: '',
     loadType: '',
     loadDescription: '',
@@ -96,34 +104,115 @@ const CreateLoadListingSection: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Supabase için veri formatı - tam şemaya uygun
+      // Sayısal değerlerin validasyonu
+      const weightValue = formData.loadWeight ? parseFloat(formData.loadWeight) : null;
+      const volumeValue = formData.loadVolume ? parseFloat(formData.loadVolume) : null;
+      const priceAmount = formData.setPrice ? parseFloat(formData.setPrice) : null;
+
+      // Sayısal sınır kontrolleri
+      if (weightValue && (weightValue > 999999 || weightValue < 0)) {
+        toast.error('Ağırlık değeri 0-999999 ton arasında olmalıdır!');
+        return;
+      }
+      if (volumeValue && (volumeValue > 999999 || volumeValue < 0)) {
+        toast.error('Hacim değeri 0-999999 m³ arasında olmalıdır!');
+        return;
+      }
+      if (priceAmount && (priceAmount > 999999999 || priceAmount < 0)) {
+        toast.error('Fiyat değeri 0-999,999,999 TL arasında olmalıdır!');
+        return;
+      }
+
+      // Önce ilan kaydını oluşturalım
       const listingData = {
         user_id: user.id,
         listing_type: 'load_listing' as const,
         title: formData.loadTitle,
         description: formData.loadDescription,
-        origin: formData.loadOrigin, // Doğru alan adı
-        destination: formData.loadDestination, // Doğru alan adı
-        transport_mode: 'road', // Zorunlu alan
-        role_type: roleType || null, // Alıcı/Satıcı seçimi
+        origin: formData.loadOrigin,
+        destination: formData.loadDestination,
+        transport_mode: 'road',
+        role_type: roleType || null,
         load_type: formData.loadType || null,
-        weight_value: formData.loadWeight ? parseFloat(formData.loadWeight) : null,
+        weight_value: weightValue,
         weight_unit: 'ton',
-        volume_value: formData.loadVolume ? parseFloat(formData.loadVolume) : null,
+        volume_value: volumeValue,
         volume_unit: 'm3',
         loading_date: formData.loadingDate || null,
         delivery_date: formData.deliveryDate || null,
-        price_amount: formData.setPrice ? parseFloat(formData.setPrice) : null,
+        price_amount: priceAmount,
         price_currency: 'TRY',
         offer_type: offerType === 'price' ? 'fixed_price' : 'negotiable',
         transport_responsible: formData.loadRoleSelection || null,
         required_documents: requiredDocuments.length > 0 ? requiredDocuments : null,
-        listing_number: formData.listingNumber, // Otomatik generate edilen numara
+        listing_number: formData.listingNumber,
         status: 'active'
       };
 
-      await ListingService.createListing(listingData);
-      toast.success('Yük ilanı başarıyla oluşturuldu!');
+      const listing = await ListingService.createListing(listingData);
+      const listingId = listing.id;
+
+      // Yüklenen evrakları Supabase Storage'a yükle
+      console.log('📋 Uploading documents:', uploadedDocuments.length);
+      const documentUrls: string[] = [];
+      for (const doc of uploadedDocuments) {
+        if (doc.file && doc.documentType) {
+          try {
+            const result = await storage.uploadListingDocument(listingId, doc.file, doc.documentType);
+            if (result.data) {
+              documentUrls.push(result.data.publicUrl);
+              console.log('✅ Document uploaded:', result.data.publicUrl);
+            } else {
+              console.warn('⚠️ Document upload failed (RLS policy issue):', result.error);
+              toast.error(`Evrak yükleme sorunu: ${doc.name}. Storage izinleri kontrol edilmeli.`);
+            }
+          } catch (docError) {
+            console.warn('⚠️ Document upload exception (RLS policy issue):', docError);
+            toast.error(`Evrak yükleme sorunu: ${doc.name}. Storage izinleri kontrol edilmeli.`);
+          }
+        }
+      }
+
+      // Yüklenen görselleri Supabase Storage'a yükle
+      console.log('🖼️ Uploading images:', uploadedImages.length);
+      const imageUrls: string[] = [];
+      for (const img of uploadedImages) {
+        try {
+          const result = await storage.uploadListingImage(listingId, img.file, img.index);
+          if (result.data) {
+            imageUrls.push(result.data.publicUrl);
+            console.log('✅ Image uploaded:', result.data.publicUrl);
+          } else {
+            console.warn('⚠️ Image upload failed (RLS policy issue):', result.error);
+            toast.error(`Görsel yükleme sorunu: Görsel ${img.index + 1}. Storage izinleri kontrol edilmeli.`);
+          }
+        } catch (imgError) {
+          console.warn('⚠️ Image upload exception (RLS policy issue):', imgError);
+          toast.error(`Görsel yükleme sorunu: Görsel ${img.index + 1}. Storage izinleri kontrol edilmeli.`);
+        }
+      }
+
+      // İlanı evrak ve görsel URL'leri ile güncelle
+      if (documentUrls.length > 0 || imageUrls.length > 0) {
+        await ListingService.updateListing(listingId, {
+          document_urls: documentUrls.length > 0 ? documentUrls : null,
+          image_urls: imageUrls.length > 0 ? imageUrls : null
+        });
+      }
+
+      // Başarı mesajı - yüklenen dosya sayısına göre
+      const uploadedFiles = documentUrls.length + imageUrls.length;
+      const totalFiles = uploadedDocuments.length + uploadedImages.length;
+      
+      if (uploadedFiles === totalFiles && totalFiles > 0) {
+        toast.success(`Yük ilanı ve tüm dosyalar başarıyla yüklendi! (${uploadedFiles}/${totalFiles})`);
+      } else if (uploadedFiles > 0) {
+        toast.success(`Yük ilanı oluşturuldu! ${uploadedFiles}/${totalFiles} dosya yüklendi.`);
+      } else if (totalFiles > 0) {
+        toast.success('Yük ilanı oluşturuldu! Dosyalar yüklenemedi - Storage izinleri kontrol edilmeli.');
+      } else {
+        toast.success('Yük ilanı başarıyla oluşturuldu!');
+      }
       
       // Success message and redirect
       setTimeout(() => setActiveSection('my-listings'), 1200);
@@ -157,11 +246,13 @@ const CreateLoadListingSection: React.FC = () => {
             name: file.name,
             size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
             type: file.type,
-            url: URL.createObjectURL(file)
+            url: URL.createObjectURL(file), // Geçici preview URL
+            file: file, // Dosyayı saklıyoruz
+            documentType: 'general' // Varsayılan tip
           };
           setUploadedDocuments(prev => [...prev, newDocument]);
         } else {
-          alert('Desteklenmeyen dosya türü. Lütfen Excel, Word, PDF, PNG veya JPEG dosyası yükleyin.');
+          toast.error('Desteklenmeyen dosya türü. Lütfen Excel, Word, PDF, PNG veya JPEG dosyası yükleyin.');
         }
       });
     }
@@ -456,6 +547,7 @@ const CreateLoadListingSection: React.FC = () => {
                 value={formData.loadWeight}
                 onChange={handleInputChange}
                 min="0.1"
+                max="999999"
                 step="0.1"
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -476,6 +568,7 @@ const CreateLoadListingSection: React.FC = () => {
                 value={formData.loadVolume}
                 onChange={handleInputChange}
                 min="0.1"
+                max="999999"
                 step="0.1"
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -531,6 +624,7 @@ const CreateLoadListingSection: React.FC = () => {
                   value={formData.setPrice}
                   onChange={handleInputChange}
                   min="1"
+                  max="999999999"
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                   placeholder="Örn: 5000"
                 />
@@ -594,19 +688,28 @@ const CreateLoadListingSection: React.FC = () => {
                       const file = e.target.files?.[0];
                       if (!file) return;
                       if (!['image/png', 'image/jpeg'].includes(file.type)) {
-                        alert('Sadece PNG veya JPG dosyası yükleyebilirsiniz.');
+                        toast.error('Sadece PNG veya JPG dosyası yükleyebilirsiniz.');
                         return;
                       }
                       if (file.size > 5 * 1024 * 1024) {
-                        alert('Dosya boyutu 5MB geçemez.');
+                        toast.error('Dosya boyutu 5MB geçemez.');
                         return;
                       }
+                      
+                      // Dosyayı uploadedImages state'ine ekle
                       const reader = new FileReader();
                       reader.onload = ev => {
+                        const preview = ev.target?.result as string;
                         setLoadImages(imgs => {
                           const newImgs = [...imgs];
-                          newImgs[index] = ev.target?.result as string;
+                          newImgs[index] = preview;
                           return newImgs;
+                        });
+                        
+                        // Dosyayı uploadedImages state'ine de ekle
+                        setUploadedImages(prev => {
+                          const filtered = prev.filter(img => img.index !== index);
+                          return [...filtered, { index, file, preview }];
                         });
                       };
                       reader.readAsDataURL(file);
@@ -626,7 +729,14 @@ const CreateLoadListingSection: React.FC = () => {
                     <button
                       type="button"
                       className="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full p-1 text-gray-600 hover:text-red-600 z-20"
-                      onClick={() => setLoadImages(imgs => { const newImgs = [...imgs]; newImgs[index] = null; return newImgs; })}
+                      onClick={() => {
+                        setLoadImages(imgs => { 
+                          const newImgs = [...imgs]; 
+                          newImgs[index] = null; 
+                          return newImgs; 
+                        });
+                        setUploadedImages(prev => prev.filter(img => img.index !== index));
+                      }}
                       title="Görseli Kaldır"
                     >
                       <Trash2 size={18} />
