@@ -95,7 +95,25 @@ export class ListingService {
   static async getUserListings(userId: string): Promise<ExtendedListing[]> {
     const { data, error } = await supabase
       .from('listings')
-      .select(`*, profiles:profiles!listings_user_id_fkey(full_name, email, phone)`)
+      .select(`
+        *,
+        profiles:profiles!listings_user_id_fkey(
+          full_name,
+          email,
+          phone,
+          company_name,
+          city,
+          rating,
+          address,
+          tax_office,
+          tax_number,
+          avatar_url,
+          user_type,
+          total_listings,
+          total_completed_transactions,
+          rating_count
+        )
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -105,12 +123,42 @@ export class ListingService {
     }
 
     // Her ilan için owner bilgilerini ekle
-    return (data || []).map((l: Record<string, unknown>) => ({
-      ...(l as Listing),
-      owner_name: (l.profiles as { full_name?: string })?.full_name || '',
-      owner_email: (l.profiles as { email?: string })?.email || '',
-      owner_phone: (l.profiles as { phone?: string })?.phone || '',
-    }));
+    return (data || []).map((l: Record<string, unknown>) => {
+      const profiles = l.profiles as {
+        full_name?: string;
+        email?: string;
+        phone?: string;
+        company_name?: string;
+        city?: string;
+        rating?: number;
+        address?: string;
+        tax_office?: string;
+        tax_number?: string;
+        avatar_url?: string;
+        user_type?: string;
+        total_listings?: number;
+        total_completed_transactions?: number;
+        rating_count?: number;
+      };
+
+      return {
+        ...(l as Listing),
+        owner_name: profiles?.full_name || '',
+        owner_email: profiles?.email || '',
+        owner_phone: profiles?.phone || '',
+        owner_company: profiles?.company_name || '',
+        owner_city: profiles?.city || '',
+        owner_rating: profiles?.rating || 0,
+        owner_address: profiles?.address || '',
+        owner_tax_office: profiles?.tax_office || '',
+        owner_tax_number: profiles?.tax_number || '',
+        owner_avatar_url: profiles?.avatar_url || '',
+        owner_user_type: profiles?.user_type || '',
+        owner_total_listings: profiles?.total_listings || 0,
+        owner_total_completed_transactions: profiles?.total_completed_transactions || 0,
+        owner_rating_count: profiles?.rating_count || 0,
+      };
+    });
   }
 
   // Tüm aktif ilanları getir

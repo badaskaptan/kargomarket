@@ -455,6 +455,82 @@ const MyListingsSection: React.FC = () => {
             </div>
 
             <div className="p-8">
+              {/* İlan Sahibi Bilgileri - En Üstte */}
+              {selectedListing.owner_name && (
+                <div className="mb-8">
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200 shadow-sm">
+                    <h3 className="text-xl font-semibold text-indigo-900 mb-4 flex items-center">
+                      <div className="bg-indigo-100 p-2 rounded-lg mr-3">
+                        <span className="text-2xl">👤</span>
+                      </div>
+                      İlan Sahibi Bilgileri
+                    </h3>
+                    <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                          <div className="mb-4">
+                            <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Ad Soyad</div>
+                            <div className="text-gray-900 font-semibold text-xl">{selectedListing.owner_name}</div>
+                          </div>
+                          
+                          {selectedListing.owner_phone && (
+                            <div className="mb-4">
+                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Telefon</div>
+                              <div className="flex items-center bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-200">
+                                <div className="bg-indigo-100 p-2 rounded-lg mr-3">
+                                  <span className="text-lg">📞</span>
+                                </div>
+                                <span className="text-indigo-700 font-semibold">{selectedListing.owner_phone}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          {selectedListing.owner_company && (
+                            <div className="mb-4">
+                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Şirket Adı</div>
+                              <div className="text-gray-900 font-semibold text-lg">{selectedListing.owner_company}</div>
+                            </div>
+                          )}
+                          
+                          {selectedListing.owner_email && (
+                            <div className="mb-4">
+                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">E-posta</div>
+                              <div className="flex items-center bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-200">
+                                <div className="bg-indigo-100 p-2 rounded-lg mr-3">
+                                  <span className="text-lg">✉️</span>
+                                </div>
+                                <span className="text-indigo-700 font-semibold">{selectedListing.owner_email}</span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {selectedListing.owner_city && (
+                            <div className="mb-4">
+                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Şehir</div>
+                              <div className="text-gray-900 font-semibold">{selectedListing.owner_city}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {selectedListing.owner_rating && (
+                        <div className="mt-4 pt-4 border-t border-indigo-200">
+                          <div className="flex items-center">
+                            <div className="text-sm font-semibold text-indigo-700 mr-3 uppercase tracking-wide">Değerlendirme:</div>
+                            <div className="flex items-center">
+                              <span className="text-yellow-400 text-lg mr-1">⭐</span>
+                              <span className="text-gray-900 font-semibold">{selectedListing.owner_rating}/5</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Ana Bilgiler */}
               <div className="mb-8">
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100 shadow-sm">
@@ -540,6 +616,64 @@ const MyListingsSection: React.FC = () => {
                           {selectedListing.price_per} başına
                         </div>
                       )}
+                      
+                      {/* Teklif Tipi */}
+                      {selectedListing.offer_type && (
+                        <div className="mt-4 pt-4 border-t border-green-200">
+                          <div className="text-sm font-semibold text-green-700 mb-2 uppercase tracking-wide">Teklif Tipi</div>
+                          <div className="text-gray-900 font-medium">
+                            {selectedListing.offer_type === 'fixed_price' ? 'Sabit Fiyat' : 
+                             selectedListing.offer_type === 'negotiable' ? 'Pazarlığa Açık' : 
+                             selectedListing.offer_type}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Rol ve Taşıma Bilgileri */}
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100 shadow-sm">
+                    <h3 className="text-xl font-semibold text-amber-900 mb-4 flex items-center">
+                      <div className="bg-amber-100 p-2 rounded-lg mr-3">
+                        <span className="text-2xl">🚛</span>
+                      </div>
+                      Taşıma Bilgileri
+                    </h3>
+                    <div className="space-y-4">
+                      {selectedListing.role_type && (
+                        <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+                          <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Rol</div>
+                          <div className="text-gray-900 font-semibold">
+                            {selectedListing.role_type === 'buyer' ? '🛒 Alıcı' : 
+                             selectedListing.role_type === 'seller' ? '🏪 Satıcı' : 
+                             selectedListing.role_type}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {selectedListing.transport_responsible && (
+                        <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+                          <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Taşıma Sorumlusu</div>
+                          <div className="text-gray-900 font-semibold">
+                            {selectedListing.transport_responsible === 'buyer' ? 'Alıcı' : 
+                             selectedListing.transport_responsible === 'seller' ? 'Satıcı' : 
+                             selectedListing.transport_responsible}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {selectedListing.transport_mode && (
+                        <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+                          <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Taşıma Modu</div>
+                          <div className="text-gray-900 font-semibold">
+                            {selectedListing.transport_mode === 'road' ? '🚛 Karayolu' : 
+                             selectedListing.transport_mode === 'sea' ? '🚢 Deniz' : 
+                             selectedListing.transport_mode === 'air' ? '✈️ Hava' : 
+                             selectedListing.transport_mode === 'rail' ? '🚂 Demiryolu' : 
+                             selectedListing.transport_mode}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -598,28 +732,82 @@ const MyListingsSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* İlan Sahibi Bilgileri */}
-                  {selectedListing.owner_name && (
-                    <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                        <div className="bg-gray-100 p-2 rounded-lg mr-3">
-                          <span className="text-2xl">👤</span>
+                  {/* Gerekli Evraklar */}
+                  {selectedListing.required_documents && selectedListing.required_documents.length > 0 && (
+                    <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-6 border border-pink-100 shadow-sm">
+                      <h3 className="text-xl font-semibold text-pink-900 mb-4 flex items-center">
+                        <div className="bg-pink-100 p-2 rounded-lg mr-3">
+                          <FileText className="h-6 w-6 text-pink-600" />
                         </div>
-                        İlan Sahibi
+                        Gerekli Evraklar
                       </h3>
-                      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <div className="text-gray-900 font-semibold text-xl mb-3">{selectedListing.owner_name}</div>
-                        {selectedListing.owner_phone && (
-                          <div className="flex items-center bg-primary-50 px-4 py-3 rounded-lg border border-primary-200">
-                            <div className="bg-primary-100 p-2 rounded-lg mr-3">
-                              <span className="text-lg">📞</span>
-                            </div>
-                            <span className="text-primary-700 font-semibold">{selectedListing.owner_phone}</span>
-                          </div>
-                        )}
+                      <div className="bg-white rounded-xl p-4 border border-pink-200 shadow-sm">
+                        <div className="grid grid-cols-1 gap-2">
+                          {selectedListing.required_documents.map((doc, index) => {
+                            const documentLabels: Record<string, string> = {
+                              invoice: '📄 Fatura / Proforma Fatura',
+                              salesContract: '📝 Satış Sözleşmesi',
+                              waybill: '📋 İrsaliye / Sevk Fişi',
+                              originCertificate: '🌍 Menşe Şahadetnamesi',
+                              analysis: '🔬 Analiz Sertifikası',
+                              complianceCertificates: '📑 TSE, CE, ISO Sertifikaları',
+                              productPhotos: '🖼️ Ürün Fotoğrafları',
+                              packingList: '📦 Ambalaj / Packing List',
+                              warehouseReceipt: '🏪 Depo Teslim Fişi',
+                              producerReceipt: '🌾 Müstahsil Makbuzu',
+                              customsDeclaration: '🛃 Gümrük Beyannamesi',
+                              msds: '🧪 MSDS',
+                              fumigationCertificate: '🌫️ Fumigasyon Sertifikası',
+                              inspectionReports: '🔎 SGS / Intertek Raporları',
+                              paymentDocuments: '💳 Ödeme Belgeleri',
+                              healthCertificates: '🩺 Sağlık/Veteriner Sertifika',
+                              specialCertificates: '🕋 Helal/Kosher/ECO Sertifikaları',
+                              importExportLicense: '📜 İthalat/İhracat Lisansı',
+                              antidampingCertificates: '🌱 Anti-damping Belgeleri',
+                              productManuals: '📘 Ürün Teknik Bilgi Formları',
+                              other: '➕ Diğer'
+                            };
+                            
+                            return (
+                              <div key={index} className="flex items-center p-2 bg-pink-50 rounded-lg border border-pink-200">
+                                <span className="text-sm text-pink-700 font-medium">
+                                  {documentLabels[doc] || doc}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
+
+                  {/* İlan İstatistikleri */}
+                  <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-gray-100 p-2 rounded-lg mr-3">
+                        <span className="text-2xl">�</span>
+                      </div>
+                      İlan İstatistikleri
+                    </h3>
+                    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                      <div className="grid grid-cols-2 gap-4 text-center">
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <div className="text-2xl font-bold text-gray-900">{selectedListing.view_count || 0}</div>
+                          <div className="text-sm text-gray-600">Görüntüleme</div>
+                        </div>
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <div className="text-2xl font-bold text-gray-900">{selectedListing.offer_count || 0}</div>
+                          <div className="text-sm text-gray-600">Teklif</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                        <div className="text-sm text-gray-600">
+                          Son güncelleme: {formatDate(selectedListing.updated_at)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

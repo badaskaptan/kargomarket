@@ -988,4 +988,15 @@ export type ExtendedListing = Database['public']['Tables']['listings']['Row'] & 
   owner_name?: string;
   owner_email?: string;
   owner_phone?: string;
+  owner_company?: string;
+  owner_city?: string;
+  owner_rating?: number;
+  owner_address?: string;
+  owner_tax_office?: string;
+  owner_tax_number?: string;
+  owner_avatar_url?: string;
+  owner_user_type?: string;
+  owner_total_listings?: number;
+  owner_total_completed_transactions?: number;
+  owner_rating_count?: number;
 };
