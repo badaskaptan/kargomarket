@@ -93,27 +93,10 @@ export class ListingService {
 
   // Kullanıcının ilanlarını getir (profil join'li)
   static async getUserListings(userId: string): Promise<ExtendedListing[]> {
+    // Önce basit query ile deneyelim
     const { data, error } = await supabase
       .from('listings')
-      .select(`
-        *,
-        profiles:profiles!listings_user_id_fkey(
-          full_name,
-          email,
-          phone,
-          company_name,
-          city,
-          rating,
-          address,
-          tax_office,
-          tax_number,
-          avatar_url,
-          user_type,
-          total_listings,
-          total_completed_transactions,
-          rating_count
-        )
-      `)
+      .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -122,43 +105,81 @@ export class ListingService {
       throw new Error(`İlanlar getirilemedi: ${error.message}`);
     }
 
-    // Her ilan için owner bilgilerini ekle
-    return (data || []).map((l: Record<string, unknown>) => {
-      const profiles = l.profiles as {
-        full_name?: string;
-        email?: string;
-        phone?: string;
-        company_name?: string;
-        city?: string;
-        rating?: number;
-        address?: string;
-        tax_office?: string;
-        tax_number?: string;
-        avatar_url?: string;
-        user_type?: string;
-        total_listings?: number;
-        total_completed_transactions?: number;
-        rating_count?: number;
-      };
+    // Eğer data varsa, her ilan için ayrı ayrı profil bilgilerini çekelim
+    if (!data || data.length === 0) {
+      console.log('No listings found for user:', userId);
+      return [];
+    }
 
-      return {
-        ...(l as Listing),
-        owner_name: profiles?.full_name || '',
-        owner_email: profiles?.email || '',
-        owner_phone: profiles?.phone || '',
-        owner_company: profiles?.company_name || '',
-        owner_city: profiles?.city || '',
-        owner_rating: profiles?.rating || 0,
-        owner_address: profiles?.address || '',
-        owner_tax_office: profiles?.tax_office || '',
-        owner_tax_number: profiles?.tax_number || '',
-        owner_avatar_url: profiles?.avatar_url || '',
-        owner_user_type: profiles?.user_type || '',
-        owner_total_listings: profiles?.total_listings || 0,
-        owner_total_completed_transactions: profiles?.total_completed_transactions || 0,
-        owner_rating_count: profiles?.rating_count || 0,
-      };
-    });
+    console.log('Found listings:', data.length);
+
+    // Her ilan için owner bilgilerini ekle
+    const listingsWithOwner = await Promise.all(
+      data.map(async (listing) => {
+        // Profil bilgilerini ayrı çekelim
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            full_name,
+            email,
+            phone,
+            company_name,
+            city,
+            rating,
+            address,
+            tax_office,
+            tax_number,
+            avatar_url,
+            user_type,
+            total_listings,
+            total_completed_transactions,
+            rating_count
+          `)
+          .eq('id', listing.user_id)
+          .single();
+
+        if (profileError) {
+          console.warn('Profile not found for user:', listing.user_id, profileError);
+        }
+
+        const profile = profileData as {
+          full_name?: string;
+          email?: string;
+          phone?: string;
+          company_name?: string;
+          city?: string;
+          rating?: number;
+          address?: string;
+          tax_office?: string;
+          tax_number?: string;
+          avatar_url?: string;
+          user_type?: string;
+          total_listings?: number;
+          total_completed_transactions?: number;
+          rating_count?: number;
+        } | null;
+
+        return {
+          ...(listing as Listing),
+          owner_name: profile?.full_name || '',
+          owner_email: profile?.email || '',
+          owner_phone: profile?.phone || '',
+          owner_company: profile?.company_name || '',
+          owner_city: profile?.city || '',
+          owner_rating: profile?.rating || 0,
+          owner_address: profile?.address || '',
+          owner_tax_office: profile?.tax_office || '',
+          owner_tax_number: profile?.tax_number || '',
+          owner_avatar_url: profile?.avatar_url || '',
+          owner_user_type: profile?.user_type || '',
+          owner_total_listings: profile?.total_listings || 0,
+          owner_total_completed_transactions: profile?.total_completed_transactions || 0,
+          owner_rating_count: profile?.rating_count || 0,
+        };
+      })
+    );
+
+    return listingsWithOwner;
   }
 
   // Tüm aktif ilanları getir

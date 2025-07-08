@@ -53,15 +53,21 @@ const MyListingsSection: React.FC = () => {
   // Kullanıcının ilanlarını yükle
   useEffect(() => {
     const loadUserListings = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log('❌ No user found');
+        return;
+      }
       
       try {
+        console.log('🔄 Loading listings for user:', user.id);
         setLoading(true);
         const userListings = await ListingService.getUserListings(user.id);
-        setListings(userListings);
         console.log('✅ User listings loaded:', userListings);
+        setListings(userListings);
       } catch (error) {
-        console.error('Error loading user listings:', error);
+        console.error('❌ Error loading user listings:', error);
+        // Hata durumunda da loading'i false yap
+        setListings([]);
       } finally {
         setLoading(false);
       }
@@ -226,6 +232,27 @@ const MyListingsSection: React.FC = () => {
     );
   }
 
+  // Debug bilgileri
+  console.log('🔍 Debug Info:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    loading,
+    listingsCount: listings.length,
+    listings: listings.slice(0, 2) // İlk 2 ilanı log'la
+  });
+
+  // Eğer user yoksa hata mesajı göster
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Oturumunuz Bulunamadı</h3>
+          <p className="text-gray-600">Lütfen giriş yapınız.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -270,8 +297,19 @@ const MyListingsSection: React.FC = () => {
             </>
           ) : (
             <>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz hiç ilanınız yok</h3>
-              <p className="text-gray-600 mb-6">İlk ilanınızı oluşturarak başlayın!</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {listings.length === 0 ? 'Henüz hiç ilanınız yok' : 'İlan bulunamadı'}
+              </h3>
+              <p className="text-gray-600 mb-2">
+                {listings.length === 0 
+                  ? 'İlk ilanınızı oluşturarak başlayın!' 
+                  : `Toplam ${listings.length} ilanınız var ama filtreye uygun olan bulunamadı.`
+                }
+              </p>
+              {/* Debug info */}
+              <div className="text-xs text-gray-400 mb-6">
+                Debug: user_id={user?.id}, total_listings={listings.length}, loading={loading.toString()}
+              </div>
               <button
                 onClick={() => setActiveSection('create-load-listing')}
                 className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200"
