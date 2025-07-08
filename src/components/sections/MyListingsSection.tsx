@@ -15,12 +15,7 @@ import {
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
-import type { Listing } from '../../types/database-types';
-
-// Gerçek Supabase verileriyle extended Listing interface
-interface ExtendedListing extends Omit<Listing, 'listing_number'> {
-  listing_number?: string;
-}
+import type { ExtendedListing } from '../../types/database-types';
 
 const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
@@ -28,6 +23,7 @@ const MyListingsSection: React.FC = () => {
   const [listings, setListings] = useState<ExtendedListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
 
   // Kullanıcının ilanlarını yükle
   useEffect(() => {
@@ -112,6 +108,33 @@ const MyListingsSection: React.FC = () => {
       </div>
     );
   }
+
+  // --- FONKSİYONLAR ---
+  const handleEditListing = () => {
+    setActiveSection('my-listings'); // veya uygun başka bir ActiveSection değeri
+    // Eğer context ile seçili ilanı paylaşmak gerekiyorsa burada eklenebilir
+    // ör: setSelectedListingForEdit(listing)
+  };
+
+  const handleTogglePause = async (listing: ExtendedListing) => {
+    try {
+      const newStatus = listing.status === 'active' ? 'paused' : 'active';
+      await ListingService.updateListing(listing.id, { status: newStatus });
+      setListings((prev) => prev.map(l => l.id === listing.id ? { ...l, status: newStatus } : l));
+    } catch {
+      alert('İlan durumu güncellenemedi.');
+    }
+  };
+
+  const handleDeleteListing = async (listing: ExtendedListing) => {
+    if (!window.confirm('Bu ilanı silmek istediğinize emin misiniz?')) return;
+    try {
+      await ListingService.deleteListing(listing.id);
+      setListings((prev) => prev.filter(l => l.id !== listing.id));
+    } catch {
+      alert('İlan silinemedi.');
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -285,6 +308,7 @@ const MyListingsSection: React.FC = () => {
                           className="text-indigo-600 hover:text-indigo-900"
                           title="İlanı Görüntüle"
                           aria-label="İlanı Görüntüle"
+                          onClick={() => setSelectedListing(listing)}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
@@ -292,6 +316,7 @@ const MyListingsSection: React.FC = () => {
                           className="text-green-600 hover:text-green-900"
                           title="İlanı Düzenle"
                           aria-label="İlanı Düzenle"
+                          onClick={() => handleEditListing()}
                         >
                           <Edit className="h-4 w-4" />
                         </button>
@@ -300,6 +325,7 @@ const MyListingsSection: React.FC = () => {
                             className="text-orange-600 hover:text-orange-900"
                             title="İlanı Duraklat"
                             aria-label="İlanı Duraklat"
+                            onClick={() => handleTogglePause(listing)}
                           >
                             <Pause className="h-4 w-4" />
                           </button>
@@ -308,6 +334,7 @@ const MyListingsSection: React.FC = () => {
                             className="text-green-600 hover:text-green-900"
                             title="İlanı Etkinleştir"
                             aria-label="İlanı Etkinleştir"
+                            onClick={() => handleTogglePause(listing)}
                           >
                             <Play className="h-4 w-4" />
                           </button>
@@ -316,6 +343,7 @@ const MyListingsSection: React.FC = () => {
                           className="text-red-600 hover:text-red-900"
                           title="İlanı Sil"
                           aria-label="İlanı Sil"
+                          onClick={() => handleDeleteListing(listing)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -325,6 +353,126 @@ const MyListingsSection: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Listing Detail Modal (Önizleme) */}
+      {selectedListing && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedListing(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+            >
+              ×
+            </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Sol Kolon */}
+              <div>
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                      {selectedListing.listing_type}
+                    </div>
+                    <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      Sizin İlanınız
+                    </div>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">{selectedListing.title}</h3>
+                  <div className="flex items-center text-gray-600 mb-2">
+                    <MapPin size={18} className="mr-2 text-primary-500" />
+                    <span className="text-lg">{selectedListing.origin} → {selectedListing.destination}</span>
+                  </div>
+                  <div className="text-sm text-gray-500 mb-2">{selectedListing.created_at ? new Date(selectedListing.created_at).toLocaleDateString('tr-TR') : ''} yayınlandı</div>
+                  <div className="text-xs text-gray-500 font-mono mb-2">İlan No: #{selectedListing.listing_number || selectedListing.id?.toString().substring(0, 8)}</div>
+                  {/* İlan Sahibi ve İletişim Bilgileri */}
+                  <div className="bg-primary-50 rounded-lg p-4 mb-4 border border-primary-200">
+                    <div className="mb-2">
+                      <span className="font-semibold text-primary-800">İlan Sahibi:</span> {selectedListing.owner_name || '-'}
+                    </div>
+                    <div className="mb-2">
+                      <span className="font-semibold text-primary-800">Telefon:</span> {selectedListing.owner_phone || '-'}
+                    </div>
+                    <div className="mb-2">
+                      <span className="font-semibold text-primary-800">E-posta:</span> {selectedListing.owner_email || '-'}
+                    </div>
+                  </div>
+                  {/* Nakliye Kime Ait */}
+                  <div className="mb-4">
+                    <span className="font-semibold text-gray-700">Nakliye Kime Ait:</span> {selectedListing.transport_responsible || '-'}
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Yük Detayları</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Yük Tipi:</span>
+                      <div className="font-medium">{selectedListing.load_type}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Ağırlık:</span>
+                      <div className="font-medium">{selectedListing.weight_value} {selectedListing.weight_unit}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Hacim:</span>
+                      <div className="font-medium">{selectedListing.volume_value} {selectedListing.volume_unit}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Taşıma Modu:</span>
+                      <div className="font-medium capitalize">{selectedListing.transport_mode}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Açıklama</h4>
+                  <p className="text-gray-700">{selectedListing.description}</p>
+                </div>
+                {selectedListing.required_documents && Array.isArray(selectedListing.required_documents) && selectedListing.required_documents.length > 0 && (
+                  <div className="bg-blue-50 rounded-lg p-6 mb-6">
+                    <h4 className="font-semibold text-blue-900 mb-3">Gerekli Evraklar</h4>
+                    <ul className="list-disc pl-5 text-blue-800 text-sm">
+                      {selectedListing.required_documents.map((doc, i) => (
+                        <li key={i}>{doc}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              {/* Sağ Kolon */}
+              <div>
+                {/* Harita */}
+                {/* Burada LiveMap veya RealMap kullanılabilir, örnek olarak LiveMap: */}
+                {/* <LiveMap coordinates={[selectedListing.origin, selectedListing.destination]} height="320px" showRoute={true} /> */}
+                <div className="mb-6 h-80 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center text-gray-400">
+                  Harita entegrasyonu (opsiyonel)
+                </div>
+                {/* Fiyat Bilgisi */}
+                <div className="bg-white border-2 border-primary-200 rounded-lg p-6 mb-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price_amount ? `${selectedListing.price_amount} ${selectedListing.price_currency}` : '-'}</div>
+                  </div>
+                </div>
+                {/* Güvenlik Bilgileri */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Güvenlik Bilgileri</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Doğrulanmış üye
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Sigorta güvencesi
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Güvenli ödeme sistemi
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

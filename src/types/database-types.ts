@@ -976,3 +976,10 @@ export type ReviewUpdate = Database['public']['Tables']['reviews']['Update']
 export type AdUpdate = Database['public']['Tables']['ads']['Update']
 export type TransactionUpdate = Database['public']['Tables']['transactions']['Update']
 export type NotificationUpdate = Database['public']['Tables']['notifications']['Update']
+
+// Extended listing type for joined owner info (Supabase join)
+export type ExtendedListing = Database['public']['Tables']['listings']['Row'] & {
+  owner_name?: string;
+  owner_email?: string;
+  owner_phone?: string;
+};

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { Database } from '../types/database-types';
+import type { Database, ExtendedListing } from '../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
 // type ListingInsert = Database['public']['Tables']['listings']['Insert']; // Şu an kullanılmıyor
@@ -29,6 +29,13 @@ interface FormListingData {
   required_documents?: string[] | null;
   status?: string;
 }
+
+// ExtendedListing tipi (listing + owner info)
+// export interface ExtendedListing extends Listing {
+//   owner_name?: string;
+//   owner_email?: string;
+//   owner_phone?: string;
+// }
 
 export class ListingService {
   // Yeni ilan oluştur
@@ -84,11 +91,11 @@ export class ListingService {
     }
   }
 
-  // Kullanıcının ilanlarını getir
-  static async getUserListings(userId: string): Promise<Listing[]> {
+  // Kullanıcının ilanlarını getir (profil join'li)
+  static async getUserListings(userId: string): Promise<ExtendedListing[]> {
     const { data, error } = await supabase
       .from('listings')
-      .select('*')
+      .select(`*, profiles:profiles!listings_user_id_fkey(full_name, email, phone)`)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -97,7 +104,13 @@ export class ListingService {
       throw new Error(`İlanlar getirilemedi: ${error.message}`);
     }
 
-    return data || [];
+    // Her ilan için owner bilgilerini ekle
+    return (data || []).map((l: Record<string, unknown>) => ({
+      ...(l as Listing),
+      owner_name: (l.profiles as { full_name?: string })?.full_name || '',
+      owner_email: (l.profiles as { email?: string })?.email || '',
+      owner_phone: (l.profiles as { phone?: string })?.phone || '',
+    }));
   }
 
   // Tüm aktif ilanları getir

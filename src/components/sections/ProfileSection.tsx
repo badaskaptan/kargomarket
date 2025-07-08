@@ -1,37 +1,122 @@
 import React, { useState } from 'react';
-import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star } from 'lucide-react';
+import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
+import { supabase } from '../../lib/supabase';
 
 const ProfileSection: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile, updateProfile } = useAuth();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [offerNotifications, setOfferNotifications] = useState(true);
   const [buyerRole, setBuyerRole] = useState(true);
-  const [carrierRole, setCarrierRole] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({
+    full_name: profile?.full_name || '',
+    email: profile?.email || '',
+    phone: profile?.phone || '',
+    company_name: profile?.company_name || '',
+    tax_office: profile?.tax_office || '',
+    tax_number: profile?.tax_number || '',
+    address: profile?.address || '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    current: '',
+    new: '',
+    confirm: ''
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  React.useEffect(() => {
+    setForm({
+      full_name: profile?.full_name || '',
+      email: profile?.email || '',
+      phone: profile?.phone || '',
+      company_name: profile?.company_name || '',
+      tax_office: profile?.tax_office || '',
+      tax_number: profile?.tax_number || '',
+      address: profile?.address || '',
+    });
+  }, [profile, editOpen]);
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await updateProfile(form);
+      setEditOpen(false);
+    } catch (err: unknown) {
+      let msg = 'Profil güncellenemedi.';
+      if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
+        msg = (err as { message: string }).message;
+      }
+      setError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPasswordForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    if (!passwordForm.new || passwordForm.new.length < 8) {
+      setPasswordError('Yeni şifre en az 8 karakter olmalı.');
+      return;
+    }
+    if (passwordForm.new !== passwordForm.confirm) {
+      setPasswordError('Yeni şifreler eşleşmiyor.');
+      return;
+    }
+    setPasswordLoading(true);
+    // Supabase password update
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.new });
+    if (error) {
+      setPasswordError(error.message);
+    } else {
+      setPasswordSuccess('Şifre başarıyla değiştirildi.');
+      setPasswordForm({ current: '', new: '', confirm: '' });
+      setTimeout(() => setPasswordOpen(false), 1500);
+    }
+    setPasswordLoading(false);
+  };
 
   const stats = [
     {
       label: 'Toplam İlan',
-      value: '42',
+      value: profile?.total_listings ?? '-',
       icon: Building,
       color: 'blue'
     },
     {
       label: 'Toplam Teklif',
-      value: '78',
+      value: profile?.total_offers ?? '-',
       icon: Star,
       color: 'green'
     },
     {
       label: 'Tamamlanan',
-      value: '27',
+      value: profile?.total_completed_transactions ?? '-',
       icon: Calendar,
       color: 'purple'
     },
     {
       label: 'Ortalama Puan',
-      value: '4.8',
+      value: profile?.rating !== undefined && profile?.rating !== null ? profile.rating.toFixed(1) : '-',
       icon: Star,
       color: 'amber'
     }
@@ -49,9 +134,214 @@ const ProfileSection: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Şifre Değiştir Modalı */}
+      {passwordOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative animate-fade-in">
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
+              aria-label="Kapat"
+              onClick={() => setPasswordOpen(false)}
+            >
+              <X />
+            </button>
+            <h2 className="text-xl font-bold mb-6 text-gray-900">Şifre Değiştir</h2>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mevcut Şifre</label>
+                <input
+                  name="current"
+                  type="password"
+                  value={passwordForm.current}
+                  onChange={handlePasswordChange}
+                  placeholder="Mevcut şifreniz"
+                  title="Mevcut Şifre"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                  autoComplete="current-password"
+                  disabled
+                />
+                <span className="text-xs text-gray-400">(Supabase ile mevcut şifre doğrulaması zorunlu değildir.)</span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Yeni Şifre</label>
+                <input
+                  name="new"
+                  type="password"
+                  value={passwordForm.new}
+                  onChange={handlePasswordChange}
+                  placeholder="Yeni şifreniz"
+                  title="Yeni Şifre"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Yeni Şifre (Tekrar)</label>
+                <input
+                  name="confirm"
+                  type="password"
+                  value={passwordForm.confirm}
+                  onChange={handlePasswordChange}
+                  placeholder="Yeni şifre tekrar"
+                  title="Yeni Şifre Tekrar"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+              </div>
+              {passwordError && <div className="text-red-600 text-sm">{passwordError}</div>}
+              {passwordSuccess && <div className="text-green-600 text-sm">{passwordSuccess}</div>}
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                  onClick={() => setPasswordOpen(false)}
+                  disabled={passwordLoading}
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-60"
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Profil Düzenle Modal */}
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-lg relative animate-fade-in">
+            <button
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl"
+              aria-label="Kapat"
+              onClick={() => setEditOpen(false)}
+            >
+              <X />
+            </button>
+            <h2 className="text-xl font-bold mb-6 text-gray-900">Profili Düzenle</h2>
+            <form onSubmit={handleProfileSave} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ad Soyad</label>
+                <input
+                  name="full_name"
+                  type="text"
+                  value={form.full_name}
+                  onChange={handleFormChange}
+                  required
+                  placeholder="Ad Soyad"
+                  title="Ad Soyad"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleFormChange}
+                  required
+                  placeholder="E-posta"
+                  title="E-posta"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                  disabled
+                />
+                <span className="text-xs text-gray-400">E-posta değiştirilemez.</span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                <input
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={handleFormChange}
+                  placeholder="Telefon"
+                  title="Telefon"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Firma Adı</label>
+                <input
+                  name="company_name"
+                  type="text"
+                  value={form.company_name}
+                  onChange={handleFormChange}
+                  placeholder="Firma Adı"
+                  title="Firma Adı"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vergi Dairesi</label>
+                  <input
+                    name="tax_office"
+                    type="text"
+                    value={form.tax_office}
+                    onChange={handleFormChange}
+                    placeholder="Vergi Dairesi"
+                    title="Vergi Dairesi"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Vergi No</label>
+                  <input
+                    name="tax_number"
+                    type="text"
+                    value={form.tax_number}
+                    onChange={handleFormChange}
+                    placeholder="Vergi No"
+                    title="Vergi No"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Adres</label>
+                <input
+                  name="address"
+                  type="text"
+                  value={form.address}
+                  onChange={handleFormChange}
+                  placeholder="Adres"
+                  title="Adres"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+              </div>
+              {error && <div className="text-red-600 text-sm">{error}</div>}
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                  onClick={() => setEditOpen(false)}
+                  disabled={saving}
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-lg bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-60"
+                  disabled={saving}
+                >
+                  {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Profilim</h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Profile Card */}
           <div className="md:col-span-1">
@@ -64,13 +354,20 @@ const ProfileSection: React.FC = () => {
                   {profile?.full_name || 'Kullanıcı'}
                 </h3>
                 <p className="text-gray-600 mb-4">{profile?.email || 'Email yükleniyor...'}</p>
-                
                 <div className="w-full space-y-3">
-                  <button className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl">
+                  <button
+                    className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
+                    onClick={() => setEditOpen(true)}
+                    aria-label="Profili Düzenle"
+                  >
                     <Edit size={16} className="mr-2" />
                     <span>Profili Düzenle</span>
                   </button>
-                  <button className="w-full bg-white text-gray-700 border border-gray-300 py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-gray-50 transition-colors">
+                  <button
+                    className="w-full bg-white text-gray-700 border border-gray-300 py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-gray-50 transition-colors"
+                    onClick={() => setPasswordOpen(true)}
+                    aria-label="Şifre Değiştir"
+                  >
                     <Lock size={16} className="mr-2" />
                     <span>Şifre Değiştir</span>
                   </button>
@@ -92,21 +389,6 @@ const ProfileSection: React.FC = () => {
                         onChange={(e) => setBuyerRole(e.target.checked)}
                         className="sr-only peer"
                         title="Alıcı/Satıcı rolünü seç"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                    </label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700" id="role-carrier-label">Nakliyeci</span>
-                    <label className="relative inline-flex items-center cursor-pointer" htmlFor="role-carrier-checkbox">
-                      <input
-                        type="checkbox"
-                        id="role-carrier-checkbox"
-                        aria-labelledby="role-carrier-label"
-                        checked={carrierRole}
-                        onChange={(e) => setCarrierRole(e.target.checked)}
-                        className="sr-only peer"
-                        title="Nakliyeci rolünü seç"
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                     </label>
@@ -182,7 +464,7 @@ const ProfileSection: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Ad Soyad</p>
                     <p className="font-medium text-gray-900">
-                      {profile?.full_name || 'Kullanıcı'}
+                      {profile?.full_name || '-'}
                     </p>
                   </div>
                 </div>
@@ -190,21 +472,21 @@ const ProfileSection: React.FC = () => {
                   <Mail className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">E-posta</p>
-                    <p className="font-medium text-gray-900">ahmet.yilmaz@example.com</p>
+                    <p className="font-medium text-gray-900">{profile?.email || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Phone className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Telefon</p>
-                    <p className="font-medium text-gray-900">+90 555 123 4567</p>
+                    <p className="font-medium text-gray-900">{profile?.phone || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Üyelik Tarihi</p>
-                    <p className="font-medium text-gray-900">01.01.2025</p>
+                    <p className="font-medium text-gray-900">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('tr-TR') : '-'}</p>
                   </div>
                 </div>
               </div>
@@ -221,28 +503,28 @@ const ProfileSection: React.FC = () => {
                   <Building className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Firma Adı</p>
-                    <p className="font-medium text-gray-900">Yılmaz Lojistik A.Ş.</p>
+                    <p className="font-medium text-gray-900">{profile?.company_name || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Building className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Vergi Dairesi</p>
-                    <p className="font-medium text-gray-900">Kadıköy</p>
+                    <p className="font-medium text-gray-900">{profile?.tax_office || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <Building className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Vergi No</p>
-                    <p className="font-medium text-gray-900">1234567890</p>
+                    <p className="font-medium text-gray-900">{profile?.tax_number || '-'}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Adres</p>
-                    <p className="font-medium text-gray-900">Atatürk Mah. Cumhuriyet Cad. No:123 Kadıköy/İstanbul</p>
+                    <p className="font-medium text-gray-900">{profile?.address || '-'}</p>
                   </div>
                 </div>
               </div>
