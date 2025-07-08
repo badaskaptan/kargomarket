@@ -572,21 +572,160 @@ const MyListingsSection: React.FC = () => {
               {/* Ana Bilgiler */}
               <div className="mb-8">
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <div className="bg-primary-100 p-2 rounded-lg mr-3">
-                      <FileText className="h-6 w-6 text-primary-600" />
-                    </div>
-                    İlan Bilgileri
-                  </h3>
-                  <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h4 className="text-xl font-semibold text-gray-900 mb-4 leading-relaxed">
-                      {selectedListing.title}
-                    </h4>
-                    {selectedListing.description && (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
-                        <p className="text-gray-700 leading-relaxed">{selectedListing.description}</p>
+                  {/* İlan Sahibi Özet Bilgileri */}
+                  {selectedListing.owner_name && (
+                    <div className="mb-6 pb-6 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <div className="bg-indigo-100 p-2 rounded-lg mr-3">
+                          <span className="text-xl">👤</span>
+                        </div>
+                        İlan Sahibi
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Kişisel Bilgiler */}
+                        <div className="bg-white rounded-lg p-4 border border-indigo-100">
+                          <h4 className="text-sm font-semibold text-indigo-700 mb-3 uppercase tracking-wide">Kişisel Bilgiler</h4>
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-xs text-gray-500 uppercase tracking-wide">Ad Soyad</span>
+                              <div className="text-gray-900 font-medium">{selectedListing.owner_name}</div>
+                            </div>
+                            {selectedListing.owner_phone && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">Telefon</span>
+                                <div className="text-gray-900 font-medium flex items-center">
+                                  <span className="mr-2">📞</span>
+                                  {selectedListing.owner_phone}
+                                </div>
+                              </div>
+                            )}
+                            {selectedListing.owner_email && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">E-posta</span>
+                                <div className="text-gray-900 font-medium flex items-center">
+                                  <span className="mr-2">✉️</span>
+                                  {selectedListing.owner_email}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Firma Bilgileri */}
+                        {(selectedListing.owner_company || selectedListing.owner_city || selectedListing.owner_address) && (
+                          <div className="bg-white rounded-lg p-4 border border-green-100">
+                            <h4 className="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wide">Firma Bilgileri</h4>
+                            <div className="space-y-2">
+                              {selectedListing.owner_company && (
+                                <div>
+                                  <span className="text-xs text-gray-500 uppercase tracking-wide">Şirket Adı</span>
+                                  <div className="text-gray-900 font-medium flex items-center">
+                                    <span className="mr-2">🏢</span>
+                                    {selectedListing.owner_company}
+                                  </div>
+                                </div>
+                              )}
+                              {selectedListing.owner_city && (
+                                <div>
+                                  <span className="text-xs text-gray-500 uppercase tracking-wide">Şehir</span>
+                                  <div className="text-gray-900 font-medium flex items-center">
+                                    <span className="mr-2">📍</span>
+                                    {selectedListing.owner_city}
+                                  </div>
+                                </div>
+                              )}
+                              {selectedListing.owner_address && (
+                                <div>
+                                  <span className="text-xs text-gray-500 uppercase tracking-wide">Adres</span>
+                                  <div className="text-gray-900 font-medium text-sm">
+                                    {selectedListing.owner_address}
+                                  </div>
+                                </div>
+                              )}
+                              {(selectedListing.owner_tax_office || selectedListing.owner_tax_number) && (
+                                <div className="pt-2 border-t border-gray-100">
+                                  {selectedListing.owner_tax_office && (
+                                    <div className="mb-1">
+                                      <span className="text-xs text-gray-500">Vergi Dairesi:</span>
+                                      <span className="text-gray-700 text-sm ml-1">{selectedListing.owner_tax_office}</span>
+                                    </div>
+                                  )}
+                                  {selectedListing.owner_tax_number && (
+                                    <div>
+                                      <span className="text-xs text-gray-500">Vergi No:</span>
+                                      <span className="text-gray-700 text-sm ml-1">{selectedListing.owner_tax_number}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* İstatistikler ve Değerlendirme */}
+                        <div className="bg-white rounded-lg p-4 border border-orange-100">
+                          <h4 className="text-sm font-semibold text-orange-700 mb-3 uppercase tracking-wide">İstatistikler</h4>
+                          <div className="space-y-2">
+                            {selectedListing.owner_rating && selectedListing.owner_rating > 0 && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">Değerlendirme</span>
+                                <div className="flex items-center">
+                                  <span className="text-yellow-400 mr-1">⭐</span>
+                                  <span className="text-gray-900 font-medium">{selectedListing.owner_rating}/5</span>
+                                  {selectedListing.owner_rating_count && (
+                                    <span className="text-xs text-gray-500 ml-1">({selectedListing.owner_rating_count})</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            {selectedListing.owner_total_listings && selectedListing.owner_total_listings > 0 && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">Toplam İlan</span>
+                                <div className="text-gray-900 font-medium">{selectedListing.owner_total_listings}</div>
+                              </div>
+                            )}
+                            {selectedListing.owner_total_completed_transactions && selectedListing.owner_total_completed_transactions > 0 && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">Tamamlanan İşlem</span>
+                                <div className="text-gray-900 font-medium">{selectedListing.owner_total_completed_transactions}</div>
+                              </div>
+                            )}
+                            {selectedListing.owner_user_type && (
+                              <div>
+                                <span className="text-xs text-gray-500 uppercase tracking-wide">Kullanıcı Tipi</span>
+                                <div className="text-gray-900 font-medium">
+                                  {selectedListing.owner_user_type === 'buyer_seller' ? '🛒 Alıcı/Satıcı' :
+                                   selectedListing.owner_user_type === 'carrier' ? '🚛 Taşıyıcı' :
+                                   selectedListing.owner_user_type === 'both' ? '🔄 Karma' :
+                                   selectedListing.owner_user_type}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                  )}
+                  
+                  {/* İlan Bilgileri */}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                      <div className="bg-primary-100 p-2 rounded-lg mr-3">
+                        <FileText className="h-6 w-6 text-primary-600" />
+                      </div>
+                      İlan Bilgileri
+                    </h3>
+                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-4 leading-relaxed">
+                        {selectedListing.title}
+                      </h4>
+                      {selectedListing.description && (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-blue-400">
+                          <p className="text-gray-700 leading-relaxed">{selectedListing.description}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
