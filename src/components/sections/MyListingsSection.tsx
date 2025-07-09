@@ -493,82 +493,6 @@ const MyListingsSection: React.FC = () => {
             </div>
 
             <div className="p-8">
-              {/* İlan Sahibi Bilgileri - En Üstte */}
-              {selectedListing.owner_name && (
-                <div className="mb-8">
-                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200 shadow-sm">
-                    <h3 className="text-xl font-semibold text-indigo-900 mb-4 flex items-center">
-                      <div className="bg-indigo-100 p-2 rounded-lg mr-3">
-                        <span className="text-2xl">👤</span>
-                      </div>
-                      İlan Sahibi Bilgileri
-                    </h3>
-                    <div className="bg-white rounded-xl p-6 border border-indigo-200 shadow-sm">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div>
-                          <div className="mb-4">
-                            <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Ad Soyad</div>
-                            <div className="text-gray-900 font-semibold text-xl">{selectedListing.owner_name}</div>
-                          </div>
-                          
-                          {selectedListing.owner_phone && (
-                            <div className="mb-4">
-                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Telefon</div>
-                              <div className="flex items-center bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-200">
-                                <div className="bg-indigo-100 p-2 rounded-lg mr-3">
-                                  <span className="text-lg">📞</span>
-                                </div>
-                                <span className="text-indigo-700 font-semibold">{selectedListing.owner_phone}</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div>
-                          {selectedListing.owner_company && (
-                            <div className="mb-4">
-                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Şirket Adı</div>
-                              <div className="text-gray-900 font-semibold text-lg">{selectedListing.owner_company}</div>
-                            </div>
-                          )}
-                          
-                          {selectedListing.owner_email && (
-                            <div className="mb-4">
-                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">E-posta</div>
-                              <div className="flex items-center bg-indigo-50 px-4 py-3 rounded-lg border border-indigo-200">
-                                <div className="bg-indigo-100 p-2 rounded-lg mr-3">
-                                  <span className="text-lg">✉️</span>
-                                </div>
-                                <span className="text-indigo-700 font-semibold">{selectedListing.owner_email}</span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {selectedListing.owner_city && (
-                            <div className="mb-4">
-                              <div className="text-sm font-semibold text-indigo-700 mb-2 uppercase tracking-wide">Şehir</div>
-                              <div className="text-gray-900 font-semibold">{selectedListing.owner_city}</div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {selectedListing.owner_rating && (
-                        <div className="mt-4 pt-4 border-t border-indigo-200">
-                          <div className="flex items-center">
-                            <div className="text-sm font-semibold text-indigo-700 mr-3 uppercase tracking-wide">Değerlendirme:</div>
-                            <div className="flex items-center">
-                              <span className="text-yellow-400 text-lg mr-1">⭐</span>
-                              <span className="text-gray-900 font-semibold">{selectedListing.owner_rating}/5</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Ana Bilgiler */}
               <div className="mb-8">
                 <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100 shadow-sm">
@@ -772,41 +696,65 @@ const MyListingsSection: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Fiyat Bilgileri */}
-                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100 shadow-sm">
-                    <h3 className="text-xl font-semibold text-green-900 mb-4 flex items-center">
-                      <div className="bg-green-100 p-2 rounded-lg mr-3">
-                        <span className="text-2xl">💰</span>
-                      </div>
-                      Fiyat Bilgileri
-                    </h3>
-                    <div className="bg-white rounded-xl p-6 border border-green-200 shadow-sm">
-                      <div className="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wide">Teklif Edilen Fiyat</div>
-                      <div className="text-3xl font-bold text-green-600 mb-2">
-                        {selectedListing.price_amount ? 
-                          `${selectedListing.price_amount.toLocaleString('tr-TR')} ${selectedListing.price_currency || 'TL'}` : 
-                          'Fiyat belirtilmemiş'
-                        }
-                      </div>
-                      {selectedListing.price_per && selectedListing.price_amount && (
-                        <div className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full inline-block">
-                          {selectedListing.price_per} başına
+                  {/* Fiyat Bilgileri - Sadece fiyat belirlenmiş ilanlar için */}
+                  {selectedListing.price_amount && selectedListing.offer_type !== 'free_quote' && (
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100 shadow-sm">
+                      <h3 className="text-xl font-semibold text-green-900 mb-4 flex items-center">
+                        <div className="bg-green-100 p-2 rounded-lg mr-3">
+                          <span className="text-2xl">💰</span>
                         </div>
-                      )}
-                      
-                      {/* Teklif Tipi */}
-                      {selectedListing.offer_type && (
-                        <div className="mt-4 pt-4 border-t border-green-200">
-                          <div className="text-sm font-semibold text-green-700 mb-2 uppercase tracking-wide">Teklif Tipi</div>
-                          <div className="text-gray-900 font-medium">
-                            {selectedListing.offer_type === 'fixed_price' ? 'Sabit Fiyat' : 
-                             selectedListing.offer_type === 'negotiable' ? 'Pazarlığa Açık' : 
-                             selectedListing.offer_type}
+                        Fiyat Bilgileri
+                      </h3>
+                      <div className="bg-white rounded-xl p-6 border border-green-200 shadow-sm">
+                        <div className="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wide">Belirlenen Fiyat</div>
+                        <div className="text-3xl font-bold text-green-600 mb-2">
+                          {selectedListing.price_amount ? 
+                            `${selectedListing.price_amount.toLocaleString('tr-TR')} ${selectedListing.price_currency || 'TL'}` : 
+                            'Fiyat belirtilmemiş'
+                          }
+                        </div>
+                        {selectedListing.price_per && selectedListing.price_amount && (
+                          <div className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full inline-block">
+                            {selectedListing.price_per} başına
                           </div>
-                        </div>
-                      )}
+                        )}
+                        
+                        {/* Teklif Alma Şekli */}
+                        {selectedListing.offer_type && (
+                          <div className="mt-4 pt-4 border-t border-green-200">
+                            <div className="text-sm font-semibold text-green-700 mb-2 uppercase tracking-wide">Teklif Alma Şekli</div>
+                            <div className="text-gray-900 font-medium">
+                              {selectedListing.offer_type === 'fixed_price' ? 'Fiyat Belirleyerek' : 
+                               selectedListing.offer_type === 'negotiable' ? 'Pazarlığa Açık' : 
+                               selectedListing.offer_type === 'auction' ? 'Açık Artırma' :
+                               selectedListing.offer_type === 'free_quote' ? 'Doğrudan Teklif' :
+                               selectedListing.offer_type}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Doğrudan Teklif Bilgisi - Fiyat belirlenmemiş ilanlar için */}
+                  {(!selectedListing.price_amount || selectedListing.offer_type === 'free_quote') && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 shadow-sm">
+                      <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
+                        <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                          <span className="text-2xl">🎯</span>
+                        </div>
+                        Teklif Alma Şekli
+                      </h3>
+                      <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600 mb-2">Doğrudan Teklif</div>
+                          <p className="text-gray-700 text-sm">
+                            Bu ilan için fiyat belirtilmemiştir. İlgilenen taraflardan doğrudan teklif beklenmektedir.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Rol ve Taşıma Bilgileri */}
                   <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100 shadow-sm">
@@ -1105,8 +1053,7 @@ const MyListingsSection: React.FC = () => {
                           })}
                         </div>
                       </div>
-                    )}
-                  </div>
+                    )}                  </div>
                 </div>
               ) : null}
             </div>

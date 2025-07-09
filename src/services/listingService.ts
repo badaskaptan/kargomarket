@@ -116,6 +116,8 @@ export class ListingService {
     // Her ilan için owner bilgilerini ekle
     const listingsWithOwner = await Promise.all(
       data.map(async (listing) => {
+        console.log('🔍 Debug: Fetching profile for user_id:', listing.user_id);
+        
         // Profil bilgilerini ayrı çekelim
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -130,13 +132,20 @@ export class ListingService {
             tax_office,
             tax_number,
             avatar_url,
-            user_type,
+            user_role,
             total_listings,
             total_completed_transactions,
             rating_count
           `)
           .eq('id', listing.user_id)
           .single();
+
+        console.log('📊 Debug: Profile data result:', {
+          profileData,
+          profileError,
+          listing_id: listing.id,
+          user_id: listing.user_id
+        });
 
         if (profileError) {
           console.warn('Profile not found for user:', listing.user_id, profileError);
@@ -153,7 +162,7 @@ export class ListingService {
           tax_office?: string;
           tax_number?: string;
           avatar_url?: string;
-          user_type?: string;
+          user_role?: string;
           total_listings?: number;
           total_completed_transactions?: number;
           rating_count?: number;
@@ -171,7 +180,7 @@ export class ListingService {
           owner_tax_office: profile?.tax_office || '',
           owner_tax_number: profile?.tax_number || '',
           owner_avatar_url: profile?.avatar_url || '',
-          owner_user_type: profile?.user_type || '',
+          owner_user_type: profile?.user_role || '',
           owner_total_listings: profile?.total_listings || 0,
           owner_total_completed_transactions: profile?.total_completed_transactions || 0,
           owner_rating_count: profile?.rating_count || 0,
