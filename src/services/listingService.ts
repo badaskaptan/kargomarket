@@ -316,11 +316,11 @@ export class ListingService {
     }
 
     if (minPrice) {
-      query = query.gte('price', minPrice);
+      query = query.gte('price_amount', minPrice);
     }
 
     if (maxPrice) {
-      query = query.lte('price', maxPrice);
+      query = query.lte('price_amount', maxPrice);
     }
 
     if (priority) {

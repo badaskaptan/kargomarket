@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Calendar, Package, MapPin, Truck, Ship, Plane, Train, ChevronDown, FileText, Upload, Eye, Download, Trash2, Loader2 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
 import { storage } from '../../lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
+import type { Database } from '../../types/database-types';
+
+// Database'den gelen listing tipi
+type LoadListing = Database['public']['Tables']['listings']['Row'];
 
 // Document interface tanımı
 interface Document {
@@ -24,6 +28,8 @@ const CreateShipmentRequestSection: React.FC = () => {
   const [selectedLoadListing, setSelectedLoadListing] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadListings, setLoadListings] = useState<LoadListing[]>([]);
+  const [loadingListings, setLoadingListings] = useState(true);
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{
     id: string;
     name: string;
@@ -47,33 +53,33 @@ const CreateShipmentRequestSection: React.FC = () => {
     requestSetPrice: ''
   });
 
-  // Örnek yük ilanları listesi
-  const loadListings = [
-    {
-      id: 'ILN2506230001',
-      title: 'İstanbul-Ankara Tekstil Yükü',
-      route: 'İstanbul → Ankara',
-      loadType: 'Tekstil Ürünleri'
-    },
-    {
-      id: 'ILN2506230002',
-      title: 'Ankara-Konya Gıda Taşıma',
-      route: 'Ankara → Konya',
-      loadType: 'Ambalajlı Gıda Ürünleri'
-    },
-    {
-      id: 'ILN2506230003',
-      title: 'İzmir-Antalya Elektronik Eşya',
-      route: 'İzmir → Antalya',
-      loadType: 'Beyaz Eşya / Elektronik'
-    },
-    {
-      id: 'ILN2506230004',
-      title: 'Bursa-İzmir Mobilya Taşıma',
-      route: 'Bursa → İzmir',
-      loadType: 'Mobilya / Dekorasyon Ürünleri'
-    }
-  ];
+  // Örnek yük ilanları listesi - Artık Supabase'den çekilecek
+  // const loadListings = [...] kaldırıldı
+  
+  // Aktif yük ilanlarını Supabase'den çek
+  useEffect(() => {
+    const fetchLoadListings = async () => {
+      try {
+        setLoadingListings(true);
+        // Tüm aktif load_listing tipindeki ilanları getir (kendi ilanları dahil)
+        const listings = await ListingService.searchListings({
+          listingType: 'load_listing',
+          limit: 50
+        });
+        
+        setLoadListings(listings);
+        console.log('✅ Load listings fetched:', listings.length, '(including own listings)');
+      } catch (error) {
+        console.error('❌ Error fetching load listings:', error);
+        toast.error('Yük ilanları yüklenirken hata oluştu.');
+        setLoadListings([]);
+      } finally {
+        setLoadingListings(false);
+      }
+    };
+
+    fetchLoadListings();
+  }, []);
 
   // Araç tipleri taşıma moduna göre - Grup başlıkları ile organize edilmiş
   const vehicleTypes = {
@@ -317,9 +323,9 @@ const CreateShipmentRequestSection: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         requestTitle: `${selectedListing.title} - Nakliye Talebi`,
-        requestLoadType: selectedListing.loadType,
-        requestOrigin: selectedListing.route.split(' → ')[0],
-        requestDestination: selectedListing.route.split(' → ')[1]
+        requestLoadType: selectedListing.load_type || '',
+        requestOrigin: selectedListing.origin,
+        requestDestination: selectedListing.destination
       }));
     }
   };
@@ -637,16 +643,30 @@ const CreateShipmentRequestSection: React.FC = () => {
                   onChange={(e) => handleLoadListingSelect(e.target.value)}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors appearance-none bg-white shadow-sm"
                   required
+                  disabled={loadingListings}
                 >
-                  <option value="">Yük ilanı seçiniz...</option>
+                  <option value="">
+                    {loadingListings ? 'Yük ilanları yükleniyor...' : 'Yük ilanı seçiniz...'}
+                  </option>
                   {loadListings.map((listing) => (
                     <option key={listing.id} value={listing.id}>
-                      {listing.id} - {listing.title}
+                      {listing.listing_number} - {listing.title}
                     </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
               </div>
+              {loadingListings && (
+                <div className="mt-2 flex items-center text-sm text-gray-600">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Aktif yük ilanları yükleniyor...
+                </div>
+              )}
+              {!loadingListings && loadListings.length === 0 && (
+                <div className="mt-2 text-sm text-amber-600">
+                  ⚠️ Henüz aktif yük ilanı bulunmuyor.
+                </div>
+              )}
             </div>
             {selectedLoadListing && (
               <div className="bg-primary-50 p-4 rounded-3xl border border-primary-200">
@@ -655,10 +675,16 @@ const CreateShipmentRequestSection: React.FC = () => {
                   const listing = loadListings.find(l => l.id === selectedLoadListing);
                   return listing ? (
                     <div className="text-sm text-primary-800">
-                      <p><strong>İlan No:</strong> {listing.id}</p>
+                      <p><strong>İlan No:</strong> {listing.listing_number}</p>
                       <p><strong>Başlık:</strong> {listing.title}</p>
-                      <p><strong>Güzergah:</strong> {listing.route}</p>
-                      <p><strong>Yük Tipi:</strong> {listing.loadType}</p>
+                      <p><strong>Güzergah:</strong> {listing.origin} → {listing.destination}</p>
+                      <p><strong>Yük Tipi:</strong> {listing.load_type || 'Belirtilmemiş'}</p>
+                      {listing.weight_value && (
+                        <p><strong>Ağırlık:</strong> {listing.weight_value} {listing.weight_unit}</p>
+                      )}
+                      {listing.volume_value && (
+                        <p><strong>Hacim:</strong> {listing.volume_value} {listing.volume_unit}</p>
+                      )}
                     </div>
                   ) : null;
                 })()}
