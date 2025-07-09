@@ -3,10 +3,25 @@ import PublicLayout from './components/layout/PublicLayout.tsx';
 import DashboardLayout from './components/layout/DashboardLayout.tsx';
 import { DashboardProvider } from './context/DashboardContext.tsx';
 import { AuthProvider, useAuth } from './context/SupabaseAuthContext.tsx';
+import { initializeStorageBuckets } from './lib/storage-setup';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
   const [showDashboard, setShowDashboard] = useState(false);
+
+  // Storage bucket'larını kontrol et
+  useEffect(() => {
+    const checkStorage = async () => {
+      const result = await initializeStorageBuckets();
+      
+      if (!result.success && result.missingBuckets.length > 0) {
+        console.warn('⚠️ Storage bucket kurulum rehberi için STORAGE_SETUP_GUIDE.md dosyasını inceleyin');
+        console.warn('📋 Eksik bucket\'lar:', result.missingBuckets.join(', '));
+      }
+    };
+    
+    checkStorage();
+  }, []);
 
   // Kullanıcı giriş yaptığında otomatik Dashboard'ı aç
   useEffect(() => {

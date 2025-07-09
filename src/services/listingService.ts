@@ -12,7 +12,7 @@ interface FormListingData {
   title: string;
   description?: string;
   origin: string;
-  destination: string;
+  destination?: string;
   transport_mode?: string;
   role_type?: string | null;
   load_type?: string | null;
@@ -27,6 +27,8 @@ interface FormListingData {
   offer_type?: string | null;
   transport_responsible?: string | null;
   required_documents?: string[] | null;
+  document_urls?: string[] | null;
+  related_load_listing_id?: string | null;
   status?: string;
 }
 
@@ -44,14 +46,13 @@ export class ListingService {
       console.log('Creating listing with real schema...');
       
       // Gerçek şemaya uygun data mapping
-      const realData = {
+      const realData: any = {
         user_id: listingData.user_id,
         listing_type: listingData.listing_type,
         title: listingData.title,
         description: listingData.description,
         origin: listingData.origin, // Doğru alan adı
-        destination: listingData.destination, // Doğru alan adı
-        transport_mode: listingData.transport_mode || 'road', // Zorunlu alan
+        destination: listingData.destination, // Opsiyonel alan
         role_type: listingData.role_type,
         load_type: listingData.load_type,
         weight_value: listingData.weight_value,
@@ -65,9 +66,15 @@ export class ListingService {
         offer_type: listingData.offer_type,
         transport_responsible: listingData.transport_responsible,
         required_documents: listingData.required_documents, // Evrak listesi
+        document_urls: listingData.document_urls, // Yüklenen dosya URL'leri
+        related_load_listing_id: listingData.related_load_listing_id, // İlgili yük ilanı ID'si
         status: listingData.status || 'active',
-        listing_number: this.generateListingNumber(), // Manuel olarak listing_number ekle
+        listing_number: this.generateListingNumber(listingData.listing_type), // İlan tipine göre numara üret
       };
+      // Sadece shipment_request için transport_mode ekle
+      if (listingData.listing_type === 'shipment_request' && listingData.transport_mode) {
+        realData.transport_mode = listingData.transport_mode;
+      }
 
       console.log('Attempting to create listing with real schema:', realData);
 
@@ -213,23 +220,71 @@ export class ListingService {
     return data || [];
   }
 
-  // Belirli bir ilanı getir
-  static async getListingById(id: string): Promise<Listing | null> {
-    const { data, error } = await supabase
-      .from('listings')
-      .select('*')
-      .eq('id', id)
-      .single();
+  // ID'ye göre ilan getir
+  static async getListingById(listingId: string): Promise<ExtendedListing | null> {
+    try {
+      console.log('🔄 Getting listing by ID:', listingId);
+      
+      const { data, error } = await supabase
+        .from('listings')
+        .select(`
+          *,
+          profiles!listings_user_id_fkey (
+            full_name,
+            email,
+            phone,
+            company_name,
+            city,
+            rating,
+            address,
+            tax_office,
+            tax_number,
+            avatar_url,
+            user_role,
+            total_listings,
+            total_completed_transactions,
+            rating
+          )
+        `)
+        .eq('id', listingId)
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // İlan bulunamadı
+      if (error) {
+        console.error('❌ Error getting listing by ID:', error);
+        return null;
       }
-      console.error('Error fetching listing:', error);
-      throw new Error(`İlan getirilemedi: ${error.message}`);
-    }
 
-    return data;
+      if (!data) {
+        console.log('❌ Listing not found with ID:', listingId);
+        return null;
+      }
+
+      // Profile bilgilerini ExtendedListing formatına dönüştür
+      const profile = data.profiles;
+      const extendedListing: ExtendedListing = {
+        ...data,
+        owner_name: profile?.full_name || undefined,
+        owner_email: profile?.email || undefined,
+        owner_phone: profile?.phone || undefined,
+        owner_company: profile?.company_name || undefined,
+        owner_city: profile?.city || undefined,
+        owner_rating: profile?.rating || undefined,
+        owner_address: profile?.address || undefined,
+        owner_tax_office: profile?.tax_office || undefined,
+        owner_tax_number: profile?.tax_number || undefined,
+        owner_avatar_url: profile?.avatar_url || undefined,
+        owner_user_type: profile?.user_role || undefined,
+        owner_total_listings: profile?.total_listings || undefined,
+        owner_total_completed_transactions: profile?.total_completed_transactions || undefined,
+        owner_rating_count: undefined, // Bu alan profiles tablosunda yok, gerekirse ekleyebiliriz
+      };
+
+      console.log('✅ Listing retrieved by ID:', extendedListing);
+      return extendedListing;
+    } catch (error) {
+      console.error('❌ Error in getListingById:', error);
+      return null;
+    }
   }
 
   // İlan güncelle
@@ -339,14 +394,43 @@ export class ListingService {
     return data || [];
   }
 
+  // İlan tipine göre aktif ilanları getir
+  static async getListingsByType(listingType: 'load_listing' | 'shipment_request'): Promise<Listing[]> {
+    try {
+      console.log(`Fetching listings by type: ${listingType}`);
+      
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .eq('listing_type', listingType)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching listings by type:', error);
+        throw new Error(`İlanlar getirilemedi: ${error.message}`);
+      }
+
+      console.log(`✅ Found ${data?.length || 0} listings of type ${listingType}`);
+      return data || [];
+      
+    } catch (error) {
+      console.error('Error in getListingsByType:', error);
+      throw error;
+    }
+  }
+
   // İlan numarası üret
-  static generateListingNumber(): string {
+  static generateListingNumber(listingType: 'load_listing' | 'shipment_request'): string {
     const now = new Date();
     const year = now.getFullYear().toString().substr(-2);
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     
-    return `ILN${year}${month}${day}${random}`;
+    // İlan tipine göre prefix belirle
+    const prefix = listingType === 'shipment_request' ? 'NT' : 'ILN';
+    
+    return `${prefix}${year}${month}${day}${random}`;
   }
 }

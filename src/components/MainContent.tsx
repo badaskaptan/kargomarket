@@ -14,7 +14,7 @@ import ProfileSection from './sections/ProfileSection';
 import SettingsSection from './sections/SettingsSection';
 
 const MainContent: React.FC = () => {
-  const { activeSection } = useDashboard();
+  const { activeSection, editingShipmentRequestId } = useDashboard();
 
   const renderSection = () => {
     switch (activeSection) {
@@ -26,6 +26,8 @@ const MainContent: React.FC = () => {
         return <CreateLoadListingSection />;
       case 'create-shipment-request':
         return <CreateShipmentRequestSection />;
+      case 'edit-shipment-request':
+        return <CreateShipmentRequestSection editMode={true} shipmentRequestId={editingShipmentRequestId || ""} />;
       case 'create-transport-service':
         return <CreateTransportServiceSection />;
       case 'my-offers':

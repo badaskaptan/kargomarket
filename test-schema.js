@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   'https://rmqwrdeaecjyyalbnvbq.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtcXdyZGVhZWNqeXlhbGJudmJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU0MDI0NzMsImV4cCI6MjA1MDk3ODQ3M30.2cUO5mxWRlqzJI4LqC3TDpRtYA5LhT3ZEV74z_z2E-k'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtcXdyZGVhZWNqeXlhbGJudmJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4MzM3MzUsImV4cCI6MjA2NzQwOTczNX0.L4vYHbdMKHaSw_NrMTcAwEPjs2MI-OqH6BeFtbSVHy0'
 );
 
 async function checkSchema() {

@@ -306,6 +306,7 @@ export interface Database {
           seo_keywords: string[] | null
           document_urls: string[] | null
           image_urls: string[] | null
+          related_load_listing_id: string | null
           created_at: string | null
           updated_at: string | null
           published_at: string | null
@@ -375,6 +376,7 @@ export interface Database {
           seo_keywords?: string[] | null
           document_urls?: string[] | null
           image_urls?: string[] | null
+          related_load_listing_id?: string | null
           created_at?: string | null
           updated_at?: string | null
           published_at?: string | null
@@ -444,6 +446,7 @@ export interface Database {
           seo_keywords?: string[] | null
           document_urls?: string[] | null
           image_urls?: string[] | null
+          related_load_listing_id?: string | null
           created_at?: string | null
           updated_at?: string | null
           published_at?: string | null

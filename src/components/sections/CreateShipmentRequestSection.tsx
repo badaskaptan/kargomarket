@@ -1,30 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Calendar, Package, MapPin, Truck, Ship, Plane, Train, ChevronDown, FileText, Upload, Eye, Download, Trash2 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import { ListingService } from '../../services/listingService';
+import { FileUploadService } from '../../services/fileUploadService';
+import type { UploadedFile } from '../../services/fileUploadService';
+import type { ExtendedListing } from '../../types/database-types';
+import toast from 'react-hot-toast';
 
-// Document interface tanımı
-interface Document {
-  id: string;
-  name: string;
-  size: string;
-  type: string;
-  url: string;
+interface CreateShipmentRequestSectionProps {
+  editMode?: boolean;
+  shipmentRequestId?: string;
 }
 
-const CreateShipmentRequestSection: React.FC = () => {
-  const { setActiveSection } = useDashboard();
+const CreateShipmentRequestSection: React.FC<CreateShipmentRequestSectionProps> = ({ 
+  editMode = false, 
+  shipmentRequestId 
+}) => {
+  const { setActiveSection, setEditingShipmentRequestId } = useDashboard();
+  const { user } = useAuth();
   const [transportMode, setTransportMode] = useState('');
   const [vehicleType, setVehicleType] = useState('');
   const [offerType, setOfferType] = useState('direct');
   const [selectedLoadListing, setSelectedLoadListing] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
-  const [uploadedDocuments, setUploadedDocuments] = useState<Array<{
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedFile[]>([]);
+  const [storageReady, setStorageReady] = useState<boolean>(true); // Her zaman true - direkt aktif
+  const [loadListings, setLoadListings] = useState<Array<{
     id: string;
-    name: string;
-    size: string;
-    type: string;
-    url: string;
+    listing_number?: string;
+    title: string;
+    route: string;
+    loadType: string;
+    origin: string;
+    destination: string;
   }>>([]);
+  const [isLoadingListings, setIsLoadingListings] = useState(false);
+  const [listingFilter, setListingFilter] = useState<'my' | 'offered' | 'all'>('my'); // Yeni filtre state'i
   const [formData, setFormData] = useState({
     requestNumber: `NT${new Date().getFullYear().toString().substr(-2)}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
     requestTitle: '',
@@ -39,33 +53,129 @@ const CreateShipmentRequestSection: React.FC = () => {
     requestSetPrice: ''
   });
 
-  // Örnek yük ilanları listesi
-  const loadListings = [
-    {
-      id: 'ILN2506230001',
-      title: 'İstanbul-Ankara Tekstil Yükü',
-      route: 'İstanbul → Ankara',
-      loadType: 'Tekstil Ürünleri'
-    },
-    {
-      id: 'ILN2506230002',
-      title: 'Ankara-Konya Gıda Taşıma',
-      route: 'Ankara → Konya',
-      loadType: 'Ambalajlı Gıda Ürünleri'
-    },
-    {
-      id: 'ILN2506230003',
-      title: 'İzmir-Antalya Elektronik Eşya',
-      route: 'İzmir → Antalya',
-      loadType: 'Beyaz Eşya / Elektronik'
-    },
-    {
-      id: 'ILN2506230004',
-      title: 'Bursa-İzmir Mobilya Taşıma',
-      route: 'Bursa → İzmir',
-      loadType: 'Mobilya / Dekorasyon Ürünleri'
+  const fetchLoadListings = useCallback(async () => {
+    if (!user) return; // Kullanıcı giriş yapmamışsa çekme
+    
+    setIsLoadingListings(true);
+    try {
+      let listings: ExtendedListing[] = [];
+      
+      switch (listingFilter) {
+        case 'my': {
+          // Kendi yük ilanlarım
+          const myListings = await ListingService.getUserListings(user.id);
+          listings = myListings.filter(listing => listing.listing_type === 'load_listing');
+          break;
+        }
+          
+        case 'offered': {
+          // Teklif verdiğim ilanlar (şimdilik boş - offers tablosu gerekli)
+          listings = [];
+          // TODO: ListingService.getOfferedListings(user.id) eklenecek
+          break;
+        }
+          
+        case 'all':
+        default: {
+          // Tüm aktif yük ilanları
+          listings = await ListingService.getListingsByType('load_listing');
+          break;
+        }
+      }
+      
+      const formattedListings = listings.map(listing => ({
+        id: listing.id, // UUID - Supabase için gerekli
+        listing_number: listing.listing_number, // Gösterim için ilan numarası
+        title: listing.title,
+        route: `${listing.origin}${listing.destination ? ` → ${listing.destination}` : ''}`,
+        loadType: listing.load_type || 'Belirtilmemiş',
+        origin: listing.origin,
+        destination: listing.destination || ''
+      }));
+      setLoadListings(formattedListings);
+    } catch (error) {
+      console.error('Error fetching load listings:', error);
+      toast.error('Yük ilanları yüklenirken hata oluştu');
+      // Fallback: Örnek veriler kullan
+      setLoadListings([
+        {
+          id: 'e8f805c2-5d97-4c6e-ad9b-674e6d5fad8a', // Gerçek UUID
+          listing_number: 'ILN2507093757',
+          title: 'İstanbul-Ankara Tekstil Yükü',
+          route: 'İstanbul → Ankara',
+          loadType: 'Tekstil Ürünleri',
+          origin: 'İstanbul',
+          destination: 'Ankara'
+        },
+        {
+          id: 'f9e806d3-6e98-5d7f-be0c-785f7e6gbe9b', // Mock UUID
+          listing_number: 'ILN2507093758',
+          title: 'Ankara-Konya Gıda Taşıma',
+          route: 'Ankara → Konya',
+          loadType: 'Ambalajlı Gıda Ürünleri',
+          origin: 'Ankara',
+          destination: 'Konya'
+        }
+      ]);
+    } finally {
+      setIsLoadingListings(false);
     }
-  ];
+  }, [user, listingFilter]);
+
+  // Yük ilanlarını Supabase'den çek
+  useEffect(() => {
+    fetchLoadListings();
+  }, [fetchLoadListings]); // fetchLoadListings değiştiğinde tekrar çek
+
+  // Storage bucket kontrolünü kaldırdık - direkt aktif
+  useEffect(() => {
+    console.log('� Evrak yükleme alanı aktif');
+    console.log('� Current user:', user?.email);
+    
+    // Storage her zaman hazır olarak işaretle
+    setStorageReady(true);
+  }, [user]);
+
+  // Edit mode için veri yükleme
+  useEffect(() => {
+    if (editMode && shipmentRequestId && user) {
+      const loadShipmentRequest = async () => {
+        try {
+          const listing = await ListingService.getListingById(shipmentRequestId);
+          
+          if (!listing || listing.listing_type !== 'shipment_request') {
+            toast.error('Nakliye talebi bulunamadı!');
+            setActiveSection('my-listings');
+            return;
+          }
+
+          // Form verilerini doldur
+          setFormData({
+            requestNumber: listing.listing_number || '',
+            requestTitle: listing.title || '',
+            requestLoadType: listing.load_type || '',
+            requestDescription: listing.description || '',
+            requestOrigin: listing.origin || '',
+            requestDestination: listing.destination || '',
+            requestLoadingDate: listing.loading_date || '',
+            requestDeliveryDate: listing.delivery_date || '',
+            requestWeight: listing.weight_value?.toString() || '',
+            requestVolume: listing.volume_value?.toString() || '',
+            requestSetPrice: listing.price_amount?.toString() || ''
+          });
+
+          setTransportMode(listing.transport_mode || 'road');
+          
+        } catch (error) {
+          console.error('Error loading shipment request:', error);
+          toast.error('Nakliye talebi yüklenirken hata oluştu!');
+          setActiveSection('my-listings');
+        }
+      };
+
+      loadShipmentRequest();
+    }
+  }, [editMode, shipmentRequestId, user, setActiveSection]);
 
   // Araç tipleri taşıma moduna göre - Grup başlıkları ile organize edilmiş
   const vehicleTypes = {
@@ -310,9 +420,11 @@ const CreateShipmentRequestSection: React.FC = () => {
         ...prev,
         requestTitle: `${selectedListing.title} - Nakliye Talebi`,
         requestLoadType: selectedListing.loadType,
-        requestOrigin: selectedListing.route.split(' → ')[0],
-        requestDestination: selectedListing.route.split(' → ')[1]
+        requestOrigin: selectedListing.origin,
+        requestDestination: selectedListing.destination
       }));
+    } else {
+      setSelectedLoadListing(listingId);
     }
   };
 
@@ -330,53 +442,111 @@ const CreateShipmentRequestSection: React.FC = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      Array.from(files).forEach(file => {
-        // Dosya türü kontrolü
-        const allowedTypes = [
-          'application/pdf',
-          'application/vnd.ms-excel',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'image/png',
-          'image/jpeg',
-          'image/jpg'
-        ];
+    if (!files || files.length === 0) return;
 
-        // Dosya boyutu kontrolü (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          alert(`${file.name} dosyası çok büyük. Maksimum dosya boyutu 10MB'dir.`);
-          return;
-        }
+    if (!user) {
+      toast.error('Dosya yüklemek için giriş yapmalısınız!');
+      return;
+    }
 
-        if (allowedTypes.includes(file.type)) {
-          const newDocument = {
-            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-            name: file.name,
-            size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-            type: file.type,
-            url: URL.createObjectURL(file)
-          };
-          setUploadedDocuments(prev => [...prev, newDocument]);
+    setIsUploading(true);
+
+    try {
+      const fileArray = Array.from(files);
+      const validFiles: File[] = [];
+
+      // Dosya validasyonu
+      for (const file of fileArray) {
+        const validation = FileUploadService.validateFile(file);
+        if (validation.isValid) {
+          validFiles.push(file);
         } else {
-          alert('Desteklenmeyen dosya türü. Lütfen Excel, Word, PDF, PNG veya JPEG dosyası yükleyin.');
+          toast.error(`${file.name}: ${validation.error}`);
         }
-      });
+      }
+
+      if (validFiles.length === 0) {
+        setIsUploading(false);
+        return;
+      }
+
+      console.log(`📤 Attempting to upload ${validFiles.length} files to documents bucket...`);
+
+      // Dosyaları Supabase'e yükle
+      const uploadedFiles = await FileUploadService.uploadMultipleFiles(
+        validFiles,
+        'documents',
+        `shipment-requests/${user.id}`
+      );
+
+      setUploadedDocuments(prev => [...prev, ...uploadedFiles]);
+      toast.success(`${uploadedFiles.length} dosya başarıyla yüklendi!`);
+
+    } catch (error) {
+      console.error('❌ File upload error:', error);
+      
+      // Storage bucket hatası kontrolü
+      if (error instanceof Error) {
+        if (error.message.includes('not found') || error.message.includes('bucket')) {
+          toast.error(
+            '🗄️ Storage bucket bulunamadı!\n\n' +
+            '1. Supabase Dashboard\'ı açın (app.supabase.com)\n' +
+            '2. Storage sekmesine gidin\n' +
+            '3. "documents" bucket\'ını oluşturun\n' +
+            '4. Bucket\'ı public yapın\n\n' +
+            'Detaylı rehber: STORAGE_SETUP_GUIDE.md',
+            { duration: 10000 }
+          );
+        } else if (error.message.includes('row-level security') || error.message.includes('RLS')) {
+          toast.error(
+            '🔒 Storage izin hatası!\n\n' +
+            'Bucket\'lar manuel olarak oluşturulmalı.\n' +
+            'STORAGE_SETUP_GUIDE.md dosyasındaki adımları takip edin.',
+            { duration: 10000 }
+          );
+        } else if (error.message.includes('policy')) {
+          toast.error(
+            '🚫 Storage politika hatası!\n\n' +
+            'RLS politikaları ayarlanmamış.\n' +
+            'setup-storage-rls-policies.sql dosyasını Supabase\'de çalıştırın.',
+            { duration: 10000 }
+          );
+        } else {
+          toast.error(`Dosya yüklenirken hata oluştu: ${error.message}`);
+        }
+      } else {
+        toast.error('Dosya yüklenirken hata oluştu. Lütfen tekrar deneyin.');
+      }
+    } finally {
+      setIsUploading(false);
+      // Input'u temizle
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
-  const handleDocumentDelete = (id: string) => {
-    setUploadedDocuments(prev => prev.filter(doc => doc.id !== id));
+  const handleDocumentDelete = async (doc: UploadedFile) => {
+    try {
+      // Eğer dosya Supabase'e yüklenmişse sil
+      if (doc.bucket && doc.path) {
+        await FileUploadService.deleteFile(doc.bucket, doc.path);
+      }
+      setUploadedDocuments(prev => prev.filter(d => d.id !== doc.id));
+      toast.success('Dosya silindi');
+    } catch (error) {
+      console.error('❌ File delete error:', error);
+      toast.error('Dosya silinirken hata oluştu');
+    }
   };
 
-  const handleDocumentPreview = (doc: Document) => {
+  const handleDocumentPreview = (doc: UploadedFile) => {
     window.open(doc.url, '_blank');
   };
 
-  const handleDocumentDownload = (doc: Document) => {
+  const handleDocumentDownload = (doc: UploadedFile) => {
     const link = document.createElement('a');
     link.href = doc.url;
     link.download = doc.name;
@@ -391,17 +561,140 @@ const CreateShipmentRequestSection: React.FC = () => {
     return '📎';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Shipment request submitted:', {
-      ...formData,
-      transportMode,
-      vehicleType,
-      selectedDocuments,
-      selectedLoadListing,
-      uploadedDocuments
+    
+    // Kullanıcı kontrolü
+    if (!user) {
+      toast.error('Lütfen önce giriş yapın!');
+      return;
+    }
+
+    // Form validasyonu
+    if (!formData.requestTitle.trim()) {
+      toast.error('İlan başlığı zorunludur!');
+      return;
+    }
+
+    if (!formData.requestOrigin.trim()) {
+      toast.error('Kalkış noktası zorunludur!');
+      return;
+    }
+
+    if (!transportMode) {
+      toast.error('Taşıma modu seçilmelidir!');
+      return;
+    }
+
+    if (!formData.requestLoadingDate) {
+      toast.error('Yükleme tarihi seçilmelidir!');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Fiyat değerini parse et
+      const priceAmount = formData.requestSetPrice ? parseFloat(formData.requestSetPrice) : null;
+      
+      if (priceAmount && (priceAmount < 0 || priceAmount > 999999999)) {
+        toast.error('Fiyat değeri 0-999,999,999 TL arasında olmalıdır!');
+        return;
+      }
+
+      // Ağırlık ve hacim değerlerini parse et
+      const weightValue = formData.requestWeight ? parseFloat(formData.requestWeight) : null;
+      const volumeValue = formData.requestVolume ? parseFloat(formData.requestVolume) : null;
+
+      // Yüklenen dosyaların URL'lerini al
+      const documentUrls = uploadedDocuments.map(doc => doc.url);
+
+      // Nakliye talebi verisini hazırla
+      const shipmentRequestData = {
+        user_id: user.id,
+        listing_type: 'shipment_request' as const,
+        title: formData.requestTitle,
+        description: formData.requestDescription || undefined,
+        origin: formData.requestOrigin,
+        destination: formData.requestDestination || undefined,
+        transport_mode: transportMode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal',
+        role_type: undefined, // Nakliye talebi için role_type undefined
+        load_type: formData.requestLoadType || undefined,
+        weight_value: weightValue,
+        weight_unit: weightValue ? 'ton' : undefined,
+        volume_value: volumeValue,
+        volume_unit: volumeValue ? 'm3' : undefined,
+        loading_date: formData.requestLoadingDate || undefined,
+        delivery_date: formData.requestDeliveryDate || undefined,
+        price_amount: priceAmount,
+        price_currency: priceAmount ? 'TRY' : undefined,
+        offer_type: (offerType === 'price' ? 'fixed_price' : 'negotiable') as 'fixed_price' | 'negotiable',
+        transport_responsible: undefined, // Nakliye talebi için bu alan kullanılmaz
+        required_documents: selectedDocuments.length > 0 ? selectedDocuments : undefined,
+        document_urls: documentUrls.length > 0 ? documentUrls : undefined,
+        related_load_listing_id: selectedLoadListing || undefined, // Seçilen yük ilanının ID'si
+        status: 'active' as const
+      };
+
+      console.log('🚚 Processing shipment request:', shipmentRequestData);
+      console.log('🔍 Debug - selectedLoadListing value:', selectedLoadListing);
+      console.log('🔍 Debug - editMode:', editMode);
+
+      let result;
+      if (editMode && shipmentRequestId) {
+        // Güncelleme işlemi
+        result = await ListingService.updateListing(shipmentRequestId, shipmentRequestData);
+        console.log('✅ Shipment request updated successfully:', result);
+        toast.success('Nakliye talebi başarıyla güncellendi!');
+      } else {
+        // Yeni oluşturma işlemi
+        result = await ListingService.createListing(shipmentRequestData);
+        console.log('✅ Shipment request created successfully:', result);
+        toast.success('Nakliye talebi başarıyla oluşturuldu!');
+      }
+      
+      // Formu temizle (sadece create mode'da)
+      if (!editMode) {
+        resetForm();
+      }
+      
+      // Edit mode'da geri dön
+      if (editMode) {
+        setEditingShipmentRequestId(null);
+      }
+      
+      // Listeye yönlendir
+      setActiveSection('my-listings');
+      
+    } catch (error) {
+      console.error('❌ Error creating shipment request:', error);
+      toast.error('Nakliye talebi oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Form temizleme fonksiyonu
+  const resetForm = () => {
+    setFormData({
+      requestNumber: `NT${new Date().getFullYear().toString().substr(-2)}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+      requestTitle: '',
+      requestLoadType: '',
+      requestDescription: '',
+      requestOrigin: '',
+      requestDestination: '',
+      requestLoadingDate: '',
+      requestDeliveryDate: '',
+      requestWeight: '',
+      requestVolume: '',
+      requestSetPrice: ''
     });
-    setActiveSection('my-listings');
+    setTransportMode('');
+    setVehicleType('');
+    setOfferType('direct');
+    setSelectedLoadListing('');
+    setSelectedDocuments([]);
+    setUploadedDocuments([]);
   };
 
   const getTransportBackground = () => {
@@ -497,7 +790,19 @@ const CreateShipmentRequestSection: React.FC = () => {
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-3xl font-bold text-gray-900">Yeni Nakliye Talebi İlanı Oluştur</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {editMode ? 'Nakliye Talebini Düzenle' : 'Yeni Nakliye Talebi İlanı Oluştur'}
+            </h1>
+            <div className="mt-2 flex items-center space-x-4">
+              <div className="bg-primary-100 px-4 py-2 rounded-full">
+                <span className="text-sm font-medium text-primary-800">
+                  Nakliye Talebi No: <span className="font-bold">{formData.requestNumber}</span>
+                </span>
+              </div>
+              <div className="text-sm text-gray-600">
+                NT ile başlayan numaralar Nakliye Talebi ilanları içindir
+              </div>
+            </div>
           </div>
           {transportMode && (
             <div className="hidden md:block">
@@ -508,10 +813,53 @@ const CreateShipmentRequestSection: React.FC = () => {
 
         {/* Yük İlanı Seçimi */}
         <div className="mb-8 p-6 bg-white/70 rounded-3xl border border-gray-200 relative z-10">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
             <Package className="mr-2 text-primary-600" size={20} />
             Hangi Yük İlanı İçin Nakliye Talebi Oluşturuyorsunuz?
           </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            ILN ile başlayan yük ilanlarından birini seçerek, o ilan için nakliye talebi oluşturabilirsiniz. 
+            Bu seçim yalnızca bilgi amaçlıdır ve hangi yük için taşıma hizmeti talep ettiğinizi gösterir.
+          </p>
+          
+          {/* Filtre Butonları */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button
+              type="button"
+              onClick={() => setListingFilter('my')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                listingFilter === 'my'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Kendi İlanlarım
+            </button>
+            <button
+              type="button"
+              onClick={() => setListingFilter('all')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                listingFilter === 'all'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Tüm İlanlar
+            </button>
+            <button
+              type="button"
+              onClick={() => setListingFilter('offered')}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                listingFilter === 'offered'
+                  ? 'bg-primary-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              disabled
+              title="Yakında eklenecek"
+            >
+              Teklif Verdiklerim (Yakında)
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="loadListingSelect" className="block text-sm font-medium text-gray-700 mb-2">
@@ -523,12 +871,15 @@ const CreateShipmentRequestSection: React.FC = () => {
                   value={selectedLoadListing}
                   onChange={(e) => handleLoadListingSelect(e.target.value)}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors appearance-none bg-white shadow-sm"
+                  disabled={isLoadingListings}
                   required
                 >
-                  <option value="">Yük ilanı seçiniz...</option>
+                  <option value="">
+                    {isLoadingListings ? 'Yük ilanları yükleniyor...' : 'Yük ilanı seçiniz...'}
+                  </option>
                   {loadListings.map((listing) => (
                     <option key={listing.id} value={listing.id}>
-                      {listing.id} - {listing.title}
+                      {listing.listing_number} - {listing.title}
                     </option>
                   ))}
                 </select>
@@ -542,7 +893,7 @@ const CreateShipmentRequestSection: React.FC = () => {
                   const listing = loadListings.find(l => l.id === selectedLoadListing);
                   return listing ? (
                     <div className="text-sm text-primary-800">
-                      <p><strong>İlan No:</strong> {listing.id}</p>
+                      <p><strong>İlan No:</strong> {listing.listing_number}</p>
                       <p><strong>Başlık:</strong> {listing.title}</p>
                       <p><strong>Güzergah:</strong> {listing.route}</p>
                       <p><strong>Yük Tipi:</strong> {listing.loadType}</p>
@@ -994,7 +1345,12 @@ const CreateShipmentRequestSection: React.FC = () => {
             
             {/* Dosya Yükleme Alanı */}
             <div className="mb-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center hover:border-primary-400 transition-colors">
+              {/* File Upload Area */}
+              <div className={`border-2 border-dashed rounded-3xl p-8 text-center transition-colors ${
+                isUploading 
+                  ? 'border-blue-400 bg-blue-50' 
+                  : 'border-gray-300 hover:border-primary-400'
+              }`}>
                 <input
                   type="file"
                   id="documentUpload"
@@ -1002,14 +1358,55 @@ const CreateShipmentRequestSection: React.FC = () => {
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                   onChange={handleFileUpload}
                   className="hidden"
+                  disabled={isUploading}
                 />
-                <label htmlFor="documentUpload" className="cursor-pointer">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-700 mb-2">Evrakları buraya sürükleyin veya tıklayın</p>
-                  <p className="text-sm text-gray-500">
-                    Desteklenen formatlar: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), PNG, JPEG
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">Maksimum dosya boyutu: 10MB</p>
+                <label htmlFor="documentUpload" className={`cursor-pointer ${isUploading ? 'pointer-events-none' : ''}`}>
+                  {isUploading ? (
+                    <div className="flex flex-col items-center">
+                      <svg className="animate-spin w-12 h-12 text-blue-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-lg font-medium text-blue-700 mb-2">Dosyalar yükleniyor...</p>
+                      <p className="text-sm text-blue-600">Lütfen bekleyin</p>
+                    </div>
+                  ) : storageReady === false ? (
+                    <div className="flex flex-col items-center">
+                      <svg className="w-12 h-12 text-yellow-400 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-lg font-medium text-yellow-700 mb-2">Storage Kurulum Gerekli</p>
+                      <p className="text-sm text-yellow-600 mb-3">
+                        Storage bucketları oluşturuluyor, lütfen bekleyin...
+                      </p>
+                      <div className="bg-yellow-100 p-3 rounded-lg text-sm text-yellow-800">
+                        <p className="font-medium mb-1">� Yapılıyor:</p>
+                        <p>• Storage bucketları otomatik oluşturuluyor</p>
+                        <p>• Eğer başarısız olursa manuel kurulum yapılacak</p>
+                        <p>• Sayfayı yenilemeyi deneyin</p>
+                        <br />
+                        <p className="font-medium">📄 Manuel kurulum: BUCKET_OLUSTURMA_REHBERI.md</p>
+                      </div>
+                    </div>
+                  ) : storageReady === null ? (
+                    <div className="flex flex-col items-center">
+                      <svg className="animate-spin w-12 h-12 text-gray-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p className="text-lg font-medium text-gray-600 mb-2">Storage kontrol ediliyor...</p>
+                      <p className="text-sm text-gray-500">Lütfen bekleyin</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-lg font-medium text-gray-700 mb-2">Evrakları buraya sürükleyin veya tıklayın</p>
+                      <p className="text-sm text-gray-500">
+                        Desteklenen formatlar: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), PNG, JPEG
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Maksimum dosya boyutu: 10MB</p>
+                    </div>
+                  )}
                 </label>
               </div>
             </div>
@@ -1047,7 +1444,7 @@ const CreateShipmentRequestSection: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleDocumentDelete(document.id)}
+                          onClick={() => handleDocumentDelete(document)}
                           className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
                           title="Sil"
                         >
@@ -1090,9 +1487,32 @@ const CreateShipmentRequestSection: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
+              disabled={isSubmitting || isUploading}
+              className={`px-8 py-4 text-white rounded-full font-medium transition-colors shadow-lg hover:shadow-xl ${
+                isSubmitting || isUploading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-primary-600 hover:bg-primary-700'
+              }`}
             >
-              İlanı Oluştur
+              {isSubmitting ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  İlan Oluşturuluyor...
+                </div>
+              ) : isUploading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Dosyalar Yükleniyor...
+                </div>
+              ) : (
+                editMode ? 'Güncelle' : 'İlanı Oluştur'
+              )}
             </button>
           </div>
         </form>
