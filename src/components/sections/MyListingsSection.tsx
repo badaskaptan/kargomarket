@@ -23,14 +23,12 @@ import { ListingService } from '../../services/listingService';
 import type { ExtendedListing } from '../../types/database-types';
 
 const MyListingsSection: React.FC = () => {
-  const { setActiveSection, setEditingShipmentRequestId } = useDashboard();
+  const { setActiveSection } = useDashboard();
   const { user } = useAuth();
   const [listings, setListings] = useState<ExtendedListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
-  const [relatedLoadListing, setRelatedLoadListing] = useState<ExtendedListing | null>(null);
-  const [loadingRelatedListing, setLoadingRelatedListing] = useState(false);
   
   // Edit modal states
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -86,14 +84,6 @@ const MyListingsSection: React.FC = () => {
 
   // Edit modal functions
   const handleEditListing = (listing: ExtendedListing) => {
-    // Eğer shipment_request ise, özel düzenleme section'ına yönlendir
-    if (listing.listing_type === 'shipment_request') {
-      setEditingShipmentRequestId(listing.id);
-      setActiveSection('edit-shipment-request');
-      return;
-    }
-    
-    // Diğer ilan tipleri için mevcut modal'ı kullan
     setEditingListing(listing);
     setEditFormData({
       title: listing.title || '',
@@ -191,29 +181,6 @@ const MyListingsSection: React.FC = () => {
       console.error('Error deleting listing:', error);
     }
   };
-
-  // İlgili yük ilanını getir (Nakliye Talebi için)
-  const loadRelatedLoadListing = async (relatedListingId: string) => {
-    try {
-      setLoadingRelatedListing(true);
-      const relatedListing = await ListingService.getListingById(relatedListingId);
-      setRelatedLoadListing(relatedListing);
-    } catch (error) {
-      console.error('Error loading related load listing:', error);
-      setRelatedLoadListing(null);
-    } finally {
-      setLoadingRelatedListing(false);
-    }
-  };
-
-  // Seçilen ilan değiştiğinde ilgili yük ilanını yükle
-  useEffect(() => {
-    if (selectedListing?.listing_type === 'shipment_request' && selectedListing?.related_load_listing_id) {
-      loadRelatedLoadListing(selectedListing.related_load_listing_id);
-    } else {
-      setRelatedLoadListing(null);
-    }
-  }, [selectedListing]);
 
   // Yardımcı fonksiyonlar
   const getListingTypeBadge = (type: string) => {
@@ -682,93 +649,6 @@ const MyListingsSection: React.FC = () => {
                         </div>
                       )}
                     </div>
-
-                    {/* Nakliye Talebi İçin Özel Bölüm - Hangi Yük İlanına Bağlı? */}
-                    {selectedListing.listing_type === 'shipment_request' && (
-                      <div className="mt-6">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <div className="bg-orange-100 p-2 rounded-lg mr-3">
-                            <span className="text-lg">🔗</span>
-                          </div>
-                          Hangi Yük İlanına Bağlı?
-                        </h4>
-                        
-                        {selectedListing.related_load_listing_id ? (
-                          <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-200">
-                            {loadingRelatedListing ? (
-                              <div className="flex items-center text-gray-600">
-                                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                                <span>İlgili yük ilanı bilgisi yükleniyor...</span>
-                              </div>
-                            ) : relatedLoadListing ? (
-                              <div className="space-y-3">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center mb-2">
-                                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">
-                                        ILN
-                                      </span>
-                                      <span className="font-bold text-blue-700">
-                                        {relatedLoadListing.listing_number}
-                                      </span>
-                                    </div>
-                                    <div className="text-gray-900 font-medium mb-1">
-                                      {relatedLoadListing.title}
-                                    </div>
-                                    <div className="text-sm text-gray-600 space-y-1">
-                                      <div className="flex items-center">
-                                        <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                                        <span>{relatedLoadListing.origin} → {relatedLoadListing.destination}</span>
-                                      </div>
-                                      {relatedLoadListing.load_type && (
-                                        <div className="flex items-center">
-                                          <Package className="h-4 w-4 mr-1 text-gray-400" />
-                                          <span>{relatedLoadListing.load_type}</span>
-                                        </div>
-                                      )}
-                                      {relatedLoadListing.loading_date && (
-                                        <div className="flex items-center">
-                                          <Calendar className="h-4 w-4 mr-1 text-gray-400" />
-                                          <span>{new Date(relatedLoadListing.loading_date).toLocaleDateString('tr-TR')}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                                      {relatedLoadListing.status}
-                                    </span>
-                                  </div>
-                                </div>
-                                
-                                {relatedLoadListing.description && (
-                                  <div className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-orange-100">
-                                    <span className="font-medium">Açıklama: </span>
-                                    {relatedLoadListing.description.length > 150 
-                                      ? relatedLoadListing.description.substring(0, 150) + '...'
-                                      : relatedLoadListing.description
-                                    }
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="text-center py-3">
-                                <div className="text-gray-500 text-sm">
-                                  ⚠️ İlgili yük ilanı bilgisi alınamadı
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                            <div className="text-center text-gray-500">
-                              <span className="text-2xl block mb-2">📦</span>
-                              <span className="text-sm">Bu nakliye talebi belirli bir yük ilanına bağlı değil</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

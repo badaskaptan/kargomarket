@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 
 export type UserRole = 'alici-satici' | 'nakliyeci';
-export type ActiveSection = 'overview' | 'my-listings' | 'create-load-listing' | 'create-shipment-request' | 'edit-shipment-request' | 'create-transport-service' | 'my-offers' | 'messages' | 'my-ads' | 'create-ad' | 'my-reviews' | 'profile' | 'settings';
+export type ActiveSection = 'overview' | 'my-listings' | 'create-load-listing' | 'create-shipment-request' | 'create-transport-service' | 'my-offers' | 'messages' | 'my-ads' | 'create-ad' | 'my-reviews' | 'profile' | 'settings';
 
 interface DashboardContextType {
   activeSection: ActiveSection;
@@ -11,8 +11,6 @@ interface DashboardContextType {
   setUserRole: (role: UserRole) => void;
   notifications: number;
   setNotifications: (count: number) => void;
-  editingShipmentRequestId: string | null;
-  setEditingShipmentRequestId: (id: string | null) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -34,7 +32,6 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
   const [activeSection, setActiveSection] = useState<ActiveSection>('overview');
   const [userRole, setUserRole] = useState<UserRole>('alici-satici');
   const [notifications, setNotifications] = useState(3);
-  const [editingShipmentRequestId, setEditingShipmentRequestId] = useState<string | null>(null);
 
   return (
     <DashboardContext.Provider
@@ -45,8 +42,6 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
         setUserRole,
         notifications,
         setNotifications,
-        editingShipmentRequestId,
-        setEditingShipmentRequestId,
       }}
     >
       {children}

@@ -131,7 +131,7 @@ const CreateLoadListingSection: React.FC = () => {
         description: formData.loadDescription,
         origin: formData.loadOrigin,
         destination: formData.loadDestination,
-        // transport_mode: 'road', // YÜK İLANI İÇİN GÖNDERİLMEYECEK
+        transport_mode: 'road',
         role_type: roleType || null,
         load_type: formData.loadType || null,
         weight_value: weightValue,

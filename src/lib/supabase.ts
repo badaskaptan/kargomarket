@@ -305,7 +305,7 @@ export const storage = {
     const timestamp = Date.now()
     // Kullanıcı ID'si ile başlat (RLS politikaları için)
     const { data: { user } } = await supabase.auth.getUser()
-    const fileName = `${user?.id}/documents/${listingId}_${documentType}_${timestamp}.${fileExt}`
+    const fileName = `${user?.id}/${listingId}_${documentType}_${timestamp}.${fileExt}`
     
     const { data, error } = await supabase.storage
       .from('documents')
@@ -331,7 +331,7 @@ export const storage = {
     const fileExt = file.name.split('.').pop()
     // Kullanıcı ID'si ile başlat (RLS politikaları için)
     const { data: { user } } = await supabase.auth.getUser()
-    const fileName = `${user?.id}/images/${listingId}_${index}.${fileExt}`
+    const fileName = `${user?.id}/${listingId}_${index}.${fileExt}`
     
     const { data, error } = await supabase.storage
       .from('listings')
