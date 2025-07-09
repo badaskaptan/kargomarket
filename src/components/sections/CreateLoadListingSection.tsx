@@ -27,7 +27,7 @@ const CreateLoadListingSection: React.FC = () => {
     preview: string;
   }>>([]);
   const [formData, setFormData] = useState({
-    listingNumber: `ILN${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`,
+    listingNumber: `ILN${new Date().getFullYear().toString().substr(-2)}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')}${new Date().getHours().toString().padStart(2, '0')}${new Date().getMinutes().toString().padStart(2, '0')}${new Date().getSeconds().toString().padStart(2, '0')}`,
     loadTitle: '',
     loadType: '',
     loadDescription: '',
