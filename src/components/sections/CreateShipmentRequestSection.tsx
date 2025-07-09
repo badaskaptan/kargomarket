@@ -1066,29 +1066,12 @@ const CreateShipmentRequestSection: React.FC = () => {
             />
           </div>
 
-          {/* Transport Mode Specific Info - Taşıma modu seçildikten sonra gösterilir */}
-          {transportMode && (
-            <div className="bg-white/50 rounded-3xl p-6 border border-gray-200">
-              <h4 className="text-lg font-medium text-gray-900 mb-4">
-                {transportMode === 'road' && '🚛 Karayolu Taşımacılığı Detayları'}
-                {transportMode === 'sea' && '🚢 Denizyolu Taşımacılığı Detayları'}
-                {transportMode === 'air' && '✈️ Havayolu Taşımacılığı Detayları'}
-                {transportMode === 'rail' && '🚂 Demiryolu Taşımacılığı Detayları'}
-              </h4>
-              <div className="text-sm text-gray-600">
-                {transportMode === 'road' && 'Karayolu taşımacılığı için özel gereksinimlerinizi belirtebilirsiniz.'}
-                {transportMode === 'sea' && 'Denizyolu taşımacılığı için özel gereksinimlerinizi belirtebilirsiniz.'}
-                {transportMode === 'air' && 'Havayolu taşımacılığı için özel gereksinimlerinizi belirtebilirsiniz.'}
-                {transportMode === 'rail' && 'Demiryolu taşımacılığı için özel gereksinimlerinizi belirtebilirsiniz.'}
-              </div>
-            </div>
-          )}
-
           {/* Gerekli Evraklar - Taşıma modu seçildikten sonra gösterilir */}
           {transportMode && (
             <div className="bg-white/50 rounded-3xl p-6 border border-gray-200">
-              <h4 className="text-lg font-medium text-gray-900 mb-4">
-                📋 Gerekli Evraklar ({transportMode === 'road' ? 'Karayolu' : transportMode === 'sea' ? 'Denizyolu' : transportMode === 'air' ? 'Havayolu' : 'Demiryolu'})
+              <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <FileText className="mr-2 text-primary-600" size={20} />
+                Gerekli Evraklar ({transportMode === 'road' ? 'Karayolu' : transportMode === 'sea' ? 'Denizyolu' : transportMode === 'air' ? 'Havayolu' : 'Demiryolu'})
               </h4>
               {/* Denizyolu için grup yapısı */}
               {transportMode === 'sea' ? (
@@ -1146,8 +1129,8 @@ const CreateShipmentRequestSection: React.FC = () => {
           {/* Evrak Yükleme Alanı */}
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FileText className="mr-2 text-primary-600" size={20} />
-              Evrak Yükleme Alanı
+              <Upload className="mr-2 text-primary-600" size={20} />
+              Evrak Yükleme & Dosya Ekleme
             </h3>
             
             {/* Dosya Yükleme Alanı */}
