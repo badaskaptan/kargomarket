@@ -785,19 +785,6 @@ const MyListingsSection: React.FC = () => {
                           </div>
                         </div>
                       )}
-                      
-                      {selectedListing.transport_mode && (
-                        <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
-                          <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Taşıma Modu</div>
-                          <div className="text-gray-900 font-semibold">
-                            {selectedListing.transport_mode === 'road' ? '🚛 Karayolu' : 
-                             selectedListing.transport_mode === 'sea' ? '🚢 Deniz' : 
-                             selectedListing.transport_mode === 'air' ? '✈️ Hava' : 
-                             selectedListing.transport_mode === 'rail' ? '🚂 Demiryolu' : 
-                             selectedListing.transport_mode}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
