@@ -27,6 +27,7 @@ interface FormListingData {
   offer_type?: string | null;
   transport_responsible?: string | null;
   required_documents?: string[] | null;
+  related_load_listing_id?: string | null;
   status?: string;
 }
 
@@ -65,6 +66,7 @@ export class ListingService {
         offer_type: listingData.offer_type,
         transport_responsible: listingData.transport_responsible,
         required_documents: listingData.required_documents, // Evrak listesi
+        related_load_listing_id: listingData.related_load_listing_id, // İlgili yük ilanı ID'si
         status: listingData.status || 'active',
         listing_number: this.generateListingNumber(), // Manuel olarak listing_number ekle
       };
