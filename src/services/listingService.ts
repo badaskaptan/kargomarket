@@ -29,6 +29,7 @@ interface FormListingData {
   required_documents?: string[] | null;
   related_load_listing_id?: string | null;
   status?: string;
+  listing_number?: string;
 }
 
 // ExtendedListing tipi (listing + owner info)
@@ -68,7 +69,7 @@ export class ListingService {
         required_documents: listingData.required_documents, // Evrak listesi
         related_load_listing_id: listingData.related_load_listing_id, // İlgili yük ilanı ID'si
         status: listingData.status || 'active',
-        listing_number: this.generateListingNumber(), // Manuel olarak listing_number ekle
+        listing_number: listingData.listing_number || this.generateListingNumber(),
       };
 
       console.log('Attempting to create listing with real schema:', realData);
