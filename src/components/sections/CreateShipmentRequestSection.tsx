@@ -467,6 +467,7 @@ const CreateShipmentRequestSection: React.FC = () => {
         transport_responsible: null, // Nakliye talebinde genellikle transport_responsible yok
         required_documents: selectedDocuments.length > 0 ? selectedDocuments : null,
         listing_number: formData.requestNumber,
+        related_load_listing_id: selectedLoadListing || null, // Seçilen yük ilanının ID'si
         status: 'active'
       };
 

@@ -295,6 +295,7 @@ export interface Database {
           insurance_required: boolean | null
           insurance_value: number | null
           customs_clearance_required: boolean | null
+          related_load_listing_id: string | null
           status: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired' | null
           is_urgent: boolean | null
           priority_level: number | null
@@ -364,6 +365,7 @@ export interface Database {
           insurance_required?: boolean | null
           insurance_value?: number | null
           customs_clearance_required?: boolean | null
+          related_load_listing_id?: string | null
           status?: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired' | null
           is_urgent?: boolean | null
           priority_level?: number | null
@@ -433,6 +435,7 @@ export interface Database {
           insurance_required?: boolean | null
           insurance_value?: number | null
           customs_clearance_required?: boolean | null
+          related_load_listing_id?: string | null
           status?: 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired' | null
           is_urgent?: boolean | null
           priority_level?: number | null

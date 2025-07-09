@@ -29,6 +29,7 @@ const MyListingsSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
+  const [relatedLoadListing, setRelatedLoadListing] = useState<ExtendedListing | null>(null);
   
   // Edit modal states
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -181,6 +182,26 @@ const MyListingsSection: React.FC = () => {
       console.error('Error deleting listing:', error);
     }
   };
+
+  // Fetch related load listing details
+  const fetchRelatedLoadListing = async (relatedLoadListingId: string) => {
+    try {
+      const relatedListing = await ListingService.getListingById(relatedLoadListingId);
+      setRelatedLoadListing(relatedListing);
+    } catch (error) {
+      console.error('Error fetching related load listing:', error);
+      setRelatedLoadListing(null);
+    }
+  };
+
+  // Effect to fetch related load listing when selectedListing changes
+  useEffect(() => {
+    if (selectedListing?.related_load_listing_id) {
+      fetchRelatedLoadListing(selectedListing.related_load_listing_id);
+    } else {
+      setRelatedLoadListing(null);
+    }
+  }, [selectedListing?.related_load_listing_id]);
 
   // Yardımcı fonksiyonlar
   const getListingTypeBadge = (type: string) => {
@@ -650,6 +671,114 @@ const MyListingsSection: React.FC = () => {
                       )}
                     </div>
                   </div>
+
+                  {/* Nakliye Talebi Özel Bilgileri */}
+                  {selectedListing.listing_type === 'shipment_request' && (
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                        <div className="bg-green-100 p-2 rounded-lg mr-3">
+                          <span className="text-2xl">🚛</span>
+                        </div>
+                        Nakliye Talebi Detayları
+                      </h3>
+                      <div className="space-y-4">
+                        {/* Taşıma Modu */}
+                        {selectedListing.transport_mode && (
+                          <div className="bg-white rounded-xl p-4 border border-green-200 shadow-sm">
+                            <div className="text-sm font-semibold text-green-700 mb-2 uppercase tracking-wide">Taşıma Modu</div>
+                            <div className="text-gray-900 font-semibold text-lg flex items-center">
+                              {selectedListing.transport_mode === 'road' && '🚛 Karayolu'}
+                              {selectedListing.transport_mode === 'sea' && '🚢 Denizyolu'}
+                              {selectedListing.transport_mode === 'air' && '✈️ Havayolu'}
+                              {selectedListing.transport_mode === 'rail' && '🚂 Demiryolu'}
+                              {selectedListing.transport_mode === 'multimodal' && '🔄 Karma Taşımacılık'}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* İlgili Yük İlanı */}
+                        {selectedListing.related_load_listing_id && (
+                          <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 shadow-sm">
+                            <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">İlgili Yük İlanı</div>
+                            <div className="text-gray-900 font-medium">
+                              {relatedLoadListing ? (
+                                <div className="space-y-2">
+                                  <div className="flex items-center">
+                                    <span className="text-lg mr-2">📦</span>
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-amber-900">{relatedLoadListing.title}</div>
+                                      <div className="text-sm text-amber-600">
+                                        İlan No: {relatedLoadListing.listing_number}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                      <span className="font-medium">Güzergah:</span> {relatedLoadListing.origin} → {relatedLoadListing.destination}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Yük Tipi:</span> {relatedLoadListing.load_type || 'Belirtilmemiş'}
+                                    </div>
+                                    {relatedLoadListing.weight_value && (
+                                      <div>
+                                        <span className="font-medium">Ağırlık:</span> {relatedLoadListing.weight_value} {relatedLoadListing.weight_unit}
+                                      </div>
+                                    )}
+                                    {relatedLoadListing.volume_value && (
+                                      <div>
+                                        <span className="font-medium">Hacim:</span> {relatedLoadListing.volume_value} {relatedLoadListing.volume_unit}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-amber-600 mt-2 italic">
+                                    Bu nakliye talebi yukarıdaki yük ilanı için oluşturulmuştur
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center">
+                                  <span className="text-lg mr-2">📦</span>
+                                  <div className="flex-1">
+                                    <div className="text-gray-500">Yük ilanı yükleniyor...</div>
+                                    <div className="text-xs text-amber-600">
+                                      ID: {selectedListing.related_load_listing_id}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Teklif Alma Şekli */}
+                        {selectedListing.offer_type && (
+                          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 shadow-sm">
+                            <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Teklif Alma Şekli</div>
+                            <div className="text-gray-900 font-medium">
+                              {selectedListing.offer_type === 'fixed_price' && '💰 Sabit Fiyat'}
+                              {selectedListing.offer_type === 'negotiable' && '💬 Pazarlıklı'}
+                              {selectedListing.offer_type === 'auction' && '🏷️ Müzayede'}
+                              {selectedListing.offer_type === 'free_quote' && '📝 Doğrudan Teklif'}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Gerekli Evraklar */}
+                        {selectedListing.required_documents && selectedListing.required_documents.length > 0 && (
+                          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+                            <div className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">Gerekli Evraklar</div>
+                            <div className="space-y-1">
+                              {selectedListing.required_documents.map((doc, index) => (
+                                <div key={index} className="flex items-center text-sm text-gray-600">
+                                  <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                                  {doc}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -755,38 +884,40 @@ const MyListingsSection: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Rol ve Taşıma Bilgileri */}
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100 shadow-sm">
-                    <h3 className="text-xl font-semibold text-amber-900 mb-4 flex items-center">
-                      <div className="bg-amber-100 p-2 rounded-lg mr-3">
-                        <span className="text-2xl">🚛</span>
+                  {/* Rol ve Taşıma Bilgileri (Yük İlanı için) */}
+                  {selectedListing.listing_type === 'load_listing' && (
+                    <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100 shadow-sm">
+                      <h3 className="text-xl font-semibold text-amber-900 mb-4 flex items-center">
+                        <div className="bg-amber-100 p-2 rounded-lg mr-3">
+                          <span className="text-2xl">🚛</span>
+                        </div>
+                        Taşıma Bilgileri
+                      </h3>
+                      <div className="space-y-4">
+                        {selectedListing.role_type && (
+                          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+                            <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Rol</div>
+                            <div className="text-gray-900 font-semibold">
+                              {selectedListing.role_type === 'buyer' ? '🛒 Alıcı' : 
+                               selectedListing.role_type === 'seller' ? '🏪 Satıcı' : 
+                               selectedListing.role_type}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {selectedListing.transport_responsible && (
+                          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
+                            <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Taşıma Sorumlusu</div>
+                            <div className="text-gray-900 font-semibold">
+                              {selectedListing.transport_responsible === 'buyer' ? 'Alıcı' : 
+                               selectedListing.transport_responsible === 'seller' ? 'Satıcı' : 
+                               selectedListing.transport_responsible}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      Taşıma Bilgileri
-                    </h3>
-                    <div className="space-y-4">
-                      {selectedListing.role_type && (
-                        <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
-                          <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Rol</div>
-                          <div className="text-gray-900 font-semibold">
-                            {selectedListing.role_type === 'buyer' ? '🛒 Alıcı' : 
-                             selectedListing.role_type === 'seller' ? '🏪 Satıcı' : 
-                             selectedListing.role_type}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {selectedListing.transport_responsible && (
-                        <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
-                          <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Taşıma Sorumlusu</div>
-                          <div className="text-gray-900 font-semibold">
-                            {selectedListing.transport_responsible === 'buyer' ? 'Alıcı' : 
-                             selectedListing.transport_responsible === 'seller' ? 'Satıcı' : 
-                             selectedListing.transport_responsible}
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Sağ Kolon - Lokasyon ve Tarih */}

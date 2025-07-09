@@ -501,5 +501,18 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ====================================
+-- 13. LISTINGS TABLE EXTENSIONS
+-- ====================================
+-- Add related_load_listing_id to link shipment requests to load listings
+ALTER TABLE listings 
+ADD COLUMN IF NOT EXISTS related_load_listing_id UUID REFERENCES listings(id) ON DELETE SET NULL;
+
+-- Add index for performance
+CREATE INDEX IF NOT EXISTS idx_listings_related_load_listing ON listings(related_load_listing_id);
+
+-- Add comment for clarity
+COMMENT ON COLUMN listings.related_load_listing_id IS 'For shipment_request type listings, this links to the load_listing that this shipment request is for';
+
+-- ====================================
 -- TAMAMLAMA COMPLETED
 -- ====================================
