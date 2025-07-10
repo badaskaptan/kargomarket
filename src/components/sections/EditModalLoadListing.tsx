@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, MapPin, Package, AlertCircle, Loader2, FileText, Upload, Trash2 } from 'lucide-react';
 import { ListingService } from '../../services/listingService';
+import { UploadService } from '../../services/uploadService';
 import type { ExtendedListing } from '../../types/database-types';
 
 interface EditModalLoadListingProps {
@@ -39,10 +40,19 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
   const [offerType, setOfferType] = useState('direct');
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
   const [loadImages, setLoadImages] = useState<(string | null)[]>([null, null, null]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Array<{
+    name: string;
+    url: string;
+    type: string;
+    size: string;
+  }>>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [imageUploading, setImageUploading] = useState<boolean[]>([false, false, false]);
+  const [documentUploading, setDocumentUploading] = useState(false);
 
   useEffect(() => {
     if (listing) {
@@ -62,9 +72,40 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
         delivery_date: listing.delivery_date || '',
         price_amount: listing.price_amount?.toString() || '',
         price_currency: listing.price_currency || 'TRY',
-        special_requirements: listing.special_requirements || '',
+        special_requirements: listing.special_handling_requirements?.[0] || '',
         transport_responsibility: listing.transport_responsible || ''
       });
+      
+      // Set offer type based on database value
+      if (listing.offer_type === 'fixed_price') {
+        setOfferType('price');
+      } else {
+        setOfferType('direct');
+      }
+      
+      // Set required documents
+      setRequiredDocuments(listing.required_documents || []);
+      
+      // Set existing images
+      if (listing.image_urls && listing.image_urls.length > 0) {
+        const imageArray: (string | null)[] = [null, null, null];
+        listing.image_urls.slice(0, 3).forEach((url, index) => {
+          imageArray[index] = url;
+        });
+        setLoadImages(imageArray);
+        setUploadedImageUrls(listing.image_urls.slice(0, 3));
+      }
+      
+      // Set existing documents (if any)
+      if (listing.document_urls && listing.document_urls.length > 0) {
+        const existingDocs = listing.document_urls.map((url, index) => ({
+          name: `Evrak ${index + 1}`,
+          url: url,
+          type: 'application/pdf', // Default type
+          size: 'Bilinmiyor'
+        }));
+        setUploadedDocuments(existingDocs);
+      }
     }
   }, [listing]);
 
@@ -89,10 +130,17 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
         delivery_date: formData.delivery_date,
         price_amount: formData.price_amount ? parseFloat(formData.price_amount) : null,
         price_currency: formData.price_currency,
-        special_requirements: formData.special_requirements,
-        transport_responsible: formData.transport_responsibility as "buyer" | "seller" | "carrier" | "negotiable" | null
+        special_handling_requirements: formData.special_requirements ? [formData.special_requirements] : null,
+        transport_responsible: formData.transport_responsibility as "buyer" | "seller" | "carrier" | "negotiable" | null,
+        offer_type: (offerType === 'price' ? 'fixed_price' : 'negotiable') as 'fixed_price' | 'negotiable' | null,
+        required_documents: requiredDocuments.length > 0 ? requiredDocuments : null,
+        image_urls: uploadedImageUrls.filter(url => url), // Sadece dolu URL'leri ekle
+        document_urls: uploadedDocuments.map(doc => doc.url), // Yüklenen evrak URL'leri
+        updated_at: new Date().toISOString()
       };
 
+      console.log('Updating listing with data:', updateData);
+      
       const updatedListing = await ListingService.updateListing(listing.id, updateData);
       setSuccess(true);
       onSave(updatedListing);
@@ -101,6 +149,7 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
         onClose();
       }, 1500);
     } catch (err) {
+      console.error('Update error:', err);
       setError(err instanceof Error ? err.message : 'Güncelleme sırasında hata oluştu');
     } finally {
       setLoading(false);
@@ -123,6 +172,115 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
     } else {
       setRequiredDocuments(prev => prev.filter(doc => doc !== value));
     }
+  };
+
+  // Görsel yükleme fonksiyonu
+  const handleImageUpload = async (file: File, index: number) => {
+    try {
+      // Dosya validasyonu
+      const validation = UploadService.validateFile(file, true);
+      if (!validation.valid) {
+        alert(validation.error);
+        return;
+      }
+
+      setImageUploading(prev => {
+        const newState = [...prev];
+        newState[index] = true;
+        return newState;
+      });
+
+      // Önce preview'u göster
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const preview = ev.target?.result as string;
+        setLoadImages(imgs => {
+          const newImgs = [...imgs];
+          newImgs[index] = preview;
+          return newImgs;
+        });
+      };
+      reader.readAsDataURL(file);
+
+      // Supabase'e yükle
+      const result = await UploadService.uploadImage(file, listing.id, index);
+      
+      // Yüklenen URL'i kaydet
+      setUploadedImageUrls(prev => {
+        const newUrls = [...prev];
+        newUrls[index] = result.url;
+        return newUrls;
+      });
+
+      console.log('✅ Image uploaded successfully:', result);
+    } catch (error) {
+      console.error('❌ Image upload failed:', error);
+      alert('Görsel yüklenirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
+      
+      // Hata durumunda preview'u temizle
+      setLoadImages(imgs => {
+        const newImgs = [...imgs];
+        newImgs[index] = null;
+        return newImgs;
+      });
+    } finally {
+      setImageUploading(prev => {
+        const newState = [...prev];
+        newState[index] = false;
+        return newState;
+      });
+    }
+  };
+
+  // Evrak yükleme fonksiyonu
+  const handleDocumentUpload = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+
+    setDocumentUploading(true);
+    const successfulUploads: Array<{
+      name: string;
+      url: string;
+      type: string;
+      size: string;
+    }> = [];
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Dosya validasyonu
+        const validation = UploadService.validateFile(file, false);
+        if (!validation.valid) {
+          alert(`${file.name}: ${validation.error}`);
+          continue;
+        }
+
+        try {
+          const result = await UploadService.uploadDocument(file, listing.id, 'general');
+          successfulUploads.push({
+            name: file.name,
+            url: result.url,
+            type: file.type,
+            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`
+          });
+        } catch (error) {
+          console.error(`Failed to upload ${file.name}:`, error);
+          alert(`${file.name} yüklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
+        }
+      }
+
+      if (successfulUploads.length > 0) {
+        setUploadedDocuments(prev => [...prev, ...successfulUploads]);
+        console.log('✅ Documents uploaded successfully:', successfulUploads);
+      }
+    } finally {
+      setDocumentUploading(false);
+    }
+  };
+
+  // Evrak silme fonksiyonu
+  const handleDocumentRemove = (index: number) => {
+    setUploadedDocuments(prev => prev.filter((_, i) => i !== index));
   };
 
   // Evrak etiketleri
@@ -662,32 +820,22 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     title="Yük görseli yükle"
                     aria-label={`Yük görseli ${index + 1} yükle`}
-                    onChange={e => {
+                    onChange={async e => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      if (!['image/png', 'image/jpeg'].includes(file.type)) {
-                        alert('Sadece PNG veya JPG dosyası yükleyebilirsiniz.');
-                        return;
-                      }
-                      if (file.size > 5 * 1024 * 1024) {
-                        alert('Dosya boyutu 5MB geçemez.');
-                        return;
-                      }
                       
-                      const reader = new FileReader();
-                      reader.onload = ev => {
-                        const preview = ev.target?.result as string;
-                        setLoadImages(imgs => {
-                          const newImgs = [...imgs];
-                          newImgs[index] = preview;
-                          return newImgs;
-                        });
-                      };
-                      reader.readAsDataURL(file);
+                      await handleImageUpload(file, index);
                     }}
                   />
                   {loadImages[index] ? (
                     <img src={loadImages[index]!} alt={`Yük görseli ${index + 1}`} className="object-cover w-full h-full" />
+                  ) : imageUploading[index] ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <Loader2 className="w-8 h-8 text-blue-500 mb-2 animate-spin" />
+                      <p className="text-xs text-gray-500 text-center px-2">
+                        Yükleniyor...
+                      </p>
+                    </div>
                   ) : (
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <Upload className="w-8 h-8 text-gray-400 mb-2" />
@@ -770,19 +918,58 @@ const EditModalLoadListing: React.FC<EditModalLoadListingProps> = ({
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
                   className="hidden"
                   id="documents-upload"
-                  onChange={() => {
-                    // File upload handler will be implemented
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      handleDocumentUpload(e.target.files);
+                    }
                   }}
                 />
                 <label htmlFor="documents-upload" className="cursor-pointer">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-700 mb-2">Evrakları buraya sürükleyin veya tıklayın</h4>
+                  {documentUploading ? (
+                    <>
+                      <Loader2 className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
+                      <h4 className="text-lg font-medium text-gray-700 mb-2">Evraklar yükleniyor...</h4>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-gray-700 mb-2">Evrakları buraya sürükleyin veya tıklayın</h4>
+                    </>
+                  )}
                   <p className="text-sm text-gray-500">
                     Desteklenen formatlar: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), PNG, JPEG<br />
                     Maksimum dosya boyutu: 10MB
                   </p>
                 </label>
               </div>
+
+              {/* Yüklenen Evraklar Listesi */}
+              {uploadedDocuments.length > 0 && (
+                <div className="mt-6">
+                  <h5 className="text-sm font-semibold text-gray-700 mb-3">Yüklenen Evraklar</h5>
+                  <div className="space-y-2">
+                    {uploadedDocuments.map((doc, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <FileText className="w-5 h-5 text-blue-500" />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                            <p className="text-xs text-gray-500">{doc.size}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDocumentRemove(index)}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                          title="Evrakı kaldır"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </fieldset>
           </div>
 
