@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, 
   Search, 
+  Edit,
   Pause, 
   Play, 
   Trash2, 
@@ -20,6 +21,8 @@ import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
 import type { ExtendedListing } from '../../types/database-types';
+import EditModalLoadListing from './EditModalLoadListing';
+import EditModalShipmentRequest from './EditModalShipmentRequest';
 
 const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
@@ -28,6 +31,7 @@ const MyListingsSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
+  const [editListing, setEditListing] = useState<ExtendedListing | null>(null);
   const [relatedLoadListing, setRelatedLoadListing] = useState<ExtendedListing | null>(null);
 
   // Kullanıcının ilanlarını yükle
@@ -89,6 +93,13 @@ const MyListingsSection: React.FC = () => {
     } catch (error) {
       console.error('Error deleting listing:', error);
     }
+  };
+
+  const handleUpdateListing = (updatedListing: ExtendedListing) => {
+    setListings(prev => prev.map(l => 
+      l.id === updatedListing.id ? updatedListing : l
+    ));
+    console.log('✅ Listing updated');
   };
 
   // Fetch related load listing details
@@ -316,6 +327,14 @@ const MyListingsSection: React.FC = () => {
                           onClick={() => setSelectedListing(listing)}
                         >
                           <Eye className="h-4 w-4" />
+                        </button>
+                        <button 
+                          className="text-indigo-600 hover:text-indigo-900"
+                          title="İlanı Düzenle"
+                          aria-label="İlanı Düzenle"
+                          onClick={() => setEditListing(listing)}
+                        >
+                          <Edit className="h-4 w-4" />
                         </button>
                         {listing.status === 'active' ? (
                           <button 
@@ -1032,6 +1051,25 @@ const MyListingsSection: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Modal'ları */}
+      {editListing && editListing.listing_type === 'load_listing' && (
+        <EditModalLoadListing
+          listing={editListing}
+          isOpen={true}
+          onClose={() => setEditListing(null)}
+          onSave={handleUpdateListing}
+        />
+      )}
+
+      {editListing && editListing.listing_type === 'shipment_request' && (
+        <EditModalShipmentRequest
+          listing={editListing}
+          isOpen={true}
+          onClose={() => setEditListing(null)}
+          onSave={handleUpdateListing}
+        />
       )}
     </div>
   );
