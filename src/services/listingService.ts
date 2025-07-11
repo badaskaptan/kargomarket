@@ -14,6 +14,7 @@ interface FormListingData {
   origin: string;
   destination: string;
   transport_mode?: string;
+  vehicle_types?: string[] | null;
   role_type?: string | null;
   load_type?: string | null;
   weight_value?: number | null;
@@ -54,6 +55,7 @@ export class ListingService {
         origin: listingData.origin, // Doğru alan adı
         destination: listingData.destination, // Doğru alan adı
         transport_mode: listingData.transport_mode || 'road', // Zorunlu alan
+        vehicle_types: listingData.vehicle_types, // Araç türleri array
         role_type: listingData.role_type,
         load_type: listingData.load_type,
         weight_value: listingData.weight_value,
@@ -73,6 +75,10 @@ export class ListingService {
       };
 
       console.log('Attempting to create listing with real schema:', realData);
+      console.log('🚗 Vehicle Types Check:', { 
+        input: listingData.vehicle_types, 
+        mapped: realData.vehicle_types 
+      });
 
       const { data, error } = await supabase
         .from('listings')

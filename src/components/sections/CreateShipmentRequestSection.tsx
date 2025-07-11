@@ -453,6 +453,7 @@ const CreateShipmentRequestSection: React.FC = () => {
         origin: formData.requestOrigin,
         destination: formData.requestDestination,
         transport_mode: transportMode,
+        vehicle_types: vehicleType ? [vehicleType] : null, // Convert single vehicle type to array
         role_type: null, // Nakliye talebinde genellikle role_type yok
         load_type: formData.requestLoadType || null,
         weight_value: weightValue,
@@ -472,6 +473,7 @@ const CreateShipmentRequestSection: React.FC = () => {
       };
 
       console.log('Creating shipment request with data:', listingData);
+      console.log('🚗 Vehicle Type Debug:', { vehicleType, vehicle_types: vehicleType ? [vehicleType] : null });
 
       const listing = await ListingService.createListing(listingData);
       const listingId = listing.id;

@@ -615,6 +615,67 @@ const MyListingsSection: React.FC = () => {
                           </div>
                         )}
 
+                        {/* Araç Tipi */}
+                        {selectedListing.vehicle_types && selectedListing.vehicle_types.length > 0 && (
+                          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 shadow-sm">
+                            <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Araç Tipi</div>
+                            <div className="text-gray-900 font-semibold text-lg">
+                              {(() => {
+                                const vehicleType = selectedListing.vehicle_types[0];
+                                // Karayolu araç tipleri
+                                if (vehicleType?.includes('truck_3_5')) return '🚚 Kamyon - 3.5 Ton';
+                                if (vehicleType?.includes('truck_5')) return '🚚 Kamyon - 5 Ton';
+                                if (vehicleType?.includes('truck_10')) return '🚛 Kamyon - 10 Ton';
+                                if (vehicleType?.includes('truck_15')) return '🚛 Kamyon - 15 Ton';
+                                if (vehicleType?.includes('tir_standard')) return '🚛 Tır (Standart Dorse)';
+                                if (vehicleType?.includes('tir_mega')) return '🚛 Tır (Mega Dorse)';
+                                if (vehicleType?.includes('tir_jumbo')) return '🚛 Tır (Jumbo Dorse)';
+                                if (vehicleType?.includes('tir_tent')) return '🚛 Tır (Tenteli Dorse)';
+                                if (vehicleType?.includes('tir_frigo')) return '🧊 Tır (Frigorifik Dorse)';
+                                if (vehicleType?.includes('tir_container')) return '📦 Tır (Konteyner Taşıyıcı)';
+                                if (vehicleType?.includes('tir_platform')) return '🏗️ Tır (Platform)';
+                                if (vehicleType?.includes('van_')) return '🚐 Kargo Van';
+                                
+                                // Denizyolu araç tipleri
+                                if (vehicleType?.includes('container_20dc')) return '🚢 20\' Standart Konteyner';
+                                if (vehicleType?.includes('container_40dc')) return '🚢 40\' Standart Konteyner';
+                                if (vehicleType?.includes('container_40hc')) return '🚢 40\' Yüksek Konteyner';
+                                if (vehicleType?.includes('container_20ot')) return '🚢 20\' Open Top Konteyner';
+                                if (vehicleType?.includes('container_40ot')) return '🚢 40\' Open Top Konteyner';
+                                if (vehicleType?.includes('container_20fr')) return '🚢 20\' Flat Rack';
+                                if (vehicleType?.includes('container_40fr')) return '🚢 40\' Flat Rack';
+                                if (vehicleType?.includes('container_20rf')) return '❄️ 20\' Reefer Konteyner';
+                                if (vehicleType?.includes('container_40rf')) return '❄️ 40\' Reefer Konteyner';
+                                if (vehicleType?.includes('bulk_')) return '🚢 Dökme Yük Gemisi';
+                                if (vehicleType?.includes('general_')) return '🚢 Genel Kargo Gemisi';
+                                if (vehicleType?.includes('tanker_')) return '🛢️ Tanker';
+                                if (vehicleType?.includes('roro_')) return '🚗 RO-RO';
+                                if (vehicleType?.includes('ferry_')) return '⛴️ Feribot';
+                                if (vehicleType?.includes('cargo_')) return '🚤 Yük Teknesi';
+                                
+                                // Havayolu araç tipleri
+                                if (vehicleType?.includes('standard_cargo')) return '✈️ Standart Kargo';
+                                if (vehicleType?.includes('large_cargo')) return '✈️ Büyük Hacimli Kargo';
+                                if (vehicleType?.includes('special_cargo')) return '✈️ Özel Kargo';
+                                
+                                // Demiryolu araç tipleri
+                                if (vehicleType?.includes('open_wagon')) return '🚂 Açık Yük Vagonu';
+                                if (vehicleType?.includes('closed_wagon')) return '🚂 Kapalı Yük Vagonu';
+                                if (vehicleType?.includes('container_wagon')) return '🚂 Konteyner Vagonu';
+                                if (vehicleType?.includes('tanker_wagon')) return '🚂 Tanker Vagonu';
+                                
+                                // Fallback
+                                return `🚛 ${vehicleType}`;
+                              })()}
+                            </div>
+                            {selectedListing.vehicle_types.length > 1 && (
+                              <div className="text-sm text-blue-600 mt-1">
+                                +{selectedListing.vehicle_types.length - 1} diğer araç tipi
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* İlgili Yük İlanı */}
                         {selectedListing.related_load_listing_id && (
                           <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 shadow-sm">
