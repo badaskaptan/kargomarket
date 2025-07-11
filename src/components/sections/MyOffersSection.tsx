@@ -19,6 +19,56 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
+// Interface tanımları
+interface ContactInfo {
+  name: string;
+  company: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+interface Offer {
+  id: number;
+  listingId: string;
+  listingTitle: string;
+  offerBy: string;
+  offerById: string;
+  amount: string;
+  date: string;
+  status: string;
+  statusLabel: string;
+  listingType: string;
+  transportResponsible: string;
+  origin: string;
+  destination: string;
+  description: string;
+  weight?: string;
+  volume?: string;
+  loadingDate?: string;
+  deliveryDate?: string;
+  loadType?: string;
+  offerType?: string;
+  transportMode?: string;
+  vehicleType?: string;
+  documents?: string[];
+  listingOwnerId?: string;
+  contact?: ContactInfo;
+  offerContact?: ContactInfo;
+  capacity?: string;
+  availableDate?: string;
+  features?: string[];
+}
+
+interface EditFormData {
+  price: string;
+  transportResponsible: string;
+  origin: string;
+  destination: string;
+  files: File[];
+  description?: string;
+}
+
 const MyOffersSection: React.FC = () => {
   // --- STATE TANIMLARI ---
   const [activeTab, setActiveTab] = useState('incoming');
@@ -27,14 +77,15 @@ const MyOffersSection: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [showNewOfferModal, setShowNewOfferModal] = useState(false);
-  const [selectedOffer, setSelectedOffer] = useState<any>(null);
+  const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [showSelfOfferWarning, setShowSelfOfferWarning] = useState(false);
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<EditFormData>({
     price: '',
     transportResponsible: '',
     origin: '',
     destination: '',
-    description: ''
+    description: '',
+    files: []
   });
   const [newOfferForm, setNewOfferForm] = useState({
     listingId: '',
@@ -46,7 +97,7 @@ const MyOffersSection: React.FC = () => {
     files: [] as File[]
   });
   const [showChatModal, setShowChatModal] = useState(false);
-  const [chatOffer, setChatOffer] = useState<any>(null);
+  const [chatOffer, setChatOffer] = useState<Offer | null>(null);
   const [chatMessage, setChatMessage] = useState('');
 
   // --- SABİT VERİLER ---
@@ -337,7 +388,7 @@ const MyOffersSection: React.FC = () => {
   };
 
   // --- ACTION FONKSİYONLARI ---
-  const handleEdit = (offer: any) => {
+  const handleEdit = (offer: Offer) => {
     if (activeTab === 'outgoing' && offer.listingOwnerId === currentUserId) {
       setShowSelfOfferWarning(true);
       return;
@@ -348,12 +399,13 @@ const MyOffersSection: React.FC = () => {
       transportResponsible: offer.transportResponsible,
       origin: offer.origin,
       destination: offer.destination,
-      description: offer.description
+      description: offer.description,
+      files: []
     });
     setEditModalOpen(true);
   };
 
-  const handlePreview = (offer: any) => {
+  const handlePreview = (offer: Offer) => {
     setSelectedOffer(offer);
     setPreviewModalOpen(true);
   };
@@ -369,13 +421,13 @@ const MyOffersSection: React.FC = () => {
     setEditFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAccept = (offer: any) => {
+  const handleAccept = (offer: Offer) => {
     alert(`Teklif kabul edildi: ${offer.listingId}`);
   };
-  const handleReject = (offer: any) => {
+  const handleReject = (offer: Offer) => {
     alert(`Teklif reddedildi: ${offer.listingId}`);
   };
-  const handleChat = (offer: any) => {
+  const handleChat = (offer: Offer) => {
     setChatOffer(offer);
     setShowChatModal(true);
     setChatMessage('');
@@ -389,7 +441,7 @@ const MyOffersSection: React.FC = () => {
   };
 
   // --- BUTONLAR ---
-  const getActionButtons = (status: string, offer: any) => {
+  const getActionButtons = (status: string, offer: Offer) => {
     const isSelfOffer = activeTab === 'outgoing' && offer.listingOwnerId === currentUserId;
     if (isSelfOffer) {
       return (
@@ -803,15 +855,15 @@ const MyOffersSection: React.FC = () => {
                   <div className="flex items-center">
                     <User className="text-gray-400 mr-3" size={16} />
                     <div>
-                      <div className="font-medium text-gray-900">{selectedOffer.contact.name}</div>
-                      <div className="text-sm text-gray-500">{selectedOffer.contact.company}</div>
+                      <div className="font-medium text-gray-900">{selectedOffer.contact?.name}</div>
+                      <div className="text-sm text-gray-500">{selectedOffer.contact?.company}</div>
                     </div>
                   </div>
                   
                   <div className="flex items-center">
                     <Phone className="text-gray-400 mr-3" size={16} />
                     <div>
-                      <div className="font-medium text-gray-900">{selectedOffer.contact.phone}</div>
+                      <div className="font-medium text-gray-900">{selectedOffer.contact?.phone}</div>
                       <div className="text-sm text-gray-500">Telefon</div>
                     </div>
                   </div>
@@ -819,7 +871,7 @@ const MyOffersSection: React.FC = () => {
                   <div className="flex items-center">
                     <Mail className="text-gray-400 mr-3" size={16} />
                     <div>
-                      <div className="font-medium text-gray-900">{selectedOffer.contact.email}</div>
+                      <div className="font-medium text-gray-900">{selectedOffer.contact?.email}</div>
                       <div className="text-sm text-gray-500">E-posta</div>
                     </div>
                   </div>
@@ -827,7 +879,7 @@ const MyOffersSection: React.FC = () => {
                   <div className="flex items-start">
                     <Building className="text-gray-400 mr-3 mt-1" size={16} />
                     <div>
-                      <div className="font-medium text-gray-900">{selectedOffer.contact.address}</div>
+                      <div className="font-medium text-gray-900">{selectedOffer.contact?.address}</div>
                       <div className="text-sm text-gray-500">Adres</div>
                     </div>
                   </div>
@@ -845,15 +897,15 @@ const MyOffersSection: React.FC = () => {
                   <div className="flex items-center">
                     <User className="text-blue-400 mr-3" size={16} />
                     <div>
-                      <div className="font-medium text-blue-900">{selectedOffer.offerContact.name}</div>
-                      <div className="text-sm text-blue-600">{selectedOffer.offerContact.company}</div>
+                      <div className="font-medium text-blue-900">{selectedOffer.offerContact?.name}</div>
+                      <div className="text-sm text-blue-600">{selectedOffer.offerContact?.company}</div>
                     </div>
                   </div>
                   
                   <div className="flex items-center">
                     <Phone className="text-blue-400 mr-3" size={16} />
                     <div>
-                      <div className="font-medium text-blue-900">{selectedOffer.offerContact.phone}</div>
+                      <div className="font-medium text-blue-900">{selectedOffer.offerContact?.phone}</div>
                       <div className="text-sm text-blue-600">Telefon</div>
                     </div>
                   </div>
@@ -861,7 +913,7 @@ const MyOffersSection: React.FC = () => {
                   <div className="flex items-center">
                     <Mail className="text-blue-400 mr-3" size={16} />
                     <div>
-                      <div className="font-medium text-blue-900">{selectedOffer.offerContact.email}</div>
+                      <div className="font-medium text-blue-900">{selectedOffer.offerContact?.email}</div>
                       <div className="text-sm text-blue-600">E-posta</div>
                     </div>
                   </div>
@@ -869,7 +921,7 @@ const MyOffersSection: React.FC = () => {
                   <div className="flex items-start">
                     <Building className="text-blue-400 mr-3 mt-1" size={16} />
                     <div>
-                      <div className="font-medium text-blue-900">{selectedOffer.offerContact.address}</div>
+                      <div className="font-medium text-blue-900">{selectedOffer.offerContact?.address}</div>
                       <div className="text-sm text-blue-600">Adres</div>
                     </div>
                   </div>
@@ -1103,7 +1155,7 @@ const MyOffersSection: React.FC = () => {
             <span className="font-semibold">İlan:</span> {chatOffer.listingId} - {chatOffer.listingTitle}
           </div>
           <div className="mb-4 text-gray-700 text-sm">
-            <span className="font-semibold">Alıcı:</span> {recipient.name} ({recipient.company})
+            <span className="font-semibold">Alıcı:</span> {recipient?.name} ({recipient?.company})
           </div>
           <form onSubmit={e => {
             e.preventDefault();

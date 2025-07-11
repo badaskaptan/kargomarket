@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, Package, MapPin, Truck, Ship, Plane, Train, FileText, Upload, Eye, Download, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Package, MapPin, Truck, Ship, Plane, Train, FileText, Upload, Eye, Download, Trash2, Loader2 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import { ListingService } from '../../services/listingService'; // ListingService'i kullanacağız
+import toast from 'react-hot-toast';
+import { supabase } from '../../lib/supabase';
 
 // Document interface tanımı
 interface Document {
@@ -13,6 +17,7 @@ interface Document {
 
 const CreateTransportServiceSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
+  const { user } = useAuth();
   const [transportMode, setTransportMode] = useState('');
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
   const [uploadedDocuments, setUploadedDocuments] = useState<Array<{
@@ -22,6 +27,44 @@ const CreateTransportServiceSection: React.FC = () => {
     type: string;
     url: string;
   }>>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Test için global erişim (development only)
+  if (import.meta.env.DEV) {
+    (globalThis as unknown as { testTransportForm: () => void }).testTransportForm = () => {
+      console.log('🧪 Test form data:', formData);
+      console.log('👤 Current user:', user);
+      console.log('🚚 Transport mode:', transportMode);
+    };
+  }
+
+  // Inline uploadFile function to avoid import issues
+  const uploadFile = async (file: File, bucket: string = 'documents', folder?: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = folder ? `${folder}/${fileName}` : fileName;
+
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      throw new Error(`Dosya yüklenirken hata oluştu: ${error.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    if (!publicUrlData?.publicUrl) {
+      throw new Error('Public URL alınamadı');
+    }
+
+    return publicUrlData.publicUrl;
+  };
   const [formData, setFormData] = useState({
     serviceNumber: `NK${new Date().getFullYear().toString().substr(-2)}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
     serviceTitle: '',
@@ -289,10 +332,10 @@ const CreateTransportServiceSection: React.FC = () => {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      Array.from(files).forEach(file => {
+    if (files && user) {
+      Array.from(files).forEach(async (file) => {
         // Dosya türü kontrolü
         const allowedTypes = [
           'application/pdf',
@@ -307,23 +350,50 @@ const CreateTransportServiceSection: React.FC = () => {
 
         // Dosya boyutu kontrolü (10MB)
         if (file.size > 10 * 1024 * 1024) {
-          alert(`${file.name} dosyası çok büyük. Maksimum dosya boyutu 10MB'dir.`);
+          toast.error(`${file.name} dosyası çok büyük. Maksimum dosya boyutu 10MB'dir.`);
           return;
         }
 
         if (allowedTypes.includes(file.type)) {
-          const newDocument = {
+          // Önce local olarak listeye ekle (loading state ile)
+          const tempDocument = {
             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
             name: file.name,
             size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
             type: file.type,
-            url: URL.createObjectURL(file)
+            url: 'uploading...' // Yükleniyor durumu
           };
-          setUploadedDocuments(prev => [...prev, newDocument]);
+          setUploadedDocuments(prev => [...prev, tempDocument]);
+
+          try {
+            // Dosyayı Supabase'e yükle
+            const fileUrl = await uploadFile(file, 'documents', user.id);
+            
+            // Başarılı yükleme sonrası URL'i güncelle
+            setUploadedDocuments(prev => 
+              prev.map(doc => 
+                doc.id === tempDocument.id 
+                  ? { ...doc, url: fileUrl }
+                  : doc
+              )
+            );
+
+            toast.success(`${file.name} başarıyla yüklendi.`);
+          } catch (error) {
+            console.error('File upload error:', error);
+            toast.error(`${file.name} yüklenirken hata oluştu.`);
+            
+            // Hatalı dosyayı listeden kaldır
+            setUploadedDocuments(prev => 
+              prev.filter(doc => doc.id !== tempDocument.id)
+            );
+          }
         } else {
-          alert('Desteklenmeyen dosya türü. Lütfen Excel, Word, PDF, PNG veya JPEG dosyası yükleyin.');
+          toast.error('Desteklenmeyen dosya türü. Lütfen Excel, Word, PDF, PNG veya JPEG dosyası yükleyin.');
         }
       });
+    } else if (!user) {
+      toast.error('Dosya yüklemek için giriş yapmanız gerekiyor.');
     }
   };
 
@@ -360,14 +430,123 @@ const CreateTransportServiceSection: React.FC = () => {
     return '📎';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Transport service submitted:', {
-      ...formData,
-      selectedDocuments,
-      uploadedDocuments
-    });
-    setActiveSection('my-listings');
+    
+    console.log('🚀 Form submit started!');
+    console.log('📋 Form Data:', formData);
+    console.log('👤 User:', user);
+    
+    // Kullanıcı kontrolü
+    if (!user) {
+      console.log('❌ No user found');
+      toast.error('Giriş yapmanız gerekiyor!');
+      return;
+    }
+
+    // Form validasyonu
+    console.log('🔍 Validation check:');
+    console.log('- serviceTitle:', formData.serviceTitle);
+    console.log('- serviceDescription:', formData.serviceDescription);
+    console.log('- serviceTransportMode:', formData.serviceTransportMode);
+    console.log('- serviceVehicleType:', formData.serviceVehicleType);
+    console.log('- serviceContact:', formData.serviceContact);
+    
+    if (!formData.serviceTitle || !formData.serviceDescription || !formData.serviceTransportMode) {
+      console.log('❌ Validation failed: Missing required fields');
+      toast.error('Lütfen tüm zorunlu alanları doldurun!');
+      return;
+    }
+
+    if (!formData.serviceVehicleType) {
+      console.log('❌ Validation failed: Missing vehicle type');
+      toast.error('Lütfen araç tipini seçin!');
+      return;
+    }
+
+    if (!formData.serviceContact) {
+      console.log('❌ Validation failed: Missing contact info');
+      toast.error('Lütfen iletişim bilgilerini girin!');
+      return;
+    }
+
+    console.log('✅ All validations passed!');
+    setIsSubmitting(true);
+
+    try {
+      console.log('📝 Creating listing data...');
+      // Nakliye hizmetini listings tablosuna kaydet
+      const listingData = {
+        user_id: user.id,
+        listing_type: 'transport_service' as const,
+        title: formData.serviceTitle,
+        description: formData.serviceDescription,
+        origin: formData.serviceOrigin,
+        destination: formData.serviceDestination,
+        transport_mode: formData.serviceTransportMode as 'road' | 'sea' | 'air' | 'rail',
+        vehicle_types: formData.serviceVehicleType ? [formData.serviceVehicleType] : null,
+        capacity: formData.serviceCapacity || null,
+        offer_type: 'negotiable' as const,
+        price_currency: 'TRY',
+        available_from_date: formData.serviceAvailableDate || null,
+        status: 'active' as const,
+        // Taşıma moduna göre özel alanlar metadata'ya ekleyelim
+        metadata: {
+          contact_info: {
+            contact: formData.serviceContact,
+            company_name: formData.serviceCompanyName || null
+          },
+          transport_details: {
+            ...(formData.serviceTransportMode === 'road' && { plate_number: formData.plateNumber }),
+            ...(formData.serviceTransportMode === 'sea' && { 
+              ship_name: formData.shipName,
+              imo_number: formData.imoNumber,
+              mmsi_number: formData.mmsiNumber,
+              dwt: formData.dwt,
+              ship_dimensions: formData.shipDimensions,
+              laycan_start: formData.laycanStart,
+              laycan_end: formData.laycanEnd,
+              freight_type: formData.freightType,
+              charterer_info: formData.chartererInfo
+            }),
+            ...(formData.serviceTransportMode === 'air' && { flight_number: formData.flightNumber }),
+            ...(formData.serviceTransportMode === 'rail' && { train_number: formData.trainNumber })
+          },
+          required_documents: selectedDocuments.length > 0 ? selectedDocuments : []
+        }
+      };
+
+      console.log('Creating transport service listing with data:', listingData);
+
+      const listing = await ListingService.createListing(listingData);
+
+      // Yüklenen evrakları topla (zaten Supabase'de yüklü)
+      console.log('📋 Collecting uploaded document URLs:', uploadedDocuments.length);
+      const documentUrls: string[] = uploadedDocuments
+        .filter(doc => doc.url !== 'uploading...' && doc.url.startsWith('http'))
+        .map(doc => doc.url);
+      
+      console.log('✅ Valid document URLs:', documentUrls.length);
+
+      // Eğer evrak URL'leri varsa, listing'i güncelle
+      if (documentUrls.length > 0) {
+        await ListingService.updateListing(listing.id, {
+          document_urls: documentUrls
+        });
+        console.log('✅ Transport service listing updated with document URLs');
+      }
+
+      toast.success('Nakliye hizmeti ilanı başarıyla oluşturuldu!');
+      setActiveSection('my-listings');
+      
+    } catch (error) {
+      console.error('❌ Error creating transport service:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      toast.error('Nakliye hizmeti oluşturulurken bir hata oluştu.');
+    } finally {
+      console.log('🏁 Form submission finished');
+      setIsSubmitting(false);
+    }
   };
 
   // Helper fonksiyonlar dinamik alan isimleri için
@@ -1084,14 +1263,17 @@ const CreateTransportServiceSection: React.FC = () => {
               type="button"
               onClick={() => setActiveSection('my-listings')}
               className="px-8 py-4 bg-gray-200 text-gray-800 rounded-full font-medium hover:bg-gray-300 transition-colors shadow-sm"
+              disabled={isSubmitting}
             >
               İptal
             </button>
             <button
               type="submit"
-              className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
+              disabled={isSubmitting}
+              className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              İlanı Oluştur
+              {isSubmitting && <Loader2 className="h-5 w-5 mr-2 animate-spin" />}
+              {isSubmitting ? 'Oluşturuluyor...' : 'İlanı Oluştur'}
             </button>
           </div>
         </form>

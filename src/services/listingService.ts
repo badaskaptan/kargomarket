@@ -2,13 +2,13 @@ import { supabase } from '../lib/supabase';
 import type { Database, ExtendedListing } from '../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
-// type ListingInsert = Database['public']['Tables']['listings']['Insert']; // Şu an kullanılmıyor
+type ListingInsert = Database['public']['Tables']['listings']['Insert'];
 type ListingUpdate = Database['public']['Tables']['listings']['Update'];
 
 // Form'dan gelen veri tipi
 interface FormListingData {
   user_id: string;
-  listing_type: 'load_listing' | 'shipment_request';
+  listing_type: 'load_listing' | 'shipment_request' | 'transport_service';
   title: string;
   description?: string;
   origin: string;
@@ -31,6 +31,7 @@ interface FormListingData {
   related_load_listing_id?: string | null;
   status?: string;
   listing_number?: string;
+  available_from_date?: string | null;
 }
 
 // ExtendedListing tipi (listing + owner info)
@@ -46,17 +47,17 @@ export class ListingService {
     try {
       console.log('Creating listing with real schema...');
       
-      // Gerçek şemaya uygun data mapping
-      const realData = {
+      // Gerçek şemaya uygun data mapping - sadece var olan alanları kullan
+      const realData: ListingInsert = {
         user_id: listingData.user_id,
         listing_type: listingData.listing_type,
         title: listingData.title,
         description: listingData.description,
-        origin: listingData.origin, // Doğru alan adı
-        destination: listingData.destination, // Doğru alan adı
-        transport_mode: listingData.transport_mode || 'road', // Zorunlu alan
-        vehicle_types: listingData.vehicle_types, // Araç türleri array
-        role_type: listingData.role_type,
+        origin: listingData.origin,
+        destination: listingData.destination,
+        transport_mode: (listingData.transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal') || 'road',
+        vehicle_types: listingData.vehicle_types,
+        role_type: listingData.role_type as 'buyer' | 'seller' | null,
         load_type: listingData.load_type,
         weight_value: listingData.weight_value,
         weight_unit: listingData.weight_unit,
@@ -66,12 +67,13 @@ export class ListingService {
         delivery_date: listingData.delivery_date,
         price_amount: listingData.price_amount,
         price_currency: listingData.price_currency,
-        offer_type: listingData.offer_type,
-        transport_responsible: listingData.transport_responsible,
-        required_documents: listingData.required_documents, // Evrak listesi
-        related_load_listing_id: listingData.related_load_listing_id, // İlgili yük ilanı ID'si
-        status: listingData.status || 'active',
+        offer_type: listingData.offer_type as 'fixed_price' | 'negotiable' | 'auction' | 'free_quote' | null,
+        transport_responsible: listingData.transport_responsible as 'buyer' | 'seller' | 'negotiable' | 'carrier' | null,
+        required_documents: listingData.required_documents,
+        related_load_listing_id: listingData.related_load_listing_id,
+        status: (listingData.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired') || 'active',
         listing_number: listingData.listing_number || this.generateListingNumber(),
+        available_from_date: listingData.available_from_date,
       };
 
       console.log('Attempting to create listing with real schema:', realData);
@@ -79,6 +81,13 @@ export class ListingService {
         input: listingData.vehicle_types, 
         mapped: realData.vehicle_types 
       });
+
+      // Debug: Test data yapısını kontrol et
+      console.log('🔍 Data keys:', Object.keys(realData));
+      console.log('🔍 Data types:', Object.entries(realData).reduce((acc, [key, value]) => {
+        acc[key] = typeof value;
+        return acc;
+      }, {} as Record<string, string>));
 
       const { data, error } = await supabase
         .from('listings')
