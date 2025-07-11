@@ -237,7 +237,7 @@ export interface Database {
           user_id: string
           service_name: string
           description: string | null
-          vehicle_type: string
+          vehicle_types: string[] | null
           capacity: string | null
           coverage_areas: GenericMetadata
           pricing: GenericMetadata
@@ -258,7 +258,7 @@ export interface Database {
           user_id: string
           service_name: string
           description?: string | null
-          vehicle_type: string
+          vehicle_types?: string[] | null
           capacity?: string | null
           coverage_areas?: Record<string, unknown>
           pricing?: Record<string, unknown>
@@ -279,7 +279,7 @@ export interface Database {
           user_id?: string
           service_name?: string
           description?: string | null
-          vehicle_type?: string
+          vehicle_types?: string[] | null
           capacity?: string | null
           coverage_areas?: Record<string, unknown>
           pricing?: Record<string, unknown>
