@@ -16,7 +16,7 @@ import {
   Shield,
   Globe
 } from 'lucide-react';
-import LiveMap from '../common/LiveMap.tsx';
+import LiveMap from '../common/LiveMap';
 import { listings, type Listing } from '../../data/listings';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Filter, MapPin, Package, Clock, Eye, Star, LogIn, AlertTriangle } from 'lucide-react';
-import LiveMap from '../common/LiveMap.tsx';
+import LiveMap from '../common/LiveMap';
 import { listings, type Listing as MockListing } from '../../data/listings';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';

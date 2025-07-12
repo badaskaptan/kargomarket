@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase.js';
 import type { Database, ExtendedListing } from '../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
@@ -32,6 +32,10 @@ interface FormListingData {
   status?: string;
   listing_number?: string;
   available_from_date?: string | null;
+  metadata?: import('../types/database-types').GenericMetadata | null;
+  transport_details?: Record<string, unknown> | null;
+  contact_info?: Record<string, unknown> | null;
+  cargo_details?: Record<string, unknown> | null;
 }
 
 // ExtendedListing tipi (listing + owner info)
@@ -74,6 +78,10 @@ export class ListingService {
         status: (listingData.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired') || 'active',
         listing_number: listingData.listing_number || this.generateListingNumber(),
         available_from_date: listingData.available_from_date,
+        metadata: listingData.metadata,
+        transport_details: listingData.transport_details,
+        contact_info: listingData.contact_info,
+        cargo_details: listingData.cargo_details,
       };
 
       console.log('Attempting to create listing with real schema:', realData);
@@ -365,6 +373,8 @@ export class ListingService {
     const day = now.getDate().toString().padStart(2, '0');
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     
-    return `ILN${year}${month}${day}${random}`;
+    return `NK${year}${month}${day}${random}`;
   }
 }
+
+

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import PublicLayout from './components/layout/PublicLayout.tsx';
-import DashboardLayout from './components/layout/DashboardLayout.tsx';
-import { DashboardProvider } from './context/DashboardContext.tsx';
-import { AuthProvider, useAuth } from './context/SupabaseAuthContext.tsx';
+import PublicLayout from './components/layout/PublicLayout';
+import DashboardLayout from './components/layout/DashboardLayout';
+import { DashboardProvider } from './context/DashboardContext';
+import { AuthProvider, useAuth } from './context/SupabaseAuthContext';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();

@@ -7,8 +7,8 @@ import type { Database } from '../types/database-types'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 // Supabase URL ve Anon Key - Bu değerleri .env dosyasından alın
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
 
 // Type-safe Supabase client
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {

@@ -311,6 +311,10 @@ export interface Database {
           updated_at: string | null
           published_at: string | null
           expires_at: string | null
+          metadata: GenericMetadata | null
+          transport_details: Record<string, unknown> | null
+          contact_info: Record<string, unknown> | null
+          cargo_details: Record<string, unknown> | null
         }
         Insert: {
           id?: string
@@ -381,6 +385,10 @@ export interface Database {
           updated_at?: string | null
           published_at?: string | null
           expires_at?: string | null
+          metadata?: GenericMetadata | null
+          transport_details?: Record<string, unknown> | null
+          contact_info?: Record<string, unknown> | null
+          cargo_details?: Record<string, unknown> | null
         }
         Update: {
           id?: string
@@ -451,6 +459,10 @@ export interface Database {
           updated_at?: string | null
           published_at?: string | null
           expires_at?: string | null
+          metadata?: GenericMetadata | null
+          transport_details?: Record<string, unknown> | null
+          contact_info?: Record<string, unknown> | null
+          cargo_details?: Record<string, unknown> | null
         }
       }
       transport_services: {
