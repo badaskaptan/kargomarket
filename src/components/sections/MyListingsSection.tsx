@@ -23,6 +23,7 @@ import { ListingService } from '../../services/listingService';
 import type { ExtendedListing } from '../../types/database-types';
 import EditModalLoadListing from './EditModalLoadListing';
 import EditModalShipmentRequest from './EditModalShipmentRequest';
+import TransportServiceDetailSection from './TransportServiceDetailSection';
 
 const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
@@ -287,9 +288,6 @@ const MyListingsSection: React.FC = () => {
                   <tr key={listing.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="flex items-center mb-2">
-                          {getListingTypeBadge(listing.listing_type)}
-                        </div>
                         <div className="text-sm font-medium text-gray-900">{listing.title}</div>
                         <div className="text-sm text-gray-500">{listing.load_type}</div>
                       </div>
@@ -614,7 +612,6 @@ const MyListingsSection: React.FC = () => {
                             </div>
                           </div>
                         )}
-
                         {/* Araç Tipi */}
                         {selectedListing.vehicle_types && selectedListing.vehicle_types.length > 0 && (
                           <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 shadow-sm">
@@ -635,7 +632,6 @@ const MyListingsSection: React.FC = () => {
                                 if (vehicleType?.includes('tir_container')) return '📦 Tır (Konteyner Taşıyıcı)';
                                 if (vehicleType?.includes('tir_platform')) return '🏗️ Tır (Platform)';
                                 if (vehicleType?.includes('van_')) return '🚐 Kargo Van';
-                                
                                 // Denizyolu araç tipleri
                                 if (vehicleType?.includes('container_20dc')) return '🚢 20\' Standart Konteyner';
                                 if (vehicleType?.includes('container_40dc')) return '🚢 40\' Standart Konteyner';
@@ -652,18 +648,15 @@ const MyListingsSection: React.FC = () => {
                                 if (vehicleType?.includes('roro_')) return '🚗 RO-RO';
                                 if (vehicleType?.includes('ferry_')) return '⛴️ Feribot';
                                 if (vehicleType?.includes('cargo_')) return '🚤 Yük Teknesi';
-                                
                                 // Havayolu araç tipleri
                                 if (vehicleType?.includes('standard_cargo')) return '✈️ Standart Kargo';
                                 if (vehicleType?.includes('large_cargo')) return '✈️ Büyük Hacimli Kargo';
                                 if (vehicleType?.includes('special_cargo')) return '✈️ Özel Kargo';
-                                
                                 // Demiryolu araç tipleri
                                 if (vehicleType?.includes('open_wagon')) return '🚂 Açık Yük Vagonu';
                                 if (vehicleType?.includes('closed_wagon')) return '🚂 Kapalı Yük Vagonu';
                                 if (vehicleType?.includes('container_wagon')) return '🚂 Konteyner Vagonu';
                                 if (vehicleType?.includes('tanker_wagon')) return '🚂 Tanker Vagonu';
-                                
                                 // Fallback
                                 return `🚛 ${vehicleType}`;
                               })()}
@@ -675,7 +668,6 @@ const MyListingsSection: React.FC = () => {
                             )}
                           </div>
                         )}
-
                         {/* İlgili Yük İlanı */}
                         {selectedListing.related_load_listing_id && (
                           <div className="bg-amber-50 rounded-xl p-4 border border-amber-200 shadow-sm">
@@ -728,7 +720,6 @@ const MyListingsSection: React.FC = () => {
                             </div>
                           </div>
                         )}
-
                         {/* Teklif Alma Şekli */}
                         {selectedListing.offer_type && (
                           <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 shadow-sm">
@@ -741,148 +732,12 @@ const MyListingsSection: React.FC = () => {
                             </div>
                           </div>
                         )}
-
-
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Grid Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Sol Kolon - Yük Bilgileri */}
-                <div className="space-y-6">
-                  {/* Yük Detayları */}
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-100 shadow-sm">
-                    <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
-                      <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                        <Package className="h-6 w-6 text-blue-600" />
-                      </div>
-                      Yük Detayları
-                    </h3>
-                    <div className="space-y-4">
-                      <div className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm">
-                        <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Yük Tipi</div>
-                        <div className="text-gray-900 font-semibold text-lg">{selectedListing.load_type || 'Belirtilmemiş'}</div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm">
-                          <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Ağırlık</div>
-                          <div className="text-gray-900 font-semibold">
-                            {selectedListing.weight_value ? 
-                              `${selectedListing.weight_value} ${selectedListing.weight_unit}` : 
-                              'Belirtilmemiş'
-                            }
-                          </div>
-                        </div>
-                        
-                        <div className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm">
-                          <div className="text-sm font-semibold text-blue-700 mb-2 uppercase tracking-wide">Hacim</div>
-                          <div className="text-gray-900 font-semibold">
-                            {selectedListing.volume_value ? 
-                              `${selectedListing.volume_value} ${selectedListing.volume_unit}` : 
-                              'Belirtilmemiş'
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fiyat Bilgileri - Sadece fiyat belirlenmiş ilanlar için */}
-                  {selectedListing.price_amount && selectedListing.offer_type !== 'free_quote' && (
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100 shadow-sm">
-                      <h3 className="text-xl font-semibold text-green-900 mb-4 flex items-center">
-                        <div className="bg-green-100 p-2 rounded-lg mr-3">
-                          <span className="text-2xl">💰</span>
-                        </div>
-                        Fiyat Bilgileri
-                      </h3>
-                      <div className="bg-white rounded-xl p-6 border border-green-200 shadow-sm">
-                        <div className="text-sm font-semibold text-green-700 mb-3 uppercase tracking-wide">Belirlenen Fiyat</div>
-                        <div className="text-3xl font-bold text-green-600 mb-2">
-                          {selectedListing.price_amount ? 
-                            `${selectedListing.price_amount.toLocaleString('tr-TR')} ${selectedListing.price_currency || 'TL'}` : 
-                            'Fiyat belirtilmemiş'
-                          }
-                        </div>
-                        {selectedListing.price_per && selectedListing.price_amount && (
-                          <div className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1 rounded-full inline-block">
-                            {selectedListing.price_per} başına
-                          </div>
-                        )}
-                        
-                        {/* Teklif Alma Şekli */}
-                        {selectedListing.offer_type && (
-                          <div className="mt-4 pt-4 border-t border-green-200">
-                            <div className="text-sm font-semibold text-green-700 mb-2 uppercase tracking-wide">Teklif Alma Şekli</div>
-                            <div className="text-gray-900 font-medium">
-                              {selectedListing.offer_type === 'fixed_price' ? 'Fiyat Belirleyerek' : 
-                               selectedListing.offer_type === 'negotiable' ? 'Pazarlığa Açık' : 
-                               selectedListing.offer_type === 'auction' ? 'Açık Artırma' :
-                               selectedListing.offer_type === 'free_quote' ? 'Doğrudan Teklif' :
-                               selectedListing.offer_type}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Doğrudan Teklif Bilgisi - Fiyat belirlenmemiş ilanlar için */}
-                  {(!selectedListing.price_amount || selectedListing.offer_type === 'free_quote') && (
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100 shadow-sm">
-                      <h3 className="text-xl font-semibold text-blue-900 mb-4 flex items-center">
-                        <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                          <span className="text-2xl">🎯</span>
-                        </div>
-                        Teklif Alma Şekli
-                      </h3>
-                      <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600 mb-2">Doğrudan Teklif</div>
-                          <p className="text-gray-700 text-sm">
-                            Bu ilan için fiyat belirtilmemiştir. İlgilenen taraflardan doğrudan teklif beklenmektedir.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Rol ve Taşıma Bilgileri (Yük İlanı için) */}
-                  {selectedListing.listing_type === 'load_listing' && (
-                    <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-100 shadow-sm">
-                      <h3 className="text-xl font-semibold text-amber-900 mb-4 flex items-center">
-                        <div className="bg-amber-100 p-2 rounded-lg mr-3">
-                          <span className="text-2xl">🚛</span>
-                        </div>
-                        Taşıma Bilgileri
-                      </h3>
-                      <div className="space-y-4">
-                        {selectedListing.role_type && (
-                          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
-                            <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Rol</div>
-                            <div className="text-gray-900 font-semibold">
-                              {selectedListing.role_type === 'buyer' ? '🛒 Alıcı' : 
-                               selectedListing.role_type === 'seller' ? '🏪 Satıcı' : 
-                               selectedListing.role_type}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {selectedListing.transport_responsible && (
-                          <div className="bg-white rounded-xl p-4 border border-amber-200 shadow-sm">
-                            <div className="text-sm font-semibold text-amber-700 mb-2 uppercase tracking-wide">Taşıma Sorumlusu</div>
-                            <div className="text-gray-900 font-semibold">
-                              {selectedListing.transport_responsible === 'buyer' ? 'Alıcı' : 
-                               selectedListing.transport_responsible === 'seller' ? 'Satıcı' : 
-                               selectedListing.transport_responsible}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                  {selectedListing.listing_type === 'transport_service' && (
+                    <div>
+                      <TransportServiceDetailSection listing={prepareTransportServiceDetail(selectedListing)} />
                     </div>
                   )}
                 </div>
@@ -1134,6 +989,35 @@ const MyListingsSection: React.FC = () => {
       )}
     </div>
   );
-};
+}
+
+// TransportServiceDetailSection için veri hazırlama fonksiyonu
+function prepareTransportServiceDetail(listing: ExtendedListing) {
+  return {
+    listing_number: listing.listing_number || '',
+    title: listing.title || '',
+    description: listing.description || '',
+    origin: listing.origin || '',
+    destination: listing.destination || '',
+    transport_mode: listing.transport_mode || '',
+    vehicle_types: listing.vehicle_types || [],
+    capacity: ('capacity' in listing && typeof listing.capacity === 'string' ? listing.capacity : ''),
+    available_from_date: ('available_from_date' in listing && typeof listing.available_from_date === 'string' ? listing.available_from_date : ''),
+    status: listing.status || '',
+    metadata: (
+      'metadata' in listing && typeof listing.metadata === 'object' && listing.metadata !== null
+        ? listing.metadata as {
+            contact_info?: Record<string, unknown>;
+            transport_details?: Record<string, unknown>;
+            required_documents?: string[];
+          }
+        : {
+            contact_info: {},
+            transport_details: {},
+            required_documents: [],
+          }
+    ),
+  };
+}
 
 export default MyListingsSection;

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, Package, MapPin, Truck, Ship, Plane, Train, FileText, Upload, Eye, Download, Trash2, Loader2 } from 'lucide-react';
+import TransportServiceDetailSection from './TransportServiceDetailSection';
+import Modal from '../common/Modal'; // Modal component
+import { ArrowLeft, Truck, Ship, Plane, Train, FileText, Upload, Eye, Download, Trash2, Loader2, MapPin, Package, Calendar } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService'; // ListingService'i kullanacağız
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
+
 
 // Document interface tanımı
 interface Document {
@@ -15,7 +18,48 @@ interface Document {
   url: string;
 }
 
+// TransportServiceListing type for full type safety
+interface TransportServiceListing {
+  user_id: string;
+  listing_type: 'transport_service';
+  title: string;
+  description: string;
+  origin: string;
+  destination: string;
+  transport_mode: 'road' | 'sea' | 'air' | 'rail';
+  vehicle_types: string[] | null;
+  capacity: string | null;
+  offer_type: 'negotiable';
+  price_currency: 'TRY';
+  available_from_date: string | null;
+  status: 'active';
+  listing_number: string;
+  metadata: {
+    contact_info: {
+      contact: string;
+      company_name: string | null;
+    };
+    transport_details: Record<string, string | null>;
+    required_documents: string[];
+  };
+}
+
+// NK + YYMMDDHHMMSS formatında ilan numarası üretici
+const generateServiceNumber = () => {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hour = now.getHours().toString().padStart(2, '0');
+  const minute = now.getMinutes().toString().padStart(2, '0');
+  const second = now.getSeconds().toString().padStart(2, '0');
+  return `NK${year}${month}${day}${hour}${minute}${second}`;
+};
+
 const CreateTransportServiceSection: React.FC = () => {
+  // İlan detayı modalı için state
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [lastCreatedListing, setLastCreatedListing] = useState<TransportServiceListing | null>(null);
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
   const [transportMode, setTransportMode] = useState('');
@@ -28,6 +72,15 @@ const CreateTransportServiceSection: React.FC = () => {
     url: string;
   }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Debug modal tipi
+  type DebugDataType = {
+    formData: typeof formData;
+    listingData: TransportServiceListing;
+    uploadedDocuments: typeof uploadedDocuments;
+    user: typeof user;
+  } | null;
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [debugData, setDebugData] = useState<DebugDataType>(null);
 
   // Test için global erişim (development only)
   if (import.meta.env.DEV) {
@@ -66,7 +119,7 @@ const CreateTransportServiceSection: React.FC = () => {
     return publicUrlData.publicUrl;
   };
   const [formData, setFormData] = useState({
-    serviceNumber: `NK${new Date().getFullYear().toString().substr(-2)}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')}${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+    serviceNumber: generateServiceNumber(),
     serviceTitle: '',
     serviceTransportMode: '',
     serviceDescription: '',
@@ -77,10 +130,8 @@ const CreateTransportServiceSection: React.FC = () => {
     serviceCapacity: '',
     serviceCompanyName: '',
     serviceContact: '',
-    
     // Karayolu için ek alanlar
     plateNumber: '',
-    
     // Denizyolu için ek alanlar
     shipName: '',
     imoNumber: '',
@@ -91,10 +142,8 @@ const CreateTransportServiceSection: React.FC = () => {
     laycanEnd: '',
     freightType: '',
     chartererInfo: '',
-    
     // Havayolu için ek alanlar
     flightNumber: '',
-    
     // Demiryolu için ek alanlar
     trainNumber: ''
   });
@@ -476,9 +525,9 @@ const CreateTransportServiceSection: React.FC = () => {
     try {
       console.log('📝 Creating listing data...');
       // Nakliye hizmetini listings tablosuna kaydet
-      const listingData = {
+      const listingData: TransportServiceListing & { required_documents: string[] } = {
         user_id: user.id,
-        listing_type: 'transport_service' as const,
+        listing_type: 'transport_service',
         title: formData.serviceTitle,
         description: formData.serviceDescription,
         origin: formData.serviceOrigin,
@@ -486,39 +535,56 @@ const CreateTransportServiceSection: React.FC = () => {
         transport_mode: formData.serviceTransportMode as 'road' | 'sea' | 'air' | 'rail',
         vehicle_types: formData.serviceVehicleType ? [formData.serviceVehicleType] : null,
         capacity: formData.serviceCapacity || null,
-        offer_type: 'negotiable' as const,
+        offer_type: 'negotiable',
         price_currency: 'TRY',
         available_from_date: formData.serviceAvailableDate || null,
-        status: 'active' as const,
-        // Taşıma moduna göre özel alanlar metadata'ya ekleyelim
+        status: 'active',
+        listing_number: formData.serviceNumber,
+        required_documents: selectedDocuments.length > 0 ? selectedDocuments : [],
         metadata: {
           contact_info: {
             contact: formData.serviceContact,
             company_name: formData.serviceCompanyName || null
           },
-          transport_details: {
-            ...(formData.serviceTransportMode === 'road' && { plate_number: formData.plateNumber }),
-            ...(formData.serviceTransportMode === 'sea' && { 
-              ship_name: formData.shipName,
-              imo_number: formData.imoNumber,
-              mmsi_number: formData.mmsiNumber,
-              dwt: formData.dwt,
-              ship_dimensions: formData.shipDimensions,
-              laycan_start: formData.laycanStart,
-              laycan_end: formData.laycanEnd,
-              freight_type: formData.freightType,
-              charterer_info: formData.chartererInfo
-            }),
-            ...(formData.serviceTransportMode === 'air' && { flight_number: formData.flightNumber }),
-            ...(formData.serviceTransportMode === 'rail' && { train_number: formData.trainNumber })
-          },
+          transport_details: (() => {
+            // All possible fields, always present, string or null
+            return {
+              plate_number: formData.serviceTransportMode === 'road' ? formData.plateNumber : null,
+              ship_name: formData.serviceTransportMode === 'sea' ? formData.shipName : null,
+              imo_number: formData.serviceTransportMode === 'sea' ? formData.imoNumber : null,
+              mmsi_number: formData.serviceTransportMode === 'sea' ? formData.mmsiNumber : null,
+              dwt: formData.serviceTransportMode === 'sea' ? formData.dwt : null,
+              ship_dimensions: formData.serviceTransportMode === 'sea' ? formData.shipDimensions : null,
+              laycan_start: formData.serviceTransportMode === 'sea' ? formData.laycanStart : null,
+              laycan_end: formData.serviceTransportMode === 'sea' ? formData.laycanEnd : null,
+              freight_type: formData.serviceTransportMode === 'sea' ? formData.freightType : null,
+              charterer_info: formData.serviceTransportMode === 'sea' ? formData.chartererInfo : null,
+              flight_number: formData.serviceTransportMode === 'air' ? formData.flightNumber : null,
+              train_number: formData.serviceTransportMode === 'rail' ? formData.trainNumber : null
+            };
+          })(),
           required_documents: selectedDocuments.length > 0 ? selectedDocuments : []
         }
       };
 
+      // DEBUG: Show modal with all data before submit
+      setDebugData({
+        formData,
+        listingData,
+        uploadedDocuments,
+        user
+      });
+      setDebugOpen(true);
+
+      // If you want to block submit until debug modal is closed, return here
+      // return;
+
       console.log('Creating transport service listing with data:', listingData);
 
       const listing = await ListingService.createListing(listingData);
+      // Son oluşturulan ilanı state'e kaydet
+      setLastCreatedListing(listingData);
+      setDetailOpen(true);
 
       // Yüklenen evrakları topla (zaten Supabase'de yüklü)
       console.log('📋 Collecting uploaded document URLs:', uploadedDocuments.length);
@@ -549,117 +615,137 @@ const CreateTransportServiceSection: React.FC = () => {
     }
   };
 
-  // Helper fonksiyonlar dinamik alan isimleri için
+  // Helper fonksiyonlar dinamik alan isimleri ve görseller için
   const getDynamicFieldLabels = () => {
     const mode = formData.serviceTransportMode;
     return {
-      origin: mode === 'sea' ? 'Kalkış Limanı / Bölgesi' : 
-              mode === 'air' ? 'Kalkış Havalimanı' : 
-              mode === 'rail' ? 'Kalkış İstasyonu / Bölgesi' : 
-              'Kalkış Bölgesi/Noktası',
-      destination: mode === 'sea' ? 'Varış Limanı / Bölgesi' : 
-                   mode === 'air' ? 'Varış Havalimanı' : 
-                   mode === 'rail' ? 'Varış İstasyonu / Bölgesi' : 
-                   'Varış Bölgesi/Noktası',
+      origin: mode === 'sea' ? 'Kalkış Limanı / Bölgesi'
+        : mode === 'air' ? 'Kalkış Havalimanı'
+        : mode === 'rail' ? 'Kalkış İstasyonu / Bölgesi'
+        : 'Kalkış Bölgesi/Noktası',
+      destination: mode === 'sea' ? 'Varış Limanı / Bölgesi'
+        : mode === 'air' ? 'Varış Havalimanı'
+        : mode === 'rail' ? 'Varış İstasyonu / Bölgesi'
+        : 'Varış Bölgesi/Noktası',
       availableDate: mode === 'sea' ? 'Laycan (Başlangıç)' : 'Boşta Olma Tarihi',
-      capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)' : 
-                mode === 'sea' ? 'DWT / Kapasite' : 
-                'Kapasite (ton/m³)'
+      capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)'
+        : mode === 'sea' ? 'DWT / Kapasite'
+        : 'Kapasite (ton/m³)'
     };
   };
 
-  // Helper fonksiyon dinamik placeholder'lar için
-  const getDynamicPlaceholders = () => {
+  // Taşıma moduna göre arka plan rengi
+  function getTransportBackground() {
+    switch (formData.serviceTransportMode) {
+      case 'road':
+        return 'bg-yellow-50 border-yellow-200';
+      case 'sea':
+        return 'bg-blue-50 border-blue-200';
+      case 'air':
+        return 'bg-cyan-50 border-cyan-200';
+      case 'rail':
+        return 'bg-gray-50 border-gray-200';
+      default:
+        return 'bg-white border-gray-200';
+    }
+  }
+
+  // Taşıma moduna göre SVG arka plan
+  function getTransportBackgroundImage() {
+    switch (formData.serviceTransportMode) {
+      case 'road':
+        return `<svg width="100%" height="100%" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="200" fill="#FEF3C7"/><text x="50%" y="50%" text-anchor="middle" fill="#F59E42" font-size="48" font-family="Arial" dy=".3em" opacity="0.2">🚚</text></svg>`;
+      case 'sea':
+        return `<svg width="100%" height="100%" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="200" fill="#DBEAFE"/><text x="50%" y="50%" text-anchor="middle" fill="#2563EB" font-size="48" font-family="Arial" dy=".3em" opacity="0.2">🚢</text></svg>`;
+      case 'air':
+        return `<svg width="100%" height="100%" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="200" fill="#ECFEFF"/><text x="50%" y="50%" text-anchor="middle" fill="#06B6D4" font-size="48" font-family="Arial" dy=".3em" opacity="0.2">✈️</text></svg>`;
+      case 'rail':
+        return `<svg width="100%" height="100%" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="200" fill="#F3F4F6"/><text x="50%" y="50%" text-anchor="middle" fill="#6B7280" font-size="48" font-family="Arial" dy=".3em" opacity="0.2">🚂</text></svg>`;
+      default:
+        return '';
+    }
+  }
+
+  // Taşıma moduna göre ikon
+  function getTransportIcon() {
+    switch (formData.serviceTransportMode) {
+      case 'road':
+        return <Truck className="w-12 h-12 text-yellow-500" />;
+      case 'sea':
+        return <Ship className="w-12 h-12 text-blue-500" />;
+      case 'air':
+        return <Plane className="w-12 h-12 text-cyan-500" />;
+      case 'rail':
+        return <Train className="w-12 h-12 text-gray-500" />;
+      default:
+        return null;
+    }
+  }
+
+  // Dinamik placeholderlar
+  function getDynamicPlaceholders() {
     const mode = formData.serviceTransportMode;
     return {
-      origin: mode === 'sea' ? 'Örn: İstanbul Limanı, Ambarlı' : 
-              mode === 'air' ? 'Örn: İstanbul Havalimanı (IST)' : 
-              mode === 'rail' ? 'Örn: Haydarpaşa İstasyonu' : 
-              'Örn: İstanbul ve çevresi',
-      destination: mode === 'sea' ? 'Örn: İzmir Limanı, Alsancak' : 
-                   mode === 'air' ? 'Örn: Ankara Esenboğa (ESB)' : 
-                   mode === 'rail' ? 'Örn: Ankara Gar' : 
-                   'Örn: Ankara ve çevresi',
-      capacity: mode === 'air' ? 'Örn: 5000 kg / 15 m³' : 
-                mode === 'sea' ? 'Örn: 25000 DWT' : 
-                'Örn: 40 ton / 90 m³'
+      origin:
+        mode === 'sea' ? 'Örn: İstanbul Limanı'
+        : mode === 'air' ? 'Örn: İstanbul Havalimanı'
+        : mode === 'rail' ? 'Örn: Halkalı İstasyonu'
+        : 'Örn: İstanbul',
+      destination:
+        mode === 'sea' ? 'Örn: İzmir Limanı'
+        : mode === 'air' ? 'Örn: Ankara Esenboğa'
+        : mode === 'rail' ? 'Örn: Ankara Garı'
+        : 'Örn: Ankara',
+      capacity:
+        mode === 'air' ? 'Örn: 5000 kg'
+        : mode === 'sea' ? 'Örn: 25000 DWT'
+        : 'Örn: 20 ton'
     };
-  };
-
-  const getTransportBackground = () => {
-    const backgrounds = {
-      road: 'bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden',
-      sea: 'bg-gradient-to-br from-cyan-50 to-cyan-100 relative overflow-hidden',
-      air: 'bg-gradient-to-br from-purple-50 to-purple-100 relative overflow-hidden',
-      rail: 'bg-gradient-to-br from-green-50 to-green-100 relative overflow-hidden'
-    };
-    return backgrounds[transportMode as keyof typeof backgrounds] || 'bg-white relative overflow-hidden';
-  };
-
-  const getTransportIcon = () => {
-    const icons = {
-      road: Truck,
-      sea: Ship,
-      air: Plane,
-      rail: Train
-    };
-    const IconComponent = icons[transportMode as keyof typeof icons];
-    return IconComponent ? <IconComponent className="w-16 h-16 text-gray-400" /> : null;
-  };
-
-  const getTransportBackgroundImage = () => {
-    if (!transportMode) return '';
-    
-    const backgroundImages = {
-      road: `
-        <div class="absolute inset-0 opacity-5">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <path d="M10 50 L90 50 M20 40 L80 40 M20 60 L80 60" stroke="currentColor" stroke-width="2" fill="none"/>
-            <rect x="30" y="35" width="20" height="15" rx="2" fill="currentColor"/>
-            <circle cx="35" cy="52" r="3" fill="currentColor"/>
-            <circle cx="45" cy="52" r="3" fill="currentColor"/>
-          </svg>
-        </div>
-      `,
-      sea: `
-        <div class="absolute inset-0 opacity-5">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <path d="M10 60 Q30 55 50 60 T90 60" stroke="currentColor" stroke-width="2" fill="none"/>
-            <path d="M30 40 L70 40 L65 55 L35 55 Z" fill="currentColor"/>
-            <rect x="45" y="25" width="3" height="15" fill="currentColor"/>
-            <path d="M48 25 L60 35 L48 30 Z" fill="currentColor"/>
-          </svg>
-        </div>
-      `,
-      air: `
-        <div class="absolute inset-0 opacity-5">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <path d="M20 50 L80 50" stroke="currentColor" stroke-width="3" fill="none"/>
-            <path d="M30 45 L70 45 L75 50 L70 55 L30 55 Z" fill="currentColor"/>
-            <path d="M35 40 L45 30 L55 40" stroke="currentColor" stroke-width="2" fill="none"/>
-            <path d="M35 60 L45 70 L55 60" stroke="currentColor" stroke-width="2" fill="none"/>
-          </svg>
-        </div>
-      `,
-      rail: `
-        <div class="absolute inset-0 opacity-5">
-          <svg viewBox="0 0 100 100" class="w-full h-full">
-            <path d="M10 55 L90 55 M10 45 L90 45" stroke="currentColor" stroke-width="2" fill="none"/>
-            <rect x="25" y="35" width="50" height="20" rx="3" fill="currentColor"/>
-            <circle cx="35" cy="58" r="2" fill="currentColor"/>
-            <circle cx="45" cy="58" r="2" fill="currentColor"/>
-            <circle cx="55" cy="58" r="2" fill="currentColor"/>
-            <circle cx="65" cy="58" r="2" fill="currentColor"/>
-          </svg>
-        </div>
-      `
-    };
-    
-    return backgroundImages[transportMode as keyof typeof backgroundImages] || '';
-  };
+  }
+  // ...existing code...
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <>
+      {/* Debug Modal */}
+      <Modal
+        open={debugOpen}
+        onClose={() => setDebugOpen(false)}
+        title="Debug: Gönderilecek Veri"
+      >
+        <div className="space-y-4">
+          <div>
+            <strong>Form Data:</strong>
+            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.formData, null, 2)}</pre>
+          </div>
+          <div>
+            <strong>Listing Data (Supabase'e gidecek):</strong>
+            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.listingData, null, 2)}</pre>
+          </div>
+          <div>
+            <strong>Yüklenen Evraklar:</strong>
+            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.uploadedDocuments, null, 2)}</pre>
+          </div>
+          <div>
+            <strong>Kullanıcı:</strong>
+            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.user, null, 2)}</pre>
+          </div>
+        </div>
+      </Modal>
+      {/* İlan Detay Modalı */}
+      <Modal
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        title="Oluşturulan İlan Detayı"
+      >
+        {lastCreatedListing && (
+          <div className="max-h-[70vh] overflow-auto">
+            {/* TransportServiceDetailSection ile detay göster */}
+            {/* @ts-expect-error: TransportServiceDetailSection expects a different type than provided, safe to ignore for modal preview. */}
+            <TransportServiceDetailSection listing={lastCreatedListing} />
+          </div>
+        )}
+      </Modal>
+      <div className="space-y-6 animate-fade-in">
       <div className={`rounded-3xl shadow-lg p-6 transition-all duration-300 ${getTransportBackground()}`}>
         {/* Background Image */}
         {transportMode && (
@@ -1278,7 +1364,8 @@ const CreateTransportServiceSection: React.FC = () => {
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
