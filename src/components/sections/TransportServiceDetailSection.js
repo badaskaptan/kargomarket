@@ -3,9 +3,16 @@ import React from 'react';
 import { Truck, Ship, Plane, Train } from 'lucide-react';
 const TransportServiceDetailSection = ({ listing }) => {
     const { metadata } = listing;
-    const transportDetails = metadata?.transport_details || {};
-    const contactInfo = metadata?.contact_info || {};
-    const requiredDocuments = metadata?.required_documents || [];
+    // Alt alanları typesafe almak için yardımcı fonksiyonlar
+    function getMetaField(meta, key, fallback) {
+        if (meta && typeof meta === 'object' && key in meta) {
+            return meta[key];
+        }
+        return fallback;
+    }
+    const contactInfo = getMetaField(metadata, 'contact_info', {});
+    const transportDetails = getMetaField(metadata, 'transport_details', {});
+    const requiredDocuments = getMetaField(metadata, 'required_documents', []);
     // Taşıma moduna göre ikon ve Türkçe metin
     function getTransportModeDisplay(mode) {
         switch (mode) {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Truck, Ship, Plane, Train } from 'lucide-react';
+import type { GenericMetadata } from '../../types/database-types';
 
 interface TransportServiceDetailProps {
   listing: {
@@ -13,36 +14,24 @@ interface TransportServiceDetailProps {
     capacity: string;
     available_from_date: string;
     status: string;
-    metadata: {
-      contact_info?: {
-        contact?: string;
-        company_name?: string;
-      };
-      transport_details?: {
-        plate_number?: string;
-        ship_name?: string;
-        imo_number?: string;
-        mmsi_number?: string;
-        dwt?: string;
-        ship_dimensions?: string;
-        laycan_start?: string;
-        laycan_end?: string;
-        freight_type?: string;
-        charterer_info?: string;
-        flight_number?: string;
-        train_number?: string;
-      };
-      required_documents?: string[];
-    };
+    metadata: GenericMetadata;
     // Diğer alanlar eklenebilir
   };
 }
 
 const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ listing }) => {
   const { metadata } = listing;
-  const transportDetails = metadata?.transport_details || {};
-  const contactInfo = metadata?.contact_info || {};
-  const requiredDocuments = metadata?.required_documents || [];
+  // Alt alanları typesafe almak için yardımcı fonksiyonlar
+  function getMetaField<T>(meta: GenericMetadata, key: string, fallback: T): T {
+    if (meta && typeof meta === 'object' && key in meta) {
+      return meta[key] as T;
+    }
+    return fallback;
+  }
+
+  const contactInfo = getMetaField<{ contact?: string; company_name?: string }>(metadata, 'contact_info', {});
+  const transportDetails = getMetaField<Record<string, string | undefined>>(metadata, 'transport_details', {});
+  const requiredDocuments = getMetaField<string[]>(metadata, 'required_documents', []);
 
   // Taşıma moduna göre ikon ve Türkçe metin
   function getTransportModeDisplay(mode: string) {
