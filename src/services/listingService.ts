@@ -260,6 +260,12 @@ export class ListingService {
 
   // İlan güncelle
   static async updateListing(id: string, updates: ListingUpdate): Promise<Listing> {
+    console.log('📝 ListingService.updateListing called with:');
+    console.log('- Listing ID:', id);
+    console.log('- Updates object:', JSON.stringify(updates, null, 2));
+    console.log('- Updates.metadata:', JSON.stringify(updates.metadata, null, 2));
+    console.log('- Updates.required_documents:', updates.required_documents);
+
     const { data, error } = await supabase
       .from('listings')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -268,9 +274,13 @@ export class ListingService {
       .single();
 
     if (error) {
-      console.error('Error updating listing:', error);
+      console.error('❌ Error updating listing:', error);
       throw new Error(`İlan güncellenemedi: ${error.message}`);
     }
+
+    console.log('✅ Listing updated successfully:');
+    console.log('- Updated data.metadata:', JSON.stringify(data.metadata, null, 2));
+    console.log('- Updated data.required_documents:', data.required_documents);
 
     return data;
   }

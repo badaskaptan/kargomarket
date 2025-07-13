@@ -1,6 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\src"
   ],
+  "SelectedNode": "\\supabase-fix-compatibility.sql",
   "PreviewInSolutionExplorer": false
 }

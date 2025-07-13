@@ -32,6 +32,37 @@ const ProfileSection: React.FC = () => {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
 
+  // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD-MM-YYYY)
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    
+    // Eğer ISO tarih formatındaysa (YYYY-MM-DDTHH:mm:ss), sadece tarih kısmını al
+    const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      return `${day}-${month}-${year}`;
+    }
+    
+    // Eğer tarih YYYY-MM-DD formatındaysa, DD-MM-YYYY'ye çevir
+    const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const match = dateString.match(datePattern);
+    if (match) {
+      const [, year, month, day] = match;
+      return `${day}-${month}-${year}`;
+    }
+    
+    // Fallback: Date objesini kullan
+    try {
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    } catch {
+      return dateString;
+    }
+  };
+
   React.useEffect(() => {
     setForm({
       full_name: profile?.full_name || '',
@@ -486,7 +517,7 @@ const ProfileSection: React.FC = () => {
                   <Calendar className="mr-3 text-gray-400" size={16} />
                   <div>
                     <p className="text-sm text-gray-500">Üyelik Tarihi</p>
-                    <p className="font-medium text-gray-900">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString('tr-TR') : '-'}</p>
+                    <p className="font-medium text-gray-900">{formatDate(profile?.created_at || null)}</p>
                   </div>
                 </div>
               </div>

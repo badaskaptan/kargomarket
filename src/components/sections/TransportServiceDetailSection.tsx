@@ -1,37 +1,15 @@
 import React from 'react';
 import { Truck, Ship, Plane, Train } from 'lucide-react';
-import type { GenericMetadata } from '../../types/database-types';
+import type { ExtendedListing } from '../../types/database-types';
 
 interface TransportServiceDetailProps {
-  listing: {
-    listing_number: string;
-    title: string;
-    description: string;
-    origin: string;
-    destination: string;
-    transport_mode: string;
-    vehicle_types: string[];
-    capacity: string;
-    available_from_date: string;
-    status: string;
-    metadata: GenericMetadata;
-    // Diğer alanlar eklenebilir
-  };
+  listing: ExtendedListing;
 }
 
 const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ listing }) => {
   const { metadata } = listing;
-  // Alt alanları typesafe almak için yardımcı fonksiyonlar
-  function getMetaField<T>(meta: GenericMetadata, key: string, fallback: T): T {
-    if (meta && typeof meta === 'object' && key in meta) {
-      return meta[key] as T;
-    }
-    return fallback;
-  }
-
-  const contactInfo = getMetaField<{ contact?: string; company_name?: string }>(metadata, 'contact_info', {});
-  const transportDetails = getMetaField<Record<string, string | undefined>>(metadata, 'transport_details', {});
-  const requiredDocuments = getMetaField<string[]>(metadata, 'required_documents', []);
+  const transportDetails = (metadata as any)?.transport_details || {};
+  const contactInfo = (metadata as any)?.contact_info || {};
 
   // Taşıma moduna göre ikon ve Türkçe metin
   function getTransportModeDisplay(mode: string) {
@@ -47,6 +25,95 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
       default:
         return <span className="text-gray-500">Bilinmiyor</span>;
     }
+  }
+
+  // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD-MM-YYYY)
+  function formatDate(dateString: string | null): string {
+    if (!dateString) return 'Belirtilmemiş';
+    
+    // Eğer tarih YYYY-MM-DD formatındaysa, DD-MM-YYYY'ye çevir
+    const datePattern = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const match = dateString.match(datePattern);
+    
+    if (match) {
+      const [, year, month, day] = match;
+      return `${day}-${month}-${year}`;
+    }
+    
+    // Eğer farklı bir formatta gelirse, olduğu gibi döndür
+    return dateString;
+  }
+
+  // Araç tipi kodunu Türkçe'ye çevir (emoji ile)
+  function getVehicleTypeLabel(vehicleCode: string): string {
+    const vehicleTypeMapping: { [key: string]: string } = {
+      // Road vehicles
+      'truck_3_5_open': '🚚 Kamyon - 3.5 Ton (Açık Kasa)',
+      'truck_3_5_closed': '🚚 Kamyon - 3.5 Ton (Kapalı Kasa)',
+      'truck_5_open': '🚚 Kamyon - 5 Ton (Açık Kasa)',
+      'truck_5_closed': '🚚 Kamyon - 5 Ton (Kapalı Kasa)',
+      'truck_10_open': '🚛 Kamyon - 10 Ton (Açık Kasa)',
+      'truck_10_closed': '🚛 Kamyon - 10 Ton (Kapalı Kasa)',
+      'truck_10_tent': '🚛 Kamyon - 10 Ton (Tenteli)',
+      'truck_15_open': '🚛 Kamyon - 15 Ton (Açık Kasa)',
+      'truck_15_closed': '🚛 Kamyon - 15 Ton (Kapalı Kasa)',
+      'truck_15_tent': '🚛 Kamyon - 15 Ton (Tenteli)',
+      'tir_standard': '🚛 Tır (Standart Dorse) - 90m³ / 40t',
+      'tir_mega': '🚛 Tır (Mega Dorse) - 100m³ / 40t',
+      'tir_jumbo': '🚛 Tır (Jumbo Dorse) - 120m³ / 40t',
+      'tir_tent': '🚛 Tır (Tenteli Dorse) - 40t',
+      'tir_frigo': '🧊 Tır (Frigorifik Dorse - Isı Kontrollü) - 40t',
+      'tir_container': '📦 Tır (Konteyner Taşıyıcı) - 40t',
+      'tir_platform': '🏗️ Tır (Platform) - 40t',
+      'tir_frigo_dual': '🧊 Tır (Frigorifik Çift Isı) - 40t',
+      'van_3': '🚐 Kargo Van - 3m³ (1000kg)',
+      'van_6': '🚐 Kargo Van - 6m³ (1500kg)',
+      'van_10': '🚐 Kargo Van - 10m³ (2000kg)',
+      'van_15': '🚐 Kargo Van - 15m³ (2500kg)',
+      
+      // Sea vehicles
+      'container_20dc': '🚢 20\' Standart (20DC) - 33m³ / 28t',
+      'container_40dc': '🚢 40\' Standart (40DC) - 67m³ / 28t',
+      'container_40hc': '🚢 40\' Yüksek (40HC) - 76m³ / 28t',
+      'container_20ot': '🚢 20\' Open Top - 32m³ / 28t',
+      'container_40ot': '🚢 40\' Open Top - 66m³ / 28t',
+      'container_20fr': '🚢 20\' Flat Rack - 28t',
+      'container_40fr': '🚢 40\' Flat Rack - 40t',
+      'container_20rf': '❄️ 20\' Reefer - 28m³ / 25t',
+      'container_40rf': '❄️ 40\' Reefer - 60m³ / 25t',
+      'bulk_handysize': '🚢 Handysize (10,000-35,000 DWT)',
+      'bulk_handymax': '🚢 Handymax (35,000-60,000 DWT)',
+      'bulk_panamax': '🚢 Panamax (60,000-80,000 DWT)',
+      'bulk_capesize': '🚢 Capesize (80,000+ DWT)',
+      'general_small': '🚢 Küçük Tonaj (1,000-5,000 DWT)',
+      'general_medium': '🚢 Orta Tonaj (5,000-15,000 DWT)',
+      'general_large': '🚢 Büyük Tonaj (15,000+ DWT)',
+      'tanker_product': '🛢️ Ürün Tankeri (10,000-60,000 DWT)',
+      'tanker_chemical': '🛢️ Kimyasal Tanker (5,000-40,000 DWT)',
+      'tanker_crude': '🛢️ Ham Petrol Tankeri (60,000+ DWT)',
+      'tanker_lpg': '🛢️ LPG Tankeri (5,000-80,000 m³)',
+      'tanker_lng': '🛢️ LNG Tankeri (150,000-180,000 m³)',
+      'roro_small': '🚗 Küçük RO-RO (100-200 araç)',
+      'roro_medium': '🚗 Orta RO-RO (200-500 araç)',
+      'roro_large': '🚗 Büyük RO-RO (500+ araç)',
+      'ferry_cargo': '⛴️ Kargo Feribotu',
+      'ferry_mixed': '⛴️ Karma Feribot (Yolcu+Yük)',
+      'cargo_small': '🚤 Küçük Yük Teknesi (500-1,000 DWT)',
+      'cargo_large': '🚤 Büyük Yük Teknesi (1,000+ DWT)',
+      
+      // Air vehicles
+      'standard_cargo': '✈️ Standart Kargo',
+      'large_cargo': '✈️ Büyük Hacimli Kargo',
+      'special_cargo': '✈️ Özel Kargo',
+      
+      // Rail vehicles
+      'open_wagon': '🚂 Açık Yük Vagonu',
+      'closed_wagon': '🚂 Kapalı Yük Vagonu',
+      'container_wagon': '🚂 Konteyner Vagonu',
+      'tanker_wagon': '🚂 Tanker Vagonu'
+    };
+
+    return vehicleTypeMapping[vehicleCode] || `🚛 ${vehicleCode}`;
   }
 
   return (
@@ -75,15 +142,20 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Araç Tipi</label>
-          <div className="text-gray-800 mb-2">{listing.vehicle_types?.join(', ')}</div>
+          <div className="text-gray-800 mb-2">
+            {listing.vehicle_types && listing.vehicle_types.length > 0 
+              ? listing.vehicle_types.map(vehicleCode => getVehicleTypeLabel(vehicleCode)).join(', ')
+              : 'Belirtilmemiş'
+            }
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Kapasite</label>
-          <div className="text-gray-800 mb-2">{listing.capacity}</div>
+          <div className="text-gray-800 mb-2">{transportDetails?.capacity || listing.weight_value || 'Belirtilmemiş'}</div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Boşta Olma Tarihi</label>
-          <div className="text-gray-800 mb-2">{listing.available_from_date}</div>
+          <div className="text-gray-800 mb-2">{formatDate(listing.available_from_date)}</div>
         </div>
         {/* İletişim Bilgileri */}
         <div>
@@ -93,6 +165,21 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
             <div className="text-gray-600 text-xs">Firma: {contactInfo?.company_name}</div>
           )}
         </div>
+        
+        {/* Gerekli Evraklar - Sadece ana kolondan oku, metadata'dan değil */}
+        {listing.required_documents && listing.required_documents.length > 0 && (
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Gerekli Evraklar</label>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <ul className="list-disc list-inside space-y-1">
+                {listing.required_documents.map((doc, index) => (
+                  <li key={index} className="text-gray-700 text-sm">{doc}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+        
         {/* Modlara özel detaylar */}
         {listing.transport_mode === 'road' && (
           <div>
@@ -178,15 +265,6 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
           </div>
         )}
       </div>
-      {/* Evraklar */}
-      {requiredDocuments?.length > 0 && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Gerekli Evraklar</label>
-          <div className="text-gray-800 mb-2">
-            {requiredDocuments.join(', ')}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
