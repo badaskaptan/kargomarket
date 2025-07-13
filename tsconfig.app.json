@@ -23,7 +23,11 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    // EKLENENLER
+    "outDir": "./build",
+    "rootDir": "./src"
   },
   "include": ["src"]
 }
