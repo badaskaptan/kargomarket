@@ -389,7 +389,7 @@ const MyListingsSection: React.FC = () => {
                                 const vehicleType = listing.vehicle_types && listing.vehicle_types.length > 0 
                                   ? listing.vehicle_types[0] 
                                   : listing.load_type;
-                                return vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`;
+                                return vehicleType ? (vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`) : '🚛 Araç Tipi Belirtilmemiş';
                               })()
                             : listing.load_type
                           }
