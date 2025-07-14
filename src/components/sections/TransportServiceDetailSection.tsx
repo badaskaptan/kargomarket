@@ -336,9 +336,12 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Laycan Bitiş</label>
-              {transportDetails?.laycan_end && (
-                <div className="text-gray-800 mb-2">{formatDate(transportDetails.laycan_end)}</div>
-              )}
+              <div className="text-gray-800 mb-2">
+                {transportDetails?.laycan_end 
+                  ? formatDate(transportDetails.laycan_end)
+                  : 'Belirtilmemiş'
+                }
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Navlun Tipi</label>

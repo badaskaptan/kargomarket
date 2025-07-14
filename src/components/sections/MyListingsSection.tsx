@@ -316,7 +316,84 @@ const MyListingsSection: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{listing.title}</div>
-                        <div className="text-sm text-gray-500">{listing.load_type}</div>
+                        <div className="text-sm text-gray-500">
+                          {listing.listing_type === 'transport_service' 
+                            ? (() => {
+                                const vehicleTypeMapping: { [key: string]: string } = {
+                                  // Road vehicles
+                                  'truck_3_5_open': '🚚 Kamyon - 3.5 Ton (Açık Kasa)',
+                                  'truck_3_5_closed': '🚚 Kamyon - 3.5 Ton (Kapalı Kasa)',
+                                  'truck_5_open': '🚚 Kamyon - 5 Ton (Açık Kasa)',
+                                  'truck_5_closed': '🚚 Kamyon - 5 Ton (Kapalı Kasa)',
+                                  'truck_10_open': '🚛 Kamyon - 10 Ton (Açık Kasa)',
+                                  'truck_10_closed': '🚛 Kamyon - 10 Ton (Kapalı Kasa)',
+                                  'truck_10_tent': '🚛 Kamyon - 10 Ton (Tenteli)',
+                                  'truck_15_open': '🚛 Kamyon - 15 Ton (Açık Kasa)',
+                                  'truck_15_closed': '🚛 Kamyon - 15 Ton (Kapalı Kasa)',
+                                  'truck_15_tent': '🚛 Kamyon - 15 Ton (Tenteli)',
+                                  'tir_standard': '🚛 Tır (Standart Dorse) - 90m³ / 40t',
+                                  'tir_mega': '🚛 Tır (Mega Dorse) - 100m³ / 40t',
+                                  'tir_jumbo': '🚛 Tır (Jumbo Dorse) - 120m³ / 40t',
+                                  'tir_tent': '🚛 Tır (Tenteli Dorse) - 40t',
+                                  'tir_frigo': '🧊 Tır (Frigorifik Dorse - Isı Kontrollü) - 40t',
+                                  'tir_container': '📦 Tır (Konteyner Taşıyıcı) - 40t',
+                                  'tir_platform': '🏗️ Tır (Platform) - 40t',
+                                  'tir_frigo_dual': '🧊 Tır (Frigorifik Çift Isı) - 40t',
+                                  'van_3': '🚐 Kargo Van - 3m³ (1000kg)',
+                                  'van_6': '🚐 Kargo Van - 6m³ (1500kg)',
+                                  'van_10': '🚐 Kargo Van - 10m³ (2000kg)',
+                                  'van_15': '🚐 Kargo Van - 15m³ (2500kg)',
+                                  
+                                  // Sea vehicles
+                                  'container_20dc': '🚢 20\' Standart (20DC) - 33m³ / 28t',
+                                  'container_40dc': '🚢 40\' Standart (40DC) - 67m³ / 28t',
+                                  'container_40hc': '🚢 40\' Yüksek (40HC) - 76m³ / 28t',
+                                  'container_20ot': '🚢 20\' Open Top - 32m³ / 28t',
+                                  'container_40ot': '🚢 40\' Open Top - 66m³ / 28t',
+                                  'container_20fr': '🚢 20\' Flat Rack - 28t',
+                                  'container_40fr': '🚢 40\' Flat Rack - 40t',
+                                  'container_20rf': '❄️ 20\' Reefer - 28m³ / 25t',
+                                  'container_40rf': '❄️ 40\' Reefer - 60m³ / 25t',
+                                  'bulk_handysize': '🚢 Handysize (10,000-35,000 DWT)',
+                                  'bulk_handymax': '🚢 Handymax (35,000-60,000 DWT)',
+                                  'bulk_panamax': '🚢 Panamax (60,000-80,000 DWT)',
+                                  'bulk_capesize': '🚢 Capesize (80,000+ DWT)',
+                                  'general_small': '🚢 Küçük Tonaj (1,000-5,000 DWT)',
+                                  'general_medium': '🚢 Orta Tonaj (5,000-15,000 DWT)',
+                                  'general_large': '🚢 Büyük Tonaj (15,000+ DWT)',
+                                  'tanker_product': '🛢️ Ürün Tankeri (10,000-60,000 DWT)',
+                                  'tanker_chemical': '🛢️ Kimyasal Tanker (5,000-40,000 DWT)',
+                                  'tanker_crude': '🛢️ Ham Petrol Tankeri (60,000+ DWT)',
+                                  'tanker_lpg': '🛢️ LPG Tankeri (5,000-80,000 m³)',
+                                  'tanker_lng': '🛢️ LNG Tankeri (150,000-180,000 m³)',
+                                  'roro_small': '🚗 Küçük RO-RO (100-200 araç)',
+                                  'roro_medium': '🚗 Orta RO-RO (200-500 araç)',
+                                  'roro_large': '🚗 Büyük RO-RO (500+ araç)',
+                                  'ferry_cargo': '⛴️ Kargo Feribotu',
+                                  'ferry_mixed': '⛴️ Karma Feribot (Yolcu+Yük)',
+                                  'cargo_small': '🚤 Küçük Yük Teknesi (500-1,000 DWT)',
+                                  'cargo_large': '🚤 Büyük Yük Teknesi (1,000+ DWT)',
+                                  
+                                  // Air vehicles
+                                  'standard_cargo': '✈️ Standart Kargo',
+                                  'large_cargo': '✈️ Büyük Hacimli Kargo',
+                                  'special_cargo': '✈️ Özel Kargo',
+                                  
+                                  // Rail vehicles
+                                  'open_wagon': '🚂 Açık Yük Vagonu',
+                                  'closed_wagon': '🚂 Kapalı Yük Vagonu',
+                                  'container_wagon': '🚂 Konteyner Vagonu',
+                                  'tanker_wagon': '🚂 Tanker Vagonu'
+                                };
+                                // Use vehicle_types if available, otherwise use load_type
+                                const vehicleType = listing.vehicle_types && listing.vehicle_types.length > 0 
+                                  ? listing.vehicle_types[0] 
+                                  : listing.load_type;
+                                return vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`;
+                              })()
+                            : listing.load_type
+                          }
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
