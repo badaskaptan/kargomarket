@@ -28,7 +28,8 @@ interface TransportServiceListing {
   destination: string;
   transport_mode: 'road' | 'sea' | 'air' | 'rail';
   vehicle_types: string[] | null;
-  capacity: string | null;
+  weight_value: number | null;
+  weight_unit?: string;
   offer_type: 'negotiable';
   price_currency: 'TRY';
   available_from_date: string | null;
@@ -534,7 +535,8 @@ const CreateTransportServiceSection: React.FC = () => {
         destination: formData.serviceDestination,
         transport_mode: formData.serviceTransportMode as 'road' | 'sea' | 'air' | 'rail',
         vehicle_types: formData.serviceVehicleType ? [formData.serviceVehicleType] : null,
-        capacity: formData.serviceCapacity || null,
+        weight_value: formData.serviceCapacity ? parseFloat(formData.serviceCapacity) : null,
+        weight_unit: formData.serviceCapacity ? 'kg' : undefined,
         offer_type: 'negotiable',
         price_currency: 'TRY',
         available_from_date: formData.serviceAvailableDate || null,

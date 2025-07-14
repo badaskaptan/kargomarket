@@ -11,6 +11,14 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
   const transportDetails = (metadata as any)?.transport_details || {};
   const contactInfo = (metadata as any)?.contact_info || {};
 
+  // Debug: Kapasite verilerini konsola yazdır
+  console.log('🔍 KAPASITE DEBUG - Transport Mode:', listing.transport_mode);
+  console.log('🔍 KAPASITE DEBUG - transportDetails:', transportDetails);
+  console.log('🔍 KAPASITE DEBUG - transportDetails.capacity:', transportDetails?.capacity);
+  console.log('🔍 KAPASITE DEBUG - listing.weight_value:', listing.weight_value);
+  console.log('🔍 KAPASITE DEBUG - listing.volume_value:', listing.volume_value);
+  console.log('🔍 KAPASITE DEBUG - metadata:', metadata);
+
   // Taşıma moduna göre ikon ve Türkçe metin
   function getTransportModeDisplay(mode: string) {
     switch (mode) {
@@ -25,6 +33,95 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
       default:
         return <span className="text-gray-500">Bilinmiyor</span>;
     }
+  }
+
+  // Kapasite bilgisini taşıma moduna göre akıllı şekilde getir
+  function getCapacityInfo(): string {
+    console.log('🎯 getCapacityInfo called for mode:', listing.transport_mode);
+    console.log('🎯 Checking weight_value:', listing.weight_value, 'type:', typeof listing.weight_value);
+    console.log('🎯 Checking volume_value:', listing.volume_value, 'type:', typeof listing.volume_value);
+    console.log('🎯 Checking legacy capacity field:', (listing as any).capacity, 'type:', typeof (listing as any).capacity);
+    console.log('🎯 Checking transportDetails.capacity:', transportDetails?.capacity);
+    
+    // 1. Önce legacy capacity alanını kontrol et (mevcut veriler için)
+    if ((listing as any).capacity && (listing as any).capacity !== null && (listing as any).capacity !== '') {
+      console.log('✅ Found legacy capacity:', (listing as any).capacity);
+      return String((listing as any).capacity);
+    }
+
+    // 2. Ana listing alanlarını kontrol et (yeni veriler için)
+    if (listing.weight_value && listing.weight_value > 0) {
+      const unit = listing.weight_unit || 'kg';
+      console.log('✅ Found weight_value:', listing.weight_value, unit);
+      return `${listing.weight_value} ${unit}`;
+    }
+
+    if (listing.volume_value && listing.volume_value > 0) {
+      const unit = listing.volume_unit || 'm³';
+      console.log('✅ Found volume_value:', listing.volume_value, unit);
+      return `${listing.volume_value} ${unit}`;
+    }
+
+    // 3. Metadata'daki genel capacity kontrolü
+    if (transportDetails?.capacity) {
+      console.log('✅ Found transportDetails.capacity:', transportDetails.capacity);
+      return transportDetails.capacity;
+    }
+
+    // 4. Taşıma moduna özel alanları kontrol et (son çare)
+    switch (listing.transport_mode) {
+      case 'road':
+        // Karayolu için metadata'da özel alanlar olabilir
+        if (transportDetails?.truck_capacity) {
+          console.log('✅ Found truck_capacity:', transportDetails.truck_capacity);
+          return transportDetails.truck_capacity;
+        }
+        if (transportDetails?.load_capacity) {
+          console.log('✅ Found load_capacity:', transportDetails.load_capacity);
+          return transportDetails.load_capacity;
+        }
+        break;
+        
+      case 'rail':
+        // Trenyolu için metadata'da özel alanlar olabilir
+        if (transportDetails?.wagon_capacity) {
+          console.log('✅ Found wagon_capacity:', transportDetails.wagon_capacity);
+          return transportDetails.wagon_capacity;
+        }
+        if (transportDetails?.train_capacity) {
+          console.log('✅ Found train_capacity:', transportDetails.train_capacity);
+          return transportDetails.train_capacity;
+        }
+        break;
+        
+      case 'sea':
+        // Denizyolu için DWT'yi kapasite olarak kullanmayalım (duplikasyon önlemek için)
+        // Sadece ship_capacity gibi alanları kontrol edelim
+        if (transportDetails?.ship_capacity) {
+          console.log('✅ Found ship_capacity:', transportDetails.ship_capacity);
+          return transportDetails.ship_capacity;
+        }
+        if (transportDetails?.cargo_capacity) {
+          console.log('✅ Found cargo_capacity:', transportDetails.cargo_capacity);
+          return transportDetails.cargo_capacity;
+        }
+        // DWT'yi kapasite olarak göstermeyelim, ayrı alanı var
+        break;
+        
+      case 'air':
+        if (transportDetails?.payload) {
+          console.log('✅ Found payload:', transportDetails.payload);
+          return transportDetails.payload;
+        }
+        if (transportDetails?.cargo_weight) {
+          console.log('✅ Found cargo_weight:', transportDetails.cargo_weight);
+          return transportDetails.cargo_weight;
+        }
+        break;
+    }
+
+    console.log('❌ No capacity found, showing default');
+    return 'Belirtilmemiş';
   }
 
   // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD-MM-YYYY)
@@ -151,7 +248,7 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Kapasite</label>
-          <div className="text-gray-800 mb-2">{transportDetails?.capacity || listing.weight_value || 'Belirtilmemiş'}</div>
+          <div className="text-gray-800 mb-2">{getCapacityInfo()}</div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Boşta Olma Tarihi</label>

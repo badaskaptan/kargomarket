@@ -455,6 +455,8 @@ const CreateTransportServiceSection = () => {
                 transport_mode: formData.serviceTransportMode,
                 vehicle_types: formData.serviceVehicleType ? [formData.serviceVehicleType] : null,
                 capacity: formData.serviceCapacity || null,
+                weight_value: formData.serviceCapacity ? parseFloat(formData.serviceCapacity) : null,
+                weight_unit: formData.serviceCapacity ? 'kg' : null,
                 offer_type: 'negotiable',
                 price_currency: 'TRY',
                 available_from_date: formData.serviceAvailableDate || null,
