@@ -46,6 +46,40 @@ interface FormListingData {
 // }
 
 export class ListingService {
+  // Metadata'dan gereksiz alanları temizle
+  private static cleanMetadata(metadata: any): any {
+    if (!metadata || typeof metadata !== 'object') {
+      return metadata;
+    }
+
+    // Shallow copy oluştur
+    const cleanedMetadata = { ...metadata };
+
+    // required_documents'ı metadata'dan kaldır (root level'da zaten var)
+    if ('required_documents' in cleanedMetadata) {
+      delete cleanedMetadata.required_documents;
+      console.log('🧹 Cleaned required_documents from metadata');
+    }
+
+    // transport_details içindeki required_documents'ı da temizle
+    if (cleanedMetadata.transport_details && typeof cleanedMetadata.transport_details === 'object') {
+      const transportDetails = { ...cleanedMetadata.transport_details };
+      if ('required_documents' in transportDetails) {
+        delete transportDetails.required_documents;
+        cleanedMetadata.transport_details = transportDetails;
+        console.log('🧹 Cleaned required_documents from transport_details');
+      }
+    }
+
+    // vehicle_types duplicate'ini de temizle
+    if ('vehicle_types' in cleanedMetadata) {
+      delete cleanedMetadata.vehicle_types;
+      console.log('🧹 Cleaned duplicate vehicle_types from metadata');
+    }
+
+    return cleanedMetadata;
+  }
+
   // Yeni ilan oluştur
   static async createListing(listingData: FormListingData): Promise<Listing> {
     try {
@@ -78,7 +112,7 @@ export class ListingService {
         status: (listingData.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired') || 'active',
         listing_number: listingData.listing_number || this.generateListingNumber(),
         available_from_date: listingData.available_from_date,
-        metadata: listingData.metadata,
+        metadata: this.cleanMetadata(listingData.metadata),
         transport_details: listingData.transport_details,
         contact_info: listingData.contact_info,
         cargo_details: listingData.cargo_details,
@@ -266,9 +300,16 @@ export class ListingService {
     console.log('- Updates.metadata:', JSON.stringify(updates.metadata, null, 2));
     console.log('- Updates.required_documents:', updates.required_documents);
 
+    // Metadata'ı temizle (eğer varsa)
+    let cleanedUpdates = { ...updates };
+    if (cleanedUpdates.metadata) {
+      cleanedUpdates.metadata = this.cleanMetadata(cleanedUpdates.metadata);
+      console.log('🧹 Cleaned metadata for update:', JSON.stringify(cleanedUpdates.metadata, null, 2));
+    }
+
     const { data, error } = await supabase
       .from('listings')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update({ ...cleanedUpdates, updated_at: new Date().toISOString() })
       .eq('id', id)
       .select()
       .single();
@@ -384,6 +425,56 @@ export class ListingService {
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     
     return `NK${year}${month}${day}${random}`;
+  }
+
+  // Veritabanındaki mevcut metadata'ları temizle
+  static async cleanAllListingsMetadata(): Promise<void> {
+    try {
+      console.log('🧹 Starting metadata cleanup for all listings...');
+      
+      // Tüm ilanları çek
+      const { data: listings, error: fetchError } = await supabase
+        .from('listings')
+        .select('id, metadata')
+        .not('metadata', 'is', null);
+
+      if (fetchError) {
+        console.error('Error fetching listings for cleanup:', fetchError);
+        return;
+      }
+
+      if (!listings || listings.length === 0) {
+        console.log('No listings with metadata found');
+        return;
+      }
+
+      console.log(`Found ${listings.length} listings with metadata to clean`);
+
+      // Her ilan için metadata'yı temizle
+      for (const listing of listings) {
+        const cleanedMetadata = this.cleanMetadata(listing.metadata);
+        
+        // Eğer metadata değiştiyse güncelle
+        if (JSON.stringify(cleanedMetadata) !== JSON.stringify(listing.metadata)) {
+          console.log(`🧹 Cleaning metadata for listing: ${listing.id}`);
+          
+          const { error: updateError } = await supabase
+            .from('listings')
+            .update({ metadata: cleanedMetadata })
+            .eq('id', listing.id);
+
+          if (updateError) {
+            console.error(`Error cleaning metadata for listing ${listing.id}:`, updateError);
+          } else {
+            console.log(`✅ Cleaned metadata for listing: ${listing.id}`);
+          }
+        }
+      }
+
+      console.log('🧹 Metadata cleanup completed');
+    } catch (error) {
+      console.error('Error during metadata cleanup:', error);
+    }
   }
 }
 

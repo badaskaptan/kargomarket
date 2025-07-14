@@ -41,7 +41,6 @@ interface TransportServiceListing {
       company_name: string | null;
     };
     transport_details: Record<string, string | null>;
-    required_documents: string[];
   };
 }
 
@@ -557,17 +556,25 @@ const CreateTransportServiceSection: React.FC = () => {
               mmsi_number: formData.serviceTransportMode === 'sea' ? formData.mmsiNumber : null,
               dwt: formData.serviceTransportMode === 'sea' ? formData.dwt : null,
               ship_dimensions: formData.serviceTransportMode === 'sea' ? formData.shipDimensions : null,
-              laycan_start: formData.serviceTransportMode === 'sea' ? formData.laycanStart : null,
+              laycan_start: formData.serviceTransportMode === 'sea' ? formData.serviceAvailableDate : null,
               laycan_end: formData.serviceTransportMode === 'sea' ? formData.laycanEnd : null,
               freight_type: formData.serviceTransportMode === 'sea' ? formData.freightType : null,
               charterer_info: formData.serviceTransportMode === 'sea' ? formData.chartererInfo : null,
               flight_number: formData.serviceTransportMode === 'air' ? formData.flightNumber : null,
               train_number: formData.serviceTransportMode === 'rail' ? formData.trainNumber : null
             };
-          })(),
-          required_documents: selectedDocuments.length > 0 ? selectedDocuments : []
+          })()
         }
       };
+
+      // DEBUG: Console log before submit
+      console.log('🚢 CREATING TRANSPORT SERVICE:');
+      console.log('- formData.serviceTransportMode:', formData.serviceTransportMode);
+      console.log('- formData.serviceAvailableDate:', formData.serviceAvailableDate);
+      console.log('- formData.laycanStart:', formData.laycanStart);
+      console.log('- laycan_start will be:', formData.serviceTransportMode === 'sea' ? formData.serviceAvailableDate : null);
+      console.log('- formData.serviceVehicleType:', formData.serviceVehicleType);
+      console.log('- Full listingData:', JSON.stringify(listingData, null, 2));
 
       // DEBUG: Show modal with all data before submit
       setDebugData({

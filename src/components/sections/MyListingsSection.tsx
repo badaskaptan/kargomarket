@@ -389,6 +389,15 @@ const MyListingsSection: React.FC = () => {
                                 const vehicleType = listing.vehicle_types && listing.vehicle_types.length > 0 
                                   ? listing.vehicle_types[0] 
                                   : listing.load_type;
+                                console.log('🚛 VEHICLE TYPE DEBUG:', {
+                                  listing_id: listing.id,
+                                  listing_type: listing.listing_type,
+                                  transport_mode: listing.transport_mode,
+                                  vehicle_types: listing.vehicle_types,
+                                  load_type: listing.load_type,
+                                  selected_vehicleType: vehicleType,
+                                  mapping_result: vehicleTypeMapping[vehicleType]
+                                });
                                 return vehicleType ? (vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`) : '🚛 Araç Tipi Belirtilmemiş';
                               })()
                             : listing.load_type
