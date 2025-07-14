@@ -543,7 +543,7 @@ const CreateTransportServiceSection = () => {
                         : 'Varış Bölgesi/Noktası',
             availableDate: mode === 'sea' ? 'Laycan (Başlangıç)' : 'Boşta Olma Tarihi',
             capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)'
-                : mode === 'sea' ? 'DWT / Kapasite'
+                : mode === 'sea' ? 'Gross Tonnage *'
                     : 'Kapasite (ton/m³)'
         };
     };
@@ -605,7 +605,7 @@ const CreateTransportServiceSection = () => {
                     : mode === 'rail' ? 'Örn: Ankara Garı'
                         : 'Örn: Ankara',
             capacity: mode === 'air' ? 'Örn: 5000 kg'
-                : mode === 'sea' ? 'Örn: 25000 DWT'
+                : mode === 'sea' ? 'Örn: 25000 GT'
                     : 'Örn: 20 ton'
         };
     }

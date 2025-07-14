@@ -18,6 +18,7 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
   console.log('🔍 KAPASITE DEBUG - listing.weight_value:', listing.weight_value);
   console.log('🔍 KAPASITE DEBUG - listing.volume_value:', listing.volume_value);
   console.log('🔍 KAPASITE DEBUG - metadata:', metadata);
+  console.log('🏷️ LABEL DEBUG - Transport mode:', listing.transport_mode, 'Label will be:', listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite');
 
   // Taşıma moduna göre ikon ve Türkçe metin
   function getTransportModeDisplay(mode: string) {
@@ -247,13 +248,18 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Kapasite</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite'}
+          </label>
           <div className="text-gray-800 mb-2">{getCapacityInfo()}</div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Boşta Olma Tarihi</label>
-          <div className="text-gray-800 mb-2">{formatDate(listing.available_from_date)}</div>
-        </div>
+        {/* Boşta Olma Tarihi - Denizyolu hariç diğer modlar için */}
+        {listing.transport_mode !== 'sea' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Boşta Olma Tarihi</label>
+            <div className="text-gray-800 mb-2">{formatDate(listing.available_from_date)}</div>
+          </div>
+        )}
         {/* İletişim Bilgileri */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">İletişim Bilgileri</label>
@@ -321,14 +327,17 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Laycan Başlangıç</label>
-              {transportDetails?.laycan_start && (
-                <div className="text-gray-800 mb-2">Laycan Başlangıç: {transportDetails.laycan_start}</div>
-              )}
+              <div className="text-gray-800 mb-2">
+                {transportDetails?.laycan_start 
+                  ? formatDate(transportDetails.laycan_start)
+                  : formatDate(listing.available_from_date)
+                }
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Laycan Bitiş</label>
               {transportDetails?.laycan_end && (
-                <div className="text-gray-800 mb-2">Laycan Bitiş: {transportDetails.laycan_end}</div>
+                <div className="text-gray-800 mb-2">{formatDate(transportDetails.laycan_end)}</div>
               )}
             </div>
             <div>

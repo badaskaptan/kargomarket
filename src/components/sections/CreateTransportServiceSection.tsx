@@ -631,7 +631,7 @@ const CreateTransportServiceSection: React.FC = () => {
         : 'Varış Bölgesi/Noktası',
       availableDate: mode === 'sea' ? 'Laycan (Başlangıç)' : 'Boşta Olma Tarihi',
       capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)'
-        : mode === 'sea' ? 'DWT / Kapasite'
+        : mode === 'sea' ? 'Gross Tonnage *'
         : 'Kapasite (ton/m³)'
     };
   };
@@ -700,7 +700,7 @@ const CreateTransportServiceSection: React.FC = () => {
         : 'Örn: Ankara',
       capacity:
         mode === 'air' ? 'Örn: 5000 kg'
-        : mode === 'sea' ? 'Örn: 25000 DWT'
+        : mode === 'sea' ? 'Örn: 25000 GT'
         : 'Örn: 20 ton'
     };
   }
@@ -1054,7 +1054,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 </div>
                 <div>
                   <label htmlFor="dwt" className="block text-sm font-medium text-gray-700 mb-2">
-                    ⚖️ DWT / Tonaj *
+                    ⚖️ Gross Tonnage *
                   </label>
                   <input
                     type="text"
@@ -1064,7 +1064,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     required
-                    placeholder="Örn: 25000 DWT"
+                    placeholder="Örn: 25000 GT"
                   />
                 </div>
                 <div>
