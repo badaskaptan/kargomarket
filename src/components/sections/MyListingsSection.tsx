@@ -27,40 +27,158 @@ import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
 import { TransportServiceService } from '../../services/transportServiceNew';
 import type { ExtendedListing } from '../../types/database-types';
+import type { TransportService } from '../../types/transport-service-types';
 
-// Transport Service tipi (gerçek veri yapısına göre)
-interface TransportServiceData {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  service_number: string;
-  title: string;
-  description: string | null;
-  status: string;
-  transport_mode: string;
-  vehicle_type: string | null;
-  origin: string | null;
-  destination: string | null;
-  capacity_value: number | null;
-  capacity_unit: string | null;
-  dwt: number | null;
-  rating: number;
-  rating_count: number;
-  view_count: number;
-  ship_name?: string | null;
-  [key: string]: any; // Diğer alanlar için
-}
+// Yük tipi eşlemeleri
+const LOAD_TYPE_MAPPING: { [key: string]: string } = {
+  // Genel Kargo
+  'general_cargo': '📦 Genel Kargo',
+  'palletized_cargo': '📦 Paletli Kargo',
+  'packaged_cargo': '📦 Paketli Kargo',
+  'bulk_cargo': '📦 Dökme Kargo',
+  'containerized_cargo': '📦 Konteynerli Kargo',
+  
+  // Özel Kargolar
+  'fragile_cargo': '⚠️ Kırılabilir Kargo',
+  'hazardous_cargo': '☢️ Tehlikeli Madde',
+  'perishable_cargo': '🧊 Bozulabilir Kargo',
+  'frozen_cargo': '❄️ Donmuş Kargo',
+  'refrigerated_cargo': '🧊 Soğuk Zincir Kargo',
+  'oversized_cargo': '📏 Büyük Boy Kargo',
+  'heavy_cargo': '⚖️ Ağır Kargo',
+  'valuable_cargo': '💎 Değerli Kargo',
+  'live_cargo': '🐾 Canlı Kargo',
+  
+  // Araç ve Ekipman
+  'vehicles': '🚗 Araç Taşımacılığı',
+  'machinery': '🏗️ Makine ve Ekipman',
+  'construction_materials': '🧱 İnşaat Malzemesi',
+  'steel_materials': '🔩 Çelik Malzeme',
+  'textile_cargo': '🧵 Tekstil Ürünleri',
+  
+  // Kimyasal ve Sıvı Kargolar
+  'liquid_cargo': '🧪 Sıvı Kargo',
+  'chemical_cargo': '⚗️ Kimyasal Madde',
+  'fuel_cargo': '⛽ Yakıt Taşımacılığı',
+  'gas_cargo': '💨 Gaz Taşımacılığı',
+  
+  // Gıda ve Tarım
+  'food_cargo': '🍎 Gıda Ürünleri',
+  'agricultural_cargo': '🌾 Tarım Ürünleri',
+  'beverage_cargo': '🥤 İçecek Ürünleri',
+  
+  // Diğer
+  'electronics_cargo': '📱 Elektronik Eşya',
+  'furniture_cargo': '🪑 Mobilya',
+  'pharmaceutical_cargo': '💊 İlaç ve Tıbbi Malzeme',
+  'documents_cargo': '📋 Doküman ve Evrak',
+  'other_cargo': '📦 Diğer Kargo'
+};
+
+// Araç tipi eşlemeleri
+const VEHICLE_TYPE_MAPPING: { [key: string]: string } = {
+  // Karayolu Araçları
+  'truck_3_5_open': '🚚 Kamyon - 3.5 Ton (Açık Kasa)',
+  'truck_3_5_closed': '🚚 Kamyon - 3.5 Ton (Kapalı Kasa)',
+  'truck_5_open': '🚚 Kamyon - 5 Ton (Açık Kasa)',
+  'truck_5_closed': '🚚 Kamyon - 5 Ton (Kapalı Kasa)',
+  'truck_10_open': '🚛 Kamyon - 10 Ton (Açık Kasa)',
+  'truck_10_closed': '🚛 Kamyon - 10 Ton (Kapalı Kasa)',
+  'truck_10_tent': '🚛 Kamyon - 10 Ton (Tenteli)',
+  'truck_15_open': '🚛 Kamyon - 15 Ton (Açık Kasa)',
+  'truck_15_closed': '🚛 Kamyon - 15 Ton (Kapalı Kasa)',
+  'truck_15_tent': '🚛 Kamyon - 15 Ton (Tenteli)',
+  'tir_standard': '🚛 Tır (Standart Dorse) - 90m³ / 40t',
+  'tir_mega': '🚛 Tır (Mega Dorse) - 100m³ / 40t',
+  'tir_jumbo': '🚛 Tır (Jumbo Dorse) - 120m³ / 40t',
+  'tir_tent': '🚛 Tır (Tenteli Dorse) - 40t',
+  'tir_frigo': '🧊 Tır (Frigorifik Dorse - Isı Kontrollü) - 40t',
+  'tir_container': '📦 Tır (Konteyner Taşıyıcı) - 40t',
+  'tir_platform': '🏗️ Tır (Platform) - 40t',
+  'tir_frigo_dual': '🧊 Tır (Frigorifik Çift Isı) - 40t',
+  'van_3': '🚐 Kargo Van - 3m³ (1000kg)',
+  'van_6': '🚐 Kargo Van - 6m³ (1500kg)',
+  'van_10': '🚐 Kargo Van - 10m³ (2000kg)',
+  'van_15': '🚐 Kargo Van - 15m³ (2500kg)',
+  
+  // Denizyolu Araçları
+  'container_20dc': '🚢 20\' Standart (20DC) - 33m³ / 28t',
+  'container_40dc': '🚢 40\' Standart (40DC) - 67m³ / 28t',
+  'container_40hc': '🚢 40\' Yüksek (40HC) - 76m³ / 28t',
+  'container_20ot': '🚢 20\' Open Top - 32m³ / 28t',
+  'container_40ot': '🚢 40\' Open Top - 66m³ / 28t',
+  'container_20fr': '🚢 20\' Flat Rack - 28t',
+  'container_40fr': '🚢 40\' Flat Rack - 40t',
+  'container_20rf': '❄️ 20\' Reefer - 28m³ / 25t',
+  'container_40rf': '❄️ 40\' Reefer - 60m³ / 25t',
+  'bulk_handysize': '🚢 Handysize (10,000-35,000 DWT)',
+  'bulk_handymax': '🚢 Handymax (35,000-60,000 DWT)',
+  'bulk_panamax': '🚢 Panamax (60,000-80,000 DWT)',
+  'bulk_capesize': '🚢 Capesize (80,000+ DWT)',
+  'general_small': '🚢 Küçük Tonaj (1,000-5,000 DWT)',
+  'general_medium': '🚢 Orta Tonaj (5,000-15,000 DWT)',
+  'general_large': '🚢 Büyük Tonaj (15,000+ DWT)',
+  'tanker_product': '🛢️ Ürün Tankeri (10,000-60,000 DWT)',
+  'tanker_chemical': '🛢️ Kimyasal Tanker (5,000-40,000 DWT)',
+  'tanker_crude': '🛢️ Ham Petrol Tankeri (60,000+ DWT)',
+  'tanker_lpg': '🛢️ LPG Tankeri (5,000-80,000 m³)',
+  'tanker_lng': '🛢️ LNG Tankeri (150,000-180,000 m³)',
+  'roro_small': '🚗 Küçük RO-RO (100-200 araç)',
+  'roro_medium': '🚗 Orta RO-RO (200-500 araç)',
+  'roro_large': '🚗 Büyük RO-RO (500+ araç)',
+  'ferry_cargo': '⛴️ Kargo Feribotu',
+  'ferry_mixed': '⛴️ Karma Feribot (Yolcu+Yük)',
+  'cargo_small': '🚤 Küçük Yük Teknesi (500-1,000 DWT)',
+  'cargo_large': '🚤 Büyük Yük Teknesi (1,000+ DWT)',
+  
+  // Havayolu Araçları
+  'standard_cargo': '✈️ Standart Kargo',
+  'large_cargo': '✈️ Büyük Hacimli Kargo',
+  'special_cargo': '✈️ Özel Kargo',
+  
+  // Demiryolu Araçları
+  'open_wagon': '🚂 Açık Yük Vagonu',
+  'closed_wagon': '🚂 Kapalı Yük Vagonu',
+  'container_wagon': '🚂 Konteyner Vagonu',
+  'tanker_wagon': '🚂 Tanker Vagonu'
+};
+
 import EditModalLoadListing from './EditModalLoadListing';
 import EditModalShipmentRequest from './EditModalShipmentRequest';
 import EditModalTransportService from './EditModalTransportService';
 import TransportServiceDetailSection from './TransportServiceDetailSection';
 
+// Yardımcı fonksiyonlar
+const getDisplayLoadType = (loadType: string | null | undefined): string => {
+  if (!loadType) return '📦 Belirtilmemiş';
+  return LOAD_TYPE_MAPPING[loadType] || `📦 ${loadType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+};
+
+const getDisplayVehicleType = (vehicleType: string | string[] | null | undefined): string => {
+  if (!vehicleType) return '🚛 Belirtilmemiş';
+  
+  // Array ise ilk elemanı al
+  const type = Array.isArray(vehicleType) ? vehicleType[0] : vehicleType;
+  if (!type) return '🚛 Belirtilmemiş';
+  
+  return VEHICLE_TYPE_MAPPING[type] || `🚛 ${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+};
+
+const getListingTypeDisplay = (listingType: string): string => {
+  const typeMapping = {
+    'load_listing': '📦 Yük İlanı',
+    'shipment_request': '🚛 Nakliye Talebi', 
+    'transport_service': '🚢 Nakliye Hizmeti'
+  };
+  
+  return typeMapping[listingType as keyof typeof typeMapping] || `📋 ${listingType}`;
+};
+
 const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
   const [listings, setListings] = useState<ExtendedListing[]>([]);
-  const [transportServices, setTransportServices] = useState<TransportServiceData[]>([]);
+  const [transportServices, setTransportServices] = useState<TransportService[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
@@ -192,12 +310,12 @@ const MyListingsSection: React.FC = () => {
     }
   };
 
-  const handleTransportServiceEdit = (transportService: TransportServiceData) => {
+  const handleTransportServiceEdit = (transportService: TransportService) => {
     // TODO: Implement edit functionality
     console.log('Edit transport service:', transportService);
   };
 
-  const handleTransportServiceView = (transportService: TransportServiceData) => {
+  const handleTransportServiceView = (transportService: TransportService) => {
     // TODO: Implement view functionality  
     console.log('View transport service:', transportService);
   };
@@ -431,6 +549,9 @@ const MyListingsSection: React.FC = () => {
                     İlan Bilgisi
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    İlan Türü
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Rota
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -452,91 +573,15 @@ const MyListingsSection: React.FC = () => {
                         <div className="text-sm font-medium text-gray-900">{listing.title}</div>
                         <div className="text-sm text-gray-500">
                           {listing.listing_type === 'transport_service' 
-                            ? (() => {
-                                const vehicleTypeMapping: { [key: string]: string } = {
-                                  // Road vehicles
-                                  'truck_3_5_open': '🚚 Kamyon - 3.5 Ton (Açık Kasa)',
-                                  'truck_3_5_closed': '🚚 Kamyon - 3.5 Ton (Kapalı Kasa)',
-                                  'truck_5_open': '🚚 Kamyon - 5 Ton (Açık Kasa)',
-                                  'truck_5_closed': '🚚 Kamyon - 5 Ton (Kapalı Kasa)',
-                                  'truck_10_open': '🚛 Kamyon - 10 Ton (Açık Kasa)',
-                                  'truck_10_closed': '🚛 Kamyon - 10 Ton (Kapalı Kasa)',
-                                  'truck_10_tent': '🚛 Kamyon - 10 Ton (Tenteli)',
-                                  'truck_15_open': '🚛 Kamyon - 15 Ton (Açık Kasa)',
-                                  'truck_15_closed': '🚛 Kamyon - 15 Ton (Kapalı Kasa)',
-                                  'truck_15_tent': '🚛 Kamyon - 15 Ton (Tenteli)',
-                                  'tir_standard': '🚛 Tır (Standart Dorse) - 90m³ / 40t',
-                                  'tir_mega': '🚛 Tır (Mega Dorse) - 100m³ / 40t',
-                                  'tir_jumbo': '🚛 Tır (Jumbo Dorse) - 120m³ / 40t',
-                                  'tir_tent': '🚛 Tır (Tenteli Dorse) - 40t',
-                                  'tir_frigo': '🧊 Tır (Frigorifik Dorse - Isı Kontrollü) - 40t',
-                                  'tir_container': '📦 Tır (Konteyner Taşıyıcı) - 40t',
-                                  'tir_platform': '🏗️ Tır (Platform) - 40t',
-                                  'tir_frigo_dual': '🧊 Tır (Frigorifik Çift Isı) - 40t',
-                                  'van_3': '🚐 Kargo Van - 3m³ (1000kg)',
-                                  'van_6': '🚐 Kargo Van - 6m³ (1500kg)',
-                                  'van_10': '🚐 Kargo Van - 10m³ (2000kg)',
-                                  'van_15': '🚐 Kargo Van - 15m³ (2500kg)',
-                                  
-                                  // Sea vehicles
-                                  'container_20dc': '🚢 20\' Standart (20DC) - 33m³ / 28t',
-                                  'container_40dc': '🚢 40\' Standart (40DC) - 67m³ / 28t',
-                                  'container_40hc': '🚢 40\' Yüksek (40HC) - 76m³ / 28t',
-                                  'container_20ot': '🚢 20\' Open Top - 32m³ / 28t',
-                                  'container_40ot': '🚢 40\' Open Top - 66m³ / 28t',
-                                  'container_20fr': '🚢 20\' Flat Rack - 28t',
-                                  'container_40fr': '🚢 40\' Flat Rack - 40t',
-                                  'container_20rf': '❄️ 20\' Reefer - 28m³ / 25t',
-                                  'container_40rf': '❄️ 40\' Reefer - 60m³ / 25t',
-                                  'bulk_handysize': '🚢 Handysize (10,000-35,000 DWT)',
-                                  'bulk_handymax': '🚢 Handymax (35,000-60,000 DWT)',
-                                  'bulk_panamax': '🚢 Panamax (60,000-80,000 DWT)',
-                                  'bulk_capesize': '🚢 Capesize (80,000+ DWT)',
-                                  'general_small': '🚢 Küçük Tonaj (1,000-5,000 DWT)',
-                                  'general_medium': '🚢 Orta Tonaj (5,000-15,000 DWT)',
-                                  'general_large': '🚢 Büyük Tonaj (15,000+ DWT)',
-                                  'tanker_product': '🛢️ Ürün Tankeri (10,000-60,000 DWT)',
-                                  'tanker_chemical': '🛢️ Kimyasal Tanker (5,000-40,000 DWT)',
-                                  'tanker_crude': '🛢️ Ham Petrol Tankeri (60,000+ DWT)',
-                                  'tanker_lpg': '🛢️ LPG Tankeri (5,000-80,000 m³)',
-                                  'tanker_lng': '🛢️ LNG Tankeri (150,000-180,000 m³)',
-                                  'roro_small': '🚗 Küçük RO-RO (100-200 araç)',
-                                  'roro_medium': '🚗 Orta RO-RO (200-500 araç)',
-                                  'roro_large': '🚗 Büyük RO-RO (500+ araç)',
-                                  'ferry_cargo': '⛴️ Kargo Feribotu',
-                                  'ferry_mixed': '⛴️ Karma Feribot (Yolcu+Yük)',
-                                  'cargo_small': '🚤 Küçük Yük Teknesi (500-1,000 DWT)',
-                                  'cargo_large': '🚤 Büyük Yük Teknesi (1,000+ DWT)',
-                                  
-                                  // Air vehicles
-                                  'standard_cargo': '✈️ Standart Kargo',
-                                  'large_cargo': '✈️ Büyük Hacimli Kargo',
-                                  'special_cargo': '✈️ Özel Kargo',
-                                  
-                                  // Rail vehicles
-                                  'open_wagon': '🚂 Açık Yük Vagonu',
-                                  'closed_wagon': '🚂 Kapalı Yük Vagonu',
-                                  'container_wagon': '🚂 Konteyner Vagonu',
-                                  'tanker_wagon': '🚂 Tanker Vagonu'
-                                };
-                                // Use vehicle_types if available, otherwise use load_type
-                                const vehicleType = listing.vehicle_types && listing.vehicle_types.length > 0 
-                                  ? listing.vehicle_types[0] 
-                                  : listing.load_type;
-                                console.log('🚛 VEHICLE TYPE DEBUG:', {
-                                  listing_id: listing.id,
-                                  listing_type: listing.listing_type,
-                                  transport_mode: listing.transport_mode,
-                                  vehicle_types: listing.vehicle_types,
-                                  load_type: listing.load_type,
-                                  selected_vehicleType: vehicleType,
-                                  mapping_result: vehicleType ? vehicleTypeMapping[vehicleType] : null
-                                });
-                                return vehicleType ? (vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`) : '🚛 Araç Tipi Belirtilmemiş';
-                              })()
-                            : listing.load_type
+                            ? getDisplayVehicleType(listing.vehicle_types || listing.load_type)
+                            : getDisplayLoadType(listing.load_type)
                           }
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {getListingTypeDisplay(listing.listing_type)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -691,7 +736,7 @@ const MyListingsSection: React.FC = () => {
                     {service.vehicle_type && (
                       <div className="flex flex-wrap gap-1">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {service.vehicle_type}
+                          {getDisplayVehicleType(service.vehicle_type)}
                         </span>
                       </div>
                     )}

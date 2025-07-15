@@ -5,10 +5,137 @@ import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
 import { TransportServiceService } from '../../services/transportServiceNew';
+// Yük tipi eşlemeleri
+const LOAD_TYPE_MAPPING = {
+    // Genel Kargo
+    'general_cargo': '📦 Genel Kargo',
+    'palletized_cargo': '📦 Paletli Kargo',
+    'packaged_cargo': '📦 Paketli Kargo',
+    'bulk_cargo': '📦 Dökme Kargo',
+    'containerized_cargo': '📦 Konteynerli Kargo',
+    // Özel Kargolar
+    'fragile_cargo': '⚠️ Kırılabilir Kargo',
+    'hazardous_cargo': '☢️ Tehlikeli Madde',
+    'perishable_cargo': '🧊 Bozulabilir Kargo',
+    'frozen_cargo': '❄️ Donmuş Kargo',
+    'refrigerated_cargo': '🧊 Soğuk Zincir Kargo',
+    'oversized_cargo': '📏 Büyük Boy Kargo',
+    'heavy_cargo': '⚖️ Ağır Kargo',
+    'valuable_cargo': '💎 Değerli Kargo',
+    'live_cargo': '🐾 Canlı Kargo',
+    // Araç ve Ekipman
+    'vehicles': '🚗 Araç Taşımacılığı',
+    'machinery': '🏗️ Makine ve Ekipman',
+    'construction_materials': '🧱 İnşaat Malzemesi',
+    'steel_materials': '🔩 Çelik Malzeme',
+    'textile_cargo': '🧵 Tekstil Ürünleri',
+    // Kimyasal ve Sıvı Kargolar
+    'liquid_cargo': '🧪 Sıvı Kargo',
+    'chemical_cargo': '⚗️ Kimyasal Madde',
+    'fuel_cargo': '⛽ Yakıt Taşımacılığı',
+    'gas_cargo': '💨 Gaz Taşımacılığı',
+    // Gıda ve Tarım
+    'food_cargo': '🍎 Gıda Ürünleri',
+    'agricultural_cargo': '🌾 Tarım Ürünleri',
+    'beverage_cargo': '🥤 İçecek Ürünleri',
+    // Diğer
+    'electronics_cargo': '📱 Elektronik Eşya',
+    'furniture_cargo': '🪑 Mobilya',
+    'pharmaceutical_cargo': '💊 İlaç ve Tıbbi Malzeme',
+    'documents_cargo': '📋 Doküman ve Evrak',
+    'other_cargo': '📦 Diğer Kargo'
+};
+// Araç tipi eşlemeleri
+const VEHICLE_TYPE_MAPPING = {
+    // Karayolu Araçları
+    'truck_3_5_open': '🚚 Kamyon - 3.5 Ton (Açık Kasa)',
+    'truck_3_5_closed': '🚚 Kamyon - 3.5 Ton (Kapalı Kasa)',
+    'truck_5_open': '🚚 Kamyon - 5 Ton (Açık Kasa)',
+    'truck_5_closed': '🚚 Kamyon - 5 Ton (Kapalı Kasa)',
+    'truck_10_open': '🚛 Kamyon - 10 Ton (Açık Kasa)',
+    'truck_10_closed': '🚛 Kamyon - 10 Ton (Kapalı Kasa)',
+    'truck_10_tent': '🚛 Kamyon - 10 Ton (Tenteli)',
+    'truck_15_open': '🚛 Kamyon - 15 Ton (Açık Kasa)',
+    'truck_15_closed': '🚛 Kamyon - 15 Ton (Kapalı Kasa)',
+    'truck_15_tent': '🚛 Kamyon - 15 Ton (Tenteli)',
+    'tir_standard': '🚛 Tır (Standart Dorse) - 90m³ / 40t',
+    'tir_mega': '🚛 Tır (Mega Dorse) - 100m³ / 40t',
+    'tir_jumbo': '🚛 Tır (Jumbo Dorse) - 120m³ / 40t',
+    'tir_tent': '🚛 Tır (Tenteli Dorse) - 40t',
+    'tir_frigo': '🧊 Tır (Frigorifik Dorse - Isı Kontrollü) - 40t',
+    'tir_container': '📦 Tır (Konteyner Taşıyıcı) - 40t',
+    'tir_platform': '🏗️ Tır (Platform) - 40t',
+    'tir_frigo_dual': '🧊 Tır (Frigorifik Çift Isı) - 40t',
+    'van_3': '🚐 Kargo Van - 3m³ (1000kg)',
+    'van_6': '🚐 Kargo Van - 6m³ (1500kg)',
+    'van_10': '🚐 Kargo Van - 10m³ (2000kg)',
+    'van_15': '🚐 Kargo Van - 15m³ (2500kg)',
+    // Denizyolu Araçları
+    'container_20dc': '🚢 20\' Standart (20DC) - 33m³ / 28t',
+    'container_40dc': '🚢 40\' Standart (40DC) - 67m³ / 28t',
+    'container_40hc': '🚢 40\' Yüksek (40HC) - 76m³ / 28t',
+    'container_20ot': '🚢 20\' Open Top - 32m³ / 28t',
+    'container_40ot': '🚢 40\' Open Top - 66m³ / 28t',
+    'container_20fr': '🚢 20\' Flat Rack - 28t',
+    'container_40fr': '🚢 40\' Flat Rack - 40t',
+    'container_20rf': '❄️ 20\' Reefer - 28m³ / 25t',
+    'container_40rf': '❄️ 40\' Reefer - 60m³ / 25t',
+    'bulk_handysize': '🚢 Handysize (10,000-35,000 DWT)',
+    'bulk_handymax': '🚢 Handymax (35,000-60,000 DWT)',
+    'bulk_panamax': '🚢 Panamax (60,000-80,000 DWT)',
+    'bulk_capesize': '🚢 Capesize (80,000+ DWT)',
+    'general_small': '🚢 Küçük Tonaj (1,000-5,000 DWT)',
+    'general_medium': '🚢 Orta Tonaj (5,000-15,000 DWT)',
+    'general_large': '🚢 Büyük Tonaj (15,000+ DWT)',
+    'tanker_product': '🛢️ Ürün Tankeri (10,000-60,000 DWT)',
+    'tanker_chemical': '🛢️ Kimyasal Tanker (5,000-40,000 DWT)',
+    'tanker_crude': '🛢️ Ham Petrol Tankeri (60,000+ DWT)',
+    'tanker_lpg': '🛢️ LPG Tankeri (5,000-80,000 m³)',
+    'tanker_lng': '🛢️ LNG Tankeri (150,000-180,000 m³)',
+    'roro_small': '🚗 Küçük RO-RO (100-200 araç)',
+    'roro_medium': '🚗 Orta RO-RO (200-500 araç)',
+    'roro_large': '🚗 Büyük RO-RO (500+ araç)',
+    'ferry_cargo': '⛴️ Kargo Feribotu',
+    'ferry_mixed': '⛴️ Karma Feribot (Yolcu+Yük)',
+    'cargo_small': '🚤 Küçük Yük Teknesi (500-1,000 DWT)',
+    'cargo_large': '🚤 Büyük Yük Teknesi (1,000+ DWT)',
+    // Havayolu Araçları
+    'standard_cargo': '✈️ Standart Kargo',
+    'large_cargo': '✈️ Büyük Hacimli Kargo',
+    'special_cargo': '✈️ Özel Kargo',
+    // Demiryolu Araçları
+    'open_wagon': '🚂 Açık Yük Vagonu',
+    'closed_wagon': '🚂 Kapalı Yük Vagonu',
+    'container_wagon': '🚂 Konteyner Vagonu',
+    'tanker_wagon': '🚂 Tanker Vagonu'
+};
 import EditModalLoadListing from './EditModalLoadListing';
 import EditModalShipmentRequest from './EditModalShipmentRequest';
 import EditModalTransportService from './EditModalTransportService';
 import TransportServiceDetailSection from './TransportServiceDetailSection';
+// Yardımcı fonksiyonlar
+const getDisplayLoadType = (loadType) => {
+    if (!loadType)
+        return '📦 Belirtilmemiş';
+    return LOAD_TYPE_MAPPING[loadType] || `📦 ${loadType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+};
+const getDisplayVehicleType = (vehicleType) => {
+    if (!vehicleType)
+        return '🚛 Belirtilmemiş';
+    // Array ise ilk elemanı al
+    const type = Array.isArray(vehicleType) ? vehicleType[0] : vehicleType;
+    if (!type)
+        return '🚛 Belirtilmemiş';
+    return VEHICLE_TYPE_MAPPING[type] || `🚛 ${type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+};
+const getListingTypeDisplay = (listingType) => {
+    const typeMapping = {
+        'load_listing': '📦 Yük İlanı',
+        'shipment_request': '🚛 Nakliye Talebi',
+        'transport_service': '🚢 Nakliye Hizmeti'
+    };
+    return typeMapping[listingType] || `📋 ${listingType}`;
+};
 const MyListingsSection = () => {
     const { setActiveSection } = useDashboard();
     const { user } = useAuth();
@@ -216,91 +343,13 @@ const MyListingsSection = () => {
                                 ? 'border-purple-500 text-purple-600'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`, children: [_jsx(Truck, { className: "h-4 w-4 inline mr-2" }), "Nakliye Hizmetleri (", transportServices.length, ")"] })] }) }), _jsxs("div", { className: "relative", children: [_jsx("div", { className: "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none", children: _jsx(Search, { className: "h-5 w-5 text-gray-400" }) }), _jsx("input", { type: "text", placeholder: "\u0130lan ara...", value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), className: "block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500" })] }), activeTab === 'listings' ? (filteredListings.length === 0 ? (_jsxs("div", { className: "text-center py-12", children: [_jsx(Package, { className: "h-16 w-16 text-gray-300 mx-auto mb-4" }), searchTerm ? (_jsxs(_Fragment, { children: [_jsx("h3", { className: "text-lg font-medium text-gray-900 mb-2", children: "Arama sonucu bulunamad\u0131" }), _jsxs("p", { className: "text-gray-600", children: ["\"", searchTerm, "\" i\u00E7in hi\u00E7bir ilan bulunamad\u0131."] })] })) : (_jsxs(_Fragment, { children: [_jsx("h3", { className: "text-lg font-medium text-gray-900 mb-2", children: listings.length === 0 ? 'Henüz hiç ilanınız yok' : 'İlan bulunamadı' }), _jsx("p", { className: "text-gray-600 mb-2", children: listings.length === 0
                                     ? 'İlk ilanınızı oluşturarak başlayın!'
-                                    : `Toplam ${listings.length} ilanınız var ama filtreye uygun olan bulunamadı.` }), _jsxs("div", { className: "text-xs text-gray-400 mb-6", children: ["Debug: user_id=", user?.id, ", total_listings=", listings.length, ", loading=", loading.toString()] }), _jsxs("button", { onClick: () => setActiveSection('create-load-listing'), className: "inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200", children: [_jsx(Plus, { className: "h-4 w-4 mr-2" }), "\u0130lan Olu\u015Ftur"] })] }))] })) : (_jsx("div", { className: "bg-white rounded-lg border border-gray-200 overflow-hidden", children: _jsx("div", { className: "overflow-x-auto", children: _jsxs("table", { className: "min-w-full divide-y divide-gray-200", children: [_jsx("thead", { className: "bg-gray-50", children: _jsxs("tr", { children: [_jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "\u0130lan Bilgisi" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "Rota" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "Tarih" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "Durum" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "\u0130\u015Flemler" })] }) }), _jsx("tbody", { className: "bg-white divide-y divide-gray-200", children: filteredListings.map((listing) => (_jsxs("tr", { className: "hover:bg-gray-50", children: [_jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: _jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-900", children: listing.title }), _jsx("div", { className: "text-sm text-gray-500", children: listing.listing_type === 'transport_service'
-                                                            ? (() => {
-                                                                const vehicleTypeMapping = {
-                                                                    // Road vehicles
-                                                                    'truck_3_5_open': '🚚 Kamyon - 3.5 Ton (Açık Kasa)',
-                                                                    'truck_3_5_closed': '🚚 Kamyon - 3.5 Ton (Kapalı Kasa)',
-                                                                    'truck_5_open': '🚚 Kamyon - 5 Ton (Açık Kasa)',
-                                                                    'truck_5_closed': '🚚 Kamyon - 5 Ton (Kapalı Kasa)',
-                                                                    'truck_10_open': '🚛 Kamyon - 10 Ton (Açık Kasa)',
-                                                                    'truck_10_closed': '🚛 Kamyon - 10 Ton (Kapalı Kasa)',
-                                                                    'truck_10_tent': '🚛 Kamyon - 10 Ton (Tenteli)',
-                                                                    'truck_15_open': '🚛 Kamyon - 15 Ton (Açık Kasa)',
-                                                                    'truck_15_closed': '🚛 Kamyon - 15 Ton (Kapalı Kasa)',
-                                                                    'truck_15_tent': '🚛 Kamyon - 15 Ton (Tenteli)',
-                                                                    'tir_standard': '🚛 Tır (Standart Dorse) - 90m³ / 40t',
-                                                                    'tir_mega': '🚛 Tır (Mega Dorse) - 100m³ / 40t',
-                                                                    'tir_jumbo': '🚛 Tır (Jumbo Dorse) - 120m³ / 40t',
-                                                                    'tir_tent': '🚛 Tır (Tenteli Dorse) - 40t',
-                                                                    'tir_frigo': '🧊 Tır (Frigorifik Dorse - Isı Kontrollü) - 40t',
-                                                                    'tir_container': '📦 Tır (Konteyner Taşıyıcı) - 40t',
-                                                                    'tir_platform': '🏗️ Tır (Platform) - 40t',
-                                                                    'tir_frigo_dual': '🧊 Tır (Frigorifik Çift Isı) - 40t',
-                                                                    'van_3': '🚐 Kargo Van - 3m³ (1000kg)',
-                                                                    'van_6': '🚐 Kargo Van - 6m³ (1500kg)',
-                                                                    'van_10': '🚐 Kargo Van - 10m³ (2000kg)',
-                                                                    'van_15': '🚐 Kargo Van - 15m³ (2500kg)',
-                                                                    // Sea vehicles
-                                                                    'container_20dc': '🚢 20\' Standart (20DC) - 33m³ / 28t',
-                                                                    'container_40dc': '🚢 40\' Standart (40DC) - 67m³ / 28t',
-                                                                    'container_40hc': '🚢 40\' Yüksek (40HC) - 76m³ / 28t',
-                                                                    'container_20ot': '🚢 20\' Open Top - 32m³ / 28t',
-                                                                    'container_40ot': '🚢 40\' Open Top - 66m³ / 28t',
-                                                                    'container_20fr': '🚢 20\' Flat Rack - 28t',
-                                                                    'container_40fr': '🚢 40\' Flat Rack - 40t',
-                                                                    'container_20rf': '❄️ 20\' Reefer - 28m³ / 25t',
-                                                                    'container_40rf': '❄️ 40\' Reefer - 60m³ / 25t',
-                                                                    'bulk_handysize': '🚢 Handysize (10,000-35,000 DWT)',
-                                                                    'bulk_handymax': '🚢 Handymax (35,000-60,000 DWT)',
-                                                                    'bulk_panamax': '🚢 Panamax (60,000-80,000 DWT)',
-                                                                    'bulk_capesize': '🚢 Capesize (80,000+ DWT)',
-                                                                    'general_small': '🚢 Küçük Tonaj (1,000-5,000 DWT)',
-                                                                    'general_medium': '🚢 Orta Tonaj (5,000-15,000 DWT)',
-                                                                    'general_large': '🚢 Büyük Tonaj (15,000+ DWT)',
-                                                                    'tanker_product': '🛢️ Ürün Tankeri (10,000-60,000 DWT)',
-                                                                    'tanker_chemical': '🛢️ Kimyasal Tanker (5,000-40,000 DWT)',
-                                                                    'tanker_crude': '🛢️ Ham Petrol Tankeri (60,000+ DWT)',
-                                                                    'tanker_lpg': '🛢️ LPG Tankeri (5,000-80,000 m³)',
-                                                                    'tanker_lng': '🛢️ LNG Tankeri (150,000-180,000 m³)',
-                                                                    'roro_small': '🚗 Küçük RO-RO (100-200 araç)',
-                                                                    'roro_medium': '🚗 Orta RO-RO (200-500 araç)',
-                                                                    'roro_large': '🚗 Büyük RO-RO (500+ araç)',
-                                                                    'ferry_cargo': '⛴️ Kargo Feribotu',
-                                                                    'ferry_mixed': '⛴️ Karma Feribot (Yolcu+Yük)',
-                                                                    'cargo_small': '🚤 Küçük Yük Teknesi (500-1,000 DWT)',
-                                                                    'cargo_large': '🚤 Büyük Yük Teknesi (1,000+ DWT)',
-                                                                    // Air vehicles
-                                                                    'standard_cargo': '✈️ Standart Kargo',
-                                                                    'large_cargo': '✈️ Büyük Hacimli Kargo',
-                                                                    'special_cargo': '✈️ Özel Kargo',
-                                                                    // Rail vehicles
-                                                                    'open_wagon': '🚂 Açık Yük Vagonu',
-                                                                    'closed_wagon': '🚂 Kapalı Yük Vagonu',
-                                                                    'container_wagon': '🚂 Konteyner Vagonu',
-                                                                    'tanker_wagon': '🚂 Tanker Vagonu'
-                                                                };
-                                                                // Use vehicle_types if available, otherwise use load_type
-                                                                const vehicleType = listing.vehicle_types && listing.vehicle_types.length > 0
-                                                                    ? listing.vehicle_types[0]
-                                                                    : listing.load_type;
-                                                                console.log('🚛 VEHICLE TYPE DEBUG:', {
-                                                                    listing_id: listing.id,
-                                                                    listing_type: listing.listing_type,
-                                                                    transport_mode: listing.transport_mode,
-                                                                    vehicle_types: listing.vehicle_types,
-                                                                    load_type: listing.load_type,
-                                                                    selected_vehicleType: vehicleType,
-                                                                    mapping_result: vehicleType ? vehicleTypeMapping[vehicleType] : null
-                                                                });
-                                                                return vehicleType ? (vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`) : '🚛 Araç Tipi Belirtilmemiş';
-                                                            })()
-                                                            : listing.load_type })] }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: _jsxs("div", { className: "text-sm text-gray-900", children: [_jsxs("div", { className: "flex items-center", children: [_jsx(MapPin, { className: "h-4 w-4 text-gray-400 mr-1" }), listing.origin] }), _jsxs("div", { className: "flex items-center mt-1", children: [_jsx(MapPin, { className: "h-4 w-4 text-gray-400 mr-1" }), listing.destination] })] }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap text-sm text-gray-900", children: _jsxs("div", { className: "flex items-center", children: [_jsx(Calendar, { className: "h-4 w-4 text-gray-400 mr-1" }), _jsxs("div", { children: [_jsxs("div", { children: ["Y\u00FCkleme: ", formatDate(listing.loading_date)] }), _jsxs("div", { children: ["Teslimat: ", formatDate(listing.delivery_date)] })] })] }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: getStatusBadge(listing.status) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap text-sm font-medium", children: _jsxs("div", { className: "flex items-center space-x-2", children: [_jsx("button", { className: "text-blue-600 hover:text-blue-900", title: "\u0130lan Detay\u0131n\u0131 G\u00F6r\u00FCnt\u00FCle", "aria-label": "\u0130lan Detay\u0131n\u0131 G\u00F6r\u00FCnt\u00FCle", onClick: () => setSelectedListing(listing), children: _jsx(Eye, { className: "h-4 w-4" }) }), _jsx("button", { className: "text-indigo-600 hover:text-indigo-900", title: "\u0130lan\u0131 D\u00FCzenle", "aria-label": "\u0130lan\u0131 D\u00FCzenle", onClick: () => setEditListing(listing), children: _jsx(Edit, { className: "h-4 w-4" }) }), listing.status === 'active' ? (_jsx("button", { className: "text-orange-600 hover:text-orange-900", title: "\u0130lan\u0131 Duraklat", "aria-label": "\u0130lan\u0131 Duraklat", onClick: () => handleTogglePause(listing), children: _jsx(Pause, { className: "h-4 w-4" }) })) : (_jsx("button", { className: "text-green-600 hover:text-green-900", title: "\u0130lan\u0131 Etkinle\u015Ftir", "aria-label": "\u0130lan\u0131 Etkinle\u015Ftir", onClick: () => handleTogglePause(listing), children: _jsx(Play, { className: "h-4 w-4" }) })), _jsx("button", { className: "text-red-600 hover:text-red-900", title: "\u0130lan\u0131 Sil", "aria-label": "\u0130lan\u0131 Sil", onClick: () => handleDeleteListing(listing), children: _jsx(Trash2, { className: "h-4 w-4" }) })] }) })] }, listing.id))) })] }) }) }))) : (
+                                    : `Toplam ${listings.length} ilanınız var ama filtreye uygun olan bulunamadı.` }), _jsxs("div", { className: "text-xs text-gray-400 mb-6", children: ["Debug: user_id=", user?.id, ", total_listings=", listings.length, ", loading=", loading.toString()] }), _jsxs("button", { onClick: () => setActiveSection('create-load-listing'), className: "inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200", children: [_jsx(Plus, { className: "h-4 w-4 mr-2" }), "\u0130lan Olu\u015Ftur"] })] }))] })) : (_jsx("div", { className: "bg-white rounded-lg border border-gray-200 overflow-hidden", children: _jsx("div", { className: "overflow-x-auto", children: _jsxs("table", { className: "min-w-full divide-y divide-gray-200", children: [_jsx("thead", { className: "bg-gray-50", children: _jsxs("tr", { children: [_jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "\u0130lan Bilgisi" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "\u0130lan T\u00FCr\u00FC" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "Rota" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "Tarih" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "Durum" }), _jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider", children: "\u0130\u015Flemler" })] }) }), _jsx("tbody", { className: "bg-white divide-y divide-gray-200", children: filteredListings.map((listing) => (_jsxs("tr", { className: "hover:bg-gray-50", children: [_jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: _jsxs("div", { children: [_jsx("div", { className: "text-sm font-medium text-gray-900", children: listing.title }), _jsx("div", { className: "text-sm text-gray-500", children: listing.listing_type === 'transport_service'
+                                                            ? getDisplayVehicleType(listing.vehicle_types || listing.load_type)
+                                                            : getDisplayLoadType(listing.load_type) })] }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: _jsx("div", { className: "flex items-center", children: getListingTypeDisplay(listing.listing_type) }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: _jsxs("div", { className: "text-sm text-gray-900", children: [_jsxs("div", { className: "flex items-center", children: [_jsx(MapPin, { className: "h-4 w-4 text-gray-400 mr-1" }), listing.origin] }), _jsxs("div", { className: "flex items-center mt-1", children: [_jsx(MapPin, { className: "h-4 w-4 text-gray-400 mr-1" }), listing.destination] })] }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap text-sm text-gray-900", children: _jsxs("div", { className: "flex items-center", children: [_jsx(Calendar, { className: "h-4 w-4 text-gray-400 mr-1" }), _jsxs("div", { children: [_jsxs("div", { children: ["Y\u00FCkleme: ", formatDate(listing.loading_date)] }), _jsxs("div", { children: ["Teslimat: ", formatDate(listing.delivery_date)] })] })] }) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap", children: getStatusBadge(listing.status) }), _jsx("td", { className: "px-6 py-4 whitespace-nowrap text-sm font-medium", children: _jsxs("div", { className: "flex items-center space-x-2", children: [_jsx("button", { className: "text-blue-600 hover:text-blue-900", title: "\u0130lan Detay\u0131n\u0131 G\u00F6r\u00FCnt\u00FCle", "aria-label": "\u0130lan Detay\u0131n\u0131 G\u00F6r\u00FCnt\u00FCle", onClick: () => setSelectedListing(listing), children: _jsx(Eye, { className: "h-4 w-4" }) }), _jsx("button", { className: "text-indigo-600 hover:text-indigo-900", title: "\u0130lan\u0131 D\u00FCzenle", "aria-label": "\u0130lan\u0131 D\u00FCzenle", onClick: () => setEditListing(listing), children: _jsx(Edit, { className: "h-4 w-4" }) }), listing.status === 'active' ? (_jsx("button", { className: "text-orange-600 hover:text-orange-900", title: "\u0130lan\u0131 Duraklat", "aria-label": "\u0130lan\u0131 Duraklat", onClick: () => handleTogglePause(listing), children: _jsx(Pause, { className: "h-4 w-4" }) })) : (_jsx("button", { className: "text-green-600 hover:text-green-900", title: "\u0130lan\u0131 Etkinle\u015Ftir", "aria-label": "\u0130lan\u0131 Etkinle\u015Ftir", onClick: () => handleTogglePause(listing), children: _jsx(Play, { className: "h-4 w-4" }) })), _jsx("button", { className: "text-red-600 hover:text-red-900", title: "\u0130lan\u0131 Sil", "aria-label": "\u0130lan\u0131 Sil", onClick: () => handleDeleteListing(listing), children: _jsx(Trash2, { className: "h-4 w-4" }) })] }) })] }, listing.id))) })] }) }) }))) : (
             // Transport Services Tab
             filteredTransportServices.length === 0 ? (_jsxs("div", { className: "text-center py-12", children: [_jsx(Truck, { className: "h-16 w-16 text-gray-300 mx-auto mb-4" }), searchTerm ? (_jsxs(_Fragment, { children: [_jsx("h3", { className: "text-lg font-medium text-gray-900 mb-2", children: "Arama sonucu bulunamad\u0131" }), _jsxs("p", { className: "text-gray-600", children: ["\"", searchTerm, "\" i\u00E7in hi\u00E7bir nakliye hizmeti bulunamad\u0131."] })] })) : (_jsxs(_Fragment, { children: [_jsx("h3", { className: "text-lg font-medium text-gray-900 mb-2", children: transportServices.length === 0 ? 'Henüz hiç nakliye hizmetiniz yok' : 'Nakliye hizmeti bulunamadı' }), _jsx("p", { className: "text-gray-600 mb-2", children: transportServices.length === 0
                                     ? 'İlk nakliye hizmetinizi oluşturarak başlayın!'
-                                    : `Toplam ${transportServices.length} nakliye hizmetiniz var ama filtreye uygun olan bulunamadı.` }), _jsxs("button", { onClick: () => setActiveSection('create-transport-service'), className: "inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200", children: [_jsx(Plus, { className: "h-4 w-4 mr-2" }), "Nakliye Hizmeti Olu\u015Ftur"] })] }))] })) : (_jsx("div", { className: "grid gap-6 md:grid-cols-2 lg:grid-cols-3", children: filteredTransportServices.map((service) => (_jsx("div", { className: "bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200", children: _jsxs("div", { className: "p-6", children: [_jsxs("div", { className: "flex items-start justify-between mb-4", children: [_jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("div", { className: "bg-purple-100 p-2 rounded-lg", children: _jsx(Truck, { className: "h-5 w-5 text-purple-600" }) }), _jsxs("div", { children: [_jsx("h3", { className: "text-lg font-medium text-gray-900", children: service.title }), _jsxs("p", { className: "text-sm text-gray-500", children: ["#", service.service_number] })] })] }), getStatusBadge(service.status)] }), service.description && (_jsx("p", { className: "text-sm text-gray-600 mb-4 line-clamp-2", children: service.description })), _jsxs("div", { className: "mb-4", children: [_jsx("div", { className: "flex items-center space-x-2 mb-2", children: _jsxs("div", { className: "flex items-center space-x-1", children: [service.transport_mode === 'road' && _jsx(Truck, { className: "h-4 w-4 text-blue-500" }), service.transport_mode === 'sea' && _jsx(Ship, { className: "h-4 w-4 text-blue-500" }), service.transport_mode === 'air' && _jsx(Plane, { className: "h-4 w-4 text-blue-500" }), service.transport_mode === 'rail' && _jsx(Train, { className: "h-4 w-4 text-blue-500" }), _jsxs("span", { className: "text-sm font-medium text-gray-700 capitalize", children: [service.transport_mode === 'road' && 'Karayolu', service.transport_mode === 'sea' && 'Denizyolu', service.transport_mode === 'air' && 'Havayolu', service.transport_mode === 'rail' && 'Demiryolu'] })] }) }), service.vehicle_type && (_jsx("div", { className: "flex flex-wrap gap-1", children: _jsx("span", { className: "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800", children: service.vehicle_type }) }))] }), (service.origin || service.destination) && (_jsx("div", { className: "mb-4", children: _jsxs("div", { className: "flex items-center space-x-2 text-sm text-gray-600", children: [_jsx(MapPin, { className: "h-4 w-4 text-gray-400" }), _jsx("span", { children: service.origin || 'Başlangıç' }), _jsx(ArrowRight, { className: "h-3 w-3 text-gray-400" }), _jsx("span", { children: service.destination || 'Varış' })] }) })), _jsxs("div", { className: "grid grid-cols-2 gap-4 mb-4 text-sm", children: [(service.capacity_value || service.dwt) && (_jsxs("div", { children: [_jsx("span", { className: "text-gray-500", children: "Kapasite:" }), _jsx("p", { className: "font-medium text-gray-900", children: service.capacity_value ? `${service.capacity_value} ${service.capacity_unit || 'kg'}` :
+                                    : `Toplam ${transportServices.length} nakliye hizmetiniz var ama filtreye uygun olan bulunamadı.` }), _jsxs("button", { onClick: () => setActiveSection('create-transport-service'), className: "inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200", children: [_jsx(Plus, { className: "h-4 w-4 mr-2" }), "Nakliye Hizmeti Olu\u015Ftur"] })] }))] })) : (_jsx("div", { className: "grid gap-6 md:grid-cols-2 lg:grid-cols-3", children: filteredTransportServices.map((service) => (_jsx("div", { className: "bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200", children: _jsxs("div", { className: "p-6", children: [_jsxs("div", { className: "flex items-start justify-between mb-4", children: [_jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("div", { className: "bg-purple-100 p-2 rounded-lg", children: _jsx(Truck, { className: "h-5 w-5 text-purple-600" }) }), _jsxs("div", { children: [_jsx("h3", { className: "text-lg font-medium text-gray-900", children: service.title }), _jsxs("p", { className: "text-sm text-gray-500", children: ["#", service.service_number] })] })] }), getStatusBadge(service.status)] }), service.description && (_jsx("p", { className: "text-sm text-gray-600 mb-4 line-clamp-2", children: service.description })), _jsxs("div", { className: "mb-4", children: [_jsx("div", { className: "flex items-center space-x-2 mb-2", children: _jsxs("div", { className: "flex items-center space-x-1", children: [service.transport_mode === 'road' && _jsx(Truck, { className: "h-4 w-4 text-blue-500" }), service.transport_mode === 'sea' && _jsx(Ship, { className: "h-4 w-4 text-blue-500" }), service.transport_mode === 'air' && _jsx(Plane, { className: "h-4 w-4 text-blue-500" }), service.transport_mode === 'rail' && _jsx(Train, { className: "h-4 w-4 text-blue-500" }), _jsxs("span", { className: "text-sm font-medium text-gray-700 capitalize", children: [service.transport_mode === 'road' && 'Karayolu', service.transport_mode === 'sea' && 'Denizyolu', service.transport_mode === 'air' && 'Havayolu', service.transport_mode === 'rail' && 'Demiryolu'] })] }) }), service.vehicle_type && (_jsx("div", { className: "flex flex-wrap gap-1", children: _jsx("span", { className: "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800", children: getDisplayVehicleType(service.vehicle_type) }) }))] }), (service.origin || service.destination) && (_jsx("div", { className: "mb-4", children: _jsxs("div", { className: "flex items-center space-x-2 text-sm text-gray-600", children: [_jsx(MapPin, { className: "h-4 w-4 text-gray-400" }), _jsx("span", { children: service.origin || 'Başlangıç' }), _jsx(ArrowRight, { className: "h-3 w-3 text-gray-400" }), _jsx("span", { children: service.destination || 'Varış' })] }) })), _jsxs("div", { className: "grid grid-cols-2 gap-4 mb-4 text-sm", children: [(service.capacity_value || service.dwt) && (_jsxs("div", { children: [_jsx("span", { className: "text-gray-500", children: "Kapasite:" }), _jsx("p", { className: "font-medium text-gray-900", children: service.capacity_value ? `${service.capacity_value} ${service.capacity_unit || 'kg'}` :
                                                     service.dwt ? `${service.dwt} DWT` : 'Belirtilmemiş' })] })), _jsxs("div", { children: [_jsx("span", { className: "text-gray-500", children: "Tip:" }), _jsx("p", { className: "font-medium text-gray-900", children: service.transport_mode === 'sea' ? 'Denizyolu' :
                                                     service.transport_mode === 'road' ? 'Karayolu' :
                                                         service.transport_mode === 'air' ? 'Havayolu' :
