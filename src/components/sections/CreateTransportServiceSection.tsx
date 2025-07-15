@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import TransportServiceDetailSection from './TransportServiceDetailSection';
 import Modal from '../common/Modal'; // Modal component
 import { ArrowLeft, Truck, Ship, Plane, Train, FileText, Upload, Eye, Download, Trash2, Loader2, MapPin, Package, Calendar } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
-import { ListingService } from '../../services/listingService'; // ListingService'i kullanacağız
+import { TransportServiceService, generateServiceNumber, validateIMO, validateMMSI } from '../../services/transportServiceNew';
 import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
+import type { TransportService, TransportServiceFormData } from '../../types/transport-service-types';
 
 
 // Document interface tanımı
@@ -18,48 +18,10 @@ interface Document {
   url: string;
 }
 
-// TransportServiceListing type for full type safety
-interface TransportServiceListing {
-  user_id: string;
-  listing_type: 'transport_service';
-  title: string;
-  description: string;
-  origin: string;
-  destination: string;
-  transport_mode: 'road' | 'sea' | 'air' | 'rail';
-  vehicle_types: string[] | null;
-  weight_value: number | null;
-  weight_unit?: string;
-  offer_type: 'negotiable';
-  price_currency: 'TRY';
-  available_from_date: string | null;
-  status: 'active';
-  listing_number: string;
-  metadata: {
-    contact_info: {
-      contact: string;
-      company_name: string | null;
-    };
-    transport_details: Record<string, string | null>;
-  };
-}
-
-// NK + YYMMDDHHMMSS formatında ilan numarası üretici
-const generateServiceNumber = () => {
-  const now = new Date();
-  const year = now.getFullYear().toString().slice(-2);
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const day = now.getDate().toString().padStart(2, '0');
-  const hour = now.getHours().toString().padStart(2, '0');
-  const minute = now.getMinutes().toString().padStart(2, '0');
-  const second = now.getSeconds().toString().padStart(2, '0');
-  return `NK${year}${month}${day}${hour}${minute}${second}`;
-};
-
 const CreateTransportServiceSection: React.FC = () => {
   // İlan detayı modalı için state
   const [detailOpen, setDetailOpen] = useState(false);
-  const [lastCreatedListing, setLastCreatedListing] = useState<TransportServiceListing | null>(null);
+  const [lastCreatedService, setLastCreatedService] = useState<TransportService | null>(null);
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
   const [transportMode, setTransportMode] = useState('');
@@ -72,15 +34,6 @@ const CreateTransportServiceSection: React.FC = () => {
     url: string;
   }>>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Debug modal tipi
-  type DebugDataType = {
-    formData: typeof formData;
-    listingData: TransportServiceListing;
-    uploadedDocuments: typeof uploadedDocuments;
-    user: typeof user;
-  } | null;
-  const [debugOpen, setDebugOpen] = useState(false);
-  const [debugData, setDebugData] = useState<DebugDataType>(null);
 
   // Test için global erişim (development only)
   if (import.meta.env.DEV) {
@@ -118,7 +71,7 @@ const CreateTransportServiceSection: React.FC = () => {
 
     return publicUrlData.publicUrl;
   };
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TransportServiceFormData>({
     serviceNumber: generateServiceNumber(),
     serviceTitle: '',
     serviceTransportMode: '',
@@ -127,6 +80,7 @@ const CreateTransportServiceSection: React.FC = () => {
     serviceDestination: '',
     serviceVehicleType: '',
     serviceAvailableDate: '',
+    serviceAvailableUntilDate: '',
     serviceCapacity: '',
     serviceCompanyName: '',
     serviceContact: '',
@@ -137,15 +91,26 @@ const CreateTransportServiceSection: React.FC = () => {
     imoNumber: '',
     mmsiNumber: '',
     dwt: '',
+    grossTonnage: '',
+    netTonnage: '',
     shipDimensions: '',
-    laycanStart: '',
-    laycanEnd: '',
     freightType: '',
     chartererInfo: '',
+    shipFlag: '',
+    homePort: '',
+    yearBuilt: '',
+    speedKnots: '',
+    fuelConsumption: '',
+    ballastCapacity: '',
     // Havayolu için ek alanlar
     flightNumber: '',
+    aircraftType: '',
+    maxPayload: '',
+    cargoVolume: '',
     // Demiryolu için ek alanlar
-    trainNumber: ''
+    trainNumber: '',
+    wagonCount: '',
+    wagonTypes: ''
   });
 
   // Araç tipleri taşıma moduna göre - Grup başlıkları ile organize edilmiş
@@ -371,12 +336,24 @@ const CreateTransportServiceSection: React.FC = () => {
         imoNumber: '',
         mmsiNumber: '',
         dwt: '',
+        grossTonnage: '',
+        netTonnage: '',
         shipDimensions: '',
-        laycanEnd: '',
         freightType: '',
         chartererInfo: '',
+        shipFlag: '',
+        homePort: '',
+        yearBuilt: '',
+        speedKnots: '',
+        fuelConsumption: '',
+        ballastCapacity: '',
         flightNumber: '',
-        trainNumber: ''
+        aircraftType: '',
+        maxPayload: '',
+        cargoVolume: '',
+        trainNumber: '',
+        wagonCount: '',
+        wagonTypes: ''
       }));
     }
   };
@@ -519,97 +496,105 @@ const CreateTransportServiceSection: React.FC = () => {
       return;
     }
 
+    // Denizyolu özel validasyonları
+    if (formData.serviceTransportMode === 'sea') {
+      if (!formData.shipName || !formData.imoNumber || !formData.mmsiNumber) {
+        toast.error('Denizyolu için gemi adı, IMO ve MMSI numaraları zorunludur!');
+        return;
+      }
+      
+      if (!validateIMO(formData.imoNumber)) {
+        toast.error('IMO numarası geçersiz! (Örn: IMO 1234567)');
+        return;
+      }
+      
+      if (!validateMMSI(formData.mmsiNumber)) {
+        toast.error('MMSI numarası geçersiz! (9 haneli sayı olmalı)');
+        return;
+      }
+      
+      // Tarih validasyonu
+      if (formData.serviceAvailableDate && formData.serviceAvailableUntilDate) {
+        const startDate = new Date(formData.serviceAvailableDate);
+        const endDate = new Date(formData.serviceAvailableUntilDate);
+        if (startDate >= endDate) {
+          toast.error('Bitiş tarihi başlangıç tarihinden sonra olmalı!');
+          return;
+        }
+      }
+    }
+
     console.log('✅ All validations passed!');
     setIsSubmitting(true);
 
     try {
-      console.log('📝 Creating listing data...');
-      // Nakliye hizmetini listings tablosuna kaydet
-      const listingData: TransportServiceListing & { required_documents: string[] } = {
+      console.log('📝 Creating transport service data...');
+      
+      // Yeni TransportService verisini hazırla
+      const serviceData = {
         user_id: user.id,
-        listing_type: 'transport_service',
+        service_number: formData.serviceNumber,
         title: formData.serviceTitle,
         description: formData.serviceDescription,
+        transport_mode: formData.serviceTransportMode as 'road' | 'sea' | 'air' | 'rail',
+        vehicle_type: formData.serviceVehicleType,
         origin: formData.serviceOrigin,
         destination: formData.serviceDestination,
-        transport_mode: formData.serviceTransportMode as 'road' | 'sea' | 'air' | 'rail',
-        vehicle_types: formData.serviceVehicleType ? [formData.serviceVehicleType] : null,
-        weight_value: formData.serviceCapacity ? parseFloat(formData.serviceCapacity) : null,
-        weight_unit: formData.serviceCapacity ? 'kg' : undefined,
-        offer_type: 'negotiable',
-        price_currency: 'TRY',
-        available_from_date: formData.serviceAvailableDate || null,
-        status: 'active',
-        listing_number: formData.serviceNumber,
-        required_documents: selectedDocuments.length > 0 ? selectedDocuments : [],
-        metadata: {
-          contact_info: {
-            contact: formData.serviceContact,
-            company_name: formData.serviceCompanyName || null
-          },
-          transport_details: (() => {
-            // All possible fields, always present, string or null
-            return {
-              plate_number: formData.serviceTransportMode === 'road' ? formData.plateNumber : null,
-              ship_name: formData.serviceTransportMode === 'sea' ? formData.shipName : null,
-              imo_number: formData.serviceTransportMode === 'sea' ? formData.imoNumber : null,
-              mmsi_number: formData.serviceTransportMode === 'sea' ? formData.mmsiNumber : null,
-              dwt: formData.serviceTransportMode === 'sea' ? formData.dwt : null,
-              ship_dimensions: formData.serviceTransportMode === 'sea' ? formData.shipDimensions : null,
-              laycan_start: formData.serviceTransportMode === 'sea' ? formData.serviceAvailableDate : null,
-              laycan_end: formData.serviceTransportMode === 'sea' ? formData.laycanEnd : null,
-              freight_type: formData.serviceTransportMode === 'sea' ? formData.freightType : null,
-              charterer_info: formData.serviceTransportMode === 'sea' ? formData.chartererInfo : null,
-              flight_number: formData.serviceTransportMode === 'air' ? formData.flightNumber : null,
-              train_number: formData.serviceTransportMode === 'rail' ? formData.trainNumber : null
-            };
-          })()
-        }
+        available_from_date: formData.serviceAvailableDate || undefined,
+        available_until_date: formData.serviceAvailableUntilDate || undefined,
+        capacity_value: formData.serviceCapacity ? parseFloat(formData.serviceCapacity) : undefined,
+        capacity_unit: 'kg',
+        contact_info: formData.serviceContact,
+        company_name: formData.serviceCompanyName || undefined,
+        status: 'active' as const,
+        
+        // Karayolu alanları
+        plate_number: formData.serviceTransportMode === 'road' ? formData.plateNumber : undefined,
+        
+        // Denizyolu alanları
+        ship_name: formData.serviceTransportMode === 'sea' ? formData.shipName : undefined,
+        imo_number: formData.serviceTransportMode === 'sea' ? formData.imoNumber : undefined,
+        mmsi_number: formData.serviceTransportMode === 'sea' ? formData.mmsiNumber : undefined,
+        dwt: formData.serviceTransportMode === 'sea' && formData.dwt ? parseFloat(formData.dwt) : undefined,
+        gross_tonnage: formData.serviceTransportMode === 'sea' && formData.grossTonnage ? parseFloat(formData.grossTonnage) : undefined,
+        net_tonnage: formData.serviceTransportMode === 'sea' && formData.netTonnage ? parseFloat(formData.netTonnage) : undefined,
+        ship_dimensions: formData.serviceTransportMode === 'sea' ? formData.shipDimensions : undefined,
+        freight_type: formData.serviceTransportMode === 'sea' ? formData.freightType : undefined,
+        charterer_info: formData.serviceTransportMode === 'sea' ? formData.chartererInfo : undefined,
+        ship_flag: formData.serviceTransportMode === 'sea' ? formData.shipFlag : undefined,
+        home_port: formData.serviceTransportMode === 'sea' ? formData.homePort : undefined,
+        year_built: formData.serviceTransportMode === 'sea' && formData.yearBuilt ? parseInt(formData.yearBuilt) : undefined,
+        speed_knots: formData.serviceTransportMode === 'sea' && formData.speedKnots ? parseFloat(formData.speedKnots) : undefined,
+        fuel_consumption: formData.serviceTransportMode === 'sea' ? formData.fuelConsumption : undefined,
+        ballast_capacity: formData.serviceTransportMode === 'sea' && formData.ballastCapacity ? parseFloat(formData.ballastCapacity) : undefined,
+        
+        // Havayolu alanları
+        flight_number: formData.serviceTransportMode === 'air' ? formData.flightNumber : undefined,
+        aircraft_type: formData.serviceTransportMode === 'air' ? formData.aircraftType : undefined,
+        max_payload: formData.serviceTransportMode === 'air' && formData.maxPayload ? parseFloat(formData.maxPayload) : undefined,
+        cargo_volume: formData.serviceTransportMode === 'air' && formData.cargoVolume ? parseFloat(formData.cargoVolume) : undefined,
+        
+        // Demiryolu alanları
+        train_number: formData.serviceTransportMode === 'rail' ? formData.trainNumber : undefined,
+        wagon_count: formData.serviceTransportMode === 'rail' && formData.wagonCount ? parseInt(formData.wagonCount) : undefined,
+        wagon_types: formData.serviceTransportMode === 'rail' && formData.wagonTypes ? formData.wagonTypes.split(',').map(t => t.trim()) : undefined,
+        
+        // Evraklar
+        required_documents: selectedDocuments.length > 0 ? selectedDocuments : undefined,
+        document_urls: uploadedDocuments
+          .filter(doc => doc.url !== 'uploading...' && doc.url.startsWith('http'))
+          .map(doc => doc.url)
       };
 
-      // DEBUG: Console log before submit
-      console.log('🚢 CREATING TRANSPORT SERVICE:');
-      console.log('- formData.serviceTransportMode:', formData.serviceTransportMode);
-      console.log('- formData.serviceAvailableDate:', formData.serviceAvailableDate);
-      console.log('- formData.laycanStart:', formData.laycanStart);
-      console.log('- laycan_start will be:', formData.serviceTransportMode === 'sea' ? formData.serviceAvailableDate : null);
-      console.log('- formData.serviceVehicleType:', formData.serviceVehicleType);
-      console.log('- Full listingData:', JSON.stringify(listingData, null, 2));
+      console.log('🚀 Creating transport service with data:', serviceData);
 
-      // DEBUG: Show modal with all data before submit
-      setDebugData({
-        formData,
-        listingData,
-        uploadedDocuments,
-        user
-      });
-      setDebugOpen(true);
-
-      // If you want to block submit until debug modal is closed, return here
-      // return;
-
-      console.log('Creating transport service listing with data:', listingData);
-
-      const listing = await ListingService.createListing(listingData);
-      // Son oluşturulan ilanı state'e kaydet
-      setLastCreatedListing(listingData);
-      setDetailOpen(true);
-
-      // Yüklenen evrakları topla (zaten Supabase'de yüklü)
-      console.log('📋 Collecting uploaded document URLs:', uploadedDocuments.length);
-      const documentUrls: string[] = uploadedDocuments
-        .filter(doc => doc.url !== 'uploading...' && doc.url.startsWith('http'))
-        .map(doc => doc.url);
+      // TransportService oluştur
+      const newService = await TransportServiceService.createTransportService(serviceData);
+      console.log('✅ Transport service created successfully:', newService);
       
-      console.log('✅ Valid document URLs:', documentUrls.length);
-
-      // Eğer evrak URL'leri varsa, listing'i güncelle
-      if (documentUrls.length > 0) {
-        await ListingService.updateListing(listing.id, {
-          document_urls: documentUrls
-        });
-        console.log('✅ Transport service listing updated with document URLs');
-      }
+      // Son oluşturulan servisi state'e kaydet
+      setLastCreatedService(newService);
+      setDetailOpen(true);
 
       toast.success('Nakliye hizmeti ilanı başarıyla oluşturuldu!');
       setActiveSection('my-listings');
@@ -636,9 +621,9 @@ const CreateTransportServiceSection: React.FC = () => {
         : mode === 'air' ? 'Varış Havalimanı'
         : mode === 'rail' ? 'Varış İstasyonu / Bölgesi'
         : 'Varış Bölgesi/Noktası',
-      availableDate: mode === 'sea' ? 'Laycan (Başlangıç)' : 'Boşta Olma Tarihi',
+      availableDate: 'Müsaitlik Başlangıç Tarihi',
       capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)'
-        : mode === 'sea' ? 'Gross Tonnage *'
+        : mode === 'sea' ? 'Yük Kapasitesi (DWT) *'
         : 'Kapasite (ton/m³)'
     };
   };
@@ -715,42 +700,31 @@ const CreateTransportServiceSection: React.FC = () => {
 
   return (
     <>
-      {/* Debug Modal */}
-      <Modal
-        open={debugOpen}
-        onClose={() => setDebugOpen(false)}
-        title="Debug: Gönderilecek Veri"
-      >
-        <div className="space-y-4">
-          <div>
-            <strong>Form Data:</strong>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.formData, null, 2)}</pre>
-          </div>
-          <div>
-            <strong>Listing Data (Supabase'e gidecek):</strong>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.listingData, null, 2)}</pre>
-          </div>
-          <div>
-            <strong>Yüklenen Evraklar:</strong>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.uploadedDocuments, null, 2)}</pre>
-          </div>
-          <div>
-            <strong>Kullanıcı:</strong>
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-40">{JSON.stringify(debugData?.user, null, 2)}</pre>
-          </div>
-        </div>
-      </Modal>
       {/* İlan Detay Modalı */}
       <Modal
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
-        title="Oluşturulan İlan Detayı"
+        title="Oluşturulan Nakliye Hizmeti Detayı"
       >
-        {lastCreatedListing && (
+        {lastCreatedService && (
           <div className="max-h-[70vh] overflow-auto">
-            {/* TransportServiceDetailSection ile detay göster */}
-            {/* @ts-expect-error: TransportServiceDetailSection expects a different type than provided, safe to ignore for modal preview. */}
-            <TransportServiceDetailSection listing={lastCreatedListing} />
+            <div className="space-y-4">
+              <div><strong>Servis No:</strong> {lastCreatedService.service_number}</div>
+              <div><strong>Başlık:</strong> {lastCreatedService.title}</div>
+              <div><strong>Taşıma Modu:</strong> {lastCreatedService.transport_mode}</div>
+              <div><strong>Araç Tipi:</strong> {lastCreatedService.vehicle_type}</div>
+              <div><strong>Kalkış:</strong> {lastCreatedService.origin}</div>
+              <div><strong>Varış:</strong> {lastCreatedService.destination}</div>
+              {lastCreatedService.transport_mode === 'sea' && (
+                <>
+                  <div><strong>Gemi Adı:</strong> {lastCreatedService.ship_name}</div>
+                  <div><strong>IMO:</strong> {lastCreatedService.imo_number}</div>
+                  <div><strong>MMSI:</strong> {lastCreatedService.mmsi_number}</div>
+                  <div><strong>DWT:</strong> {lastCreatedService.dwt}</div>
+                </>
+              )}
+              <div><strong>Açıklama:</strong> {lastCreatedService.description}</div>
+            </div>
           </div>
         )}
       </Modal>
@@ -919,21 +893,22 @@ const CreateTransportServiceSection: React.FC = () => {
               />
             </div>
 
-            {/* Laycan End (Sadece Denizyolu) */}
-            {formData.serviceTransportMode === 'sea' && (
+            {/* Laycan End (Sadece Denizyolu) - KALDIRILDI: Artık müsaitlik için laycan kullanmıyoruz */}
+            
+            {/* Müsaitlik Bitiş Tarihi (Tüm modlar için) */}
+            {formData.serviceTransportMode && (
               <div>
-                <label htmlFor="laycanEnd" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="serviceAvailableUntilDate" className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
-                  Laycan (Bitiş) *
+                  Müsaitlik Bitiş Tarihi
                 </label>
                 <input
                   type="date"
-                  id="laycanEnd"
-                  name="laycanEnd"
-                  value={formData.laycanEnd}
+                  id="serviceAvailableUntilDate"
+                  name="serviceAvailableUntilDate"
+                  value={formData.serviceAvailableUntilDate}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  required
                 />
               </div>
             )}
@@ -1060,21 +1035,6 @@ const CreateTransportServiceSection: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="dwt" className="block text-sm font-medium text-gray-700 mb-2">
-                    ⚖️ Gross Tonnage *
-                  </label>
-                  <input
-                    type="text"
-                    id="dwt"
-                    name="dwt"
-                    value={formData.dwt}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    required
-                    placeholder="Örn: 25000 GT"
-                  />
-                </div>
-                <div>
                   <label htmlFor="shipDimensions" className="block text-sm font-medium text-gray-700 mb-2">
                     📏 Boyutlar (LOA, Beam) *
                   </label>
@@ -1118,43 +1078,231 @@ const CreateTransportServiceSection: React.FC = () => {
                     placeholder="Örn: ABC Shipping & Brokerage"
                   />
                 </div>
+                
+                {/* Ek denizyolu alanları */}
+                <div>
+                  <label htmlFor="grossTonnage" className="block text-sm font-medium text-gray-700 mb-2">
+                    📊 Gross Tonnage (GT)
+                  </label>
+                  <input
+                    type="text"
+                    id="grossTonnage"
+                    name="grossTonnage"
+                    value={formData.grossTonnage}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 15000 GT"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="netTonnage" className="block text-sm font-medium text-gray-700 mb-2">
+                    📊 Net Tonnage (NT)
+                  </label>
+                  <input
+                    type="text"
+                    id="netTonnage"
+                    name="netTonnage"
+                    value={formData.netTonnage}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 8000 NT"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="shipFlag" className="block text-sm font-medium text-gray-700 mb-2">
+                    🏴 Bayrak Devleti
+                  </label>
+                  <input
+                    type="text"
+                    id="shipFlag"
+                    name="shipFlag"
+                    value={formData.shipFlag}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: Turkey, Malta, Panama"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="homePort" className="block text-sm font-medium text-gray-700 mb-2">
+                    🏠 Bağlama Limanı
+                  </label>
+                  <input
+                    type="text"
+                    id="homePort"
+                    name="homePort"
+                    value={formData.homePort}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: İstanbul"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="yearBuilt" className="block text-sm font-medium text-gray-700 mb-2">
+                    🔨 İnşa Yılı
+                  </label>
+                  <input
+                    type="text"
+                    id="yearBuilt"
+                    name="yearBuilt"
+                    value={formData.yearBuilt}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 2018"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="speedKnots" className="block text-sm font-medium text-gray-700 mb-2">
+                    ⚡ Hız (Knot)
+                  </label>
+                  <input
+                    type="text"
+                    id="speedKnots"
+                    name="speedKnots"
+                    value={formData.speedKnots}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 14.5 knot"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="fuelConsumption" className="block text-sm font-medium text-gray-700 mb-2">
+                    ⛽ Yakıt Tüketimi
+                  </label>
+                  <input
+                    type="text"
+                    id="fuelConsumption"
+                    name="fuelConsumption"
+                    value={formData.fuelConsumption}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 25 MT/day"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="ballastCapacity" className="block text-sm font-medium text-gray-700 mb-2">
+                    🌊 Balast Kapasitesi
+                  </label>
+                  <input
+                    type="text"
+                    id="ballastCapacity"
+                    name="ballastCapacity"
+                    value={formData.ballastCapacity}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 8000 MT"
+                  />
+                </div>
               </>
             )}
 
             {/* ✈️ Havayolu Ek Alanları */}
             {formData.serviceTransportMode === 'air' && (
-              <div>
-                <label htmlFor="flightNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  ✈️ Uçuş Numarası
-                </label>
-                <input
-                  type="text"
-                  id="flightNumber"
-                  name="flightNumber"
-                  value={formData.flightNumber}
-                  onChange={handleInputChange}
-                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  placeholder="Örn: TK123 veya CRG456"
-                />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="flightNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    ✈️ Uçuş Numarası
+                  </label>
+                  <input
+                    type="text"
+                    id="flightNumber"
+                    name="flightNumber"
+                    value={formData.flightNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: TK123 veya CRG456"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="aircraftType" className="block text-sm font-medium text-gray-700 mb-2">
+                    ✈️ Uçak Tipi
+                  </label>
+                  <input
+                    type="text"
+                    id="aircraftType"
+                    name="aircraftType"
+                    value={formData.aircraftType}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: Boeing 747F, Airbus A330F"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="maxPayload" className="block text-sm font-medium text-gray-700 mb-2">
+                    📦 Maksimum Payload (kg)
+                  </label>
+                  <input
+                    type="text"
+                    id="maxPayload"
+                    name="maxPayload"
+                    value={formData.maxPayload}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 134000"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="cargoVolume" className="block text-sm font-medium text-gray-700 mb-2">
+                    📏 Kargo Hacmi (m³)
+                  </label>
+                  <input
+                    type="text"
+                    id="cargoVolume"
+                    name="cargoVolume"
+                    value={formData.cargoVolume}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 858"
+                  />
+                </div>
+              </>
             )}
 
             {/* 🚂 Demiryolu Ek Alanları */}
             {formData.serviceTransportMode === 'rail' && (
-              <div>
-                <label htmlFor="trainNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  🚂 Tren/Kompozisyon No
-                </label>
-                <input
-                  type="text"
-                  id="trainNumber"
-                  name="trainNumber"
-                  value={formData.trainNumber}
-                  onChange={handleInputChange}
-                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  placeholder="Örn: TR-12345 veya K-KARGO-67"
-                />
-              </div>
+              <>
+                <div>
+                  <label htmlFor="trainNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    🚂 Tren/Kompozisyon No
+                  </label>
+                  <input
+                    type="text"
+                    id="trainNumber"
+                    name="trainNumber"
+                    value={formData.trainNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: TR-12345 veya K-KARGO-67"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="wagonCount" className="block text-sm font-medium text-gray-700 mb-2">
+                    🚃 Vagon Sayısı
+                  </label>
+                  <input
+                    type="text"
+                    id="wagonCount"
+                    name="wagonCount"
+                    value={formData.wagonCount}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 25"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="wagonTypes" className="block text-sm font-medium text-gray-700 mb-2">
+                    🚃 Vagon Tipleri (virgülle ayırın)
+                  </label>
+                  <input
+                    type="text"
+                    id="wagonTypes"
+                    name="wagonTypes"
+                    value={formData.wagonTypes}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: Açık Yük Vagonu, Kapalı Yük Vagonu"
+                  />
+                </div>
+              </>
             )}
           </div>
 

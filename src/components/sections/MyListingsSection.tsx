@@ -15,12 +15,42 @@ import {
   Image as ImageIcon,
   ExternalLink,
   X,
-  BarChart3
+  BarChart3,
+  Truck,
+  Ship,
+  Plane,
+  Train,
+  ArrowRight
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { ListingService } from '../../services/listingService';
+import { TransportServiceService } from '../../services/transportServiceNew';
 import type { ExtendedListing } from '../../types/database-types';
+
+// Transport Service tipi (gerçek veri yapısına göre)
+interface TransportServiceData {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  service_number: string;
+  title: string;
+  description: string | null;
+  status: string;
+  transport_mode: string;
+  vehicle_type: string | null;
+  origin: string | null;
+  destination: string | null;
+  capacity_value: number | null;
+  capacity_unit: string | null;
+  dwt: number | null;
+  rating: number;
+  rating_count: number;
+  view_count: number;
+  ship_name?: string | null;
+  [key: string]: any; // Diğer alanlar için
+}
 import EditModalLoadListing from './EditModalLoadListing';
 import EditModalShipmentRequest from './EditModalShipmentRequest';
 import EditModalTransportService from './EditModalTransportService';
@@ -30,44 +60,65 @@ const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
   const [listings, setListings] = useState<ExtendedListing[]>([]);
+  const [transportServices, setTransportServices] = useState<TransportServiceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
   const [editListing, setEditListing] = useState<ExtendedListing | null>(null);
   const [relatedLoadListing, setRelatedLoadListing] = useState<ExtendedListing | null>(null);
+  const [activeTab, setActiveTab] = useState<'listings' | 'transport_services'>('listings');
 
-  // Kullanıcının ilanlarını yükle
+  // Kullanıcının ilanlarını ve nakliye hizmetlerini yükle
   useEffect(() => {
-    const loadUserListings = async () => {
+    const loadUserData = async () => {
       if (!user) {
         console.log('❌ No user found');
         return;
       }
       
       try {
-        console.log('🔄 Loading listings for user:', user.id);
+        console.log('🔄 Loading data for user:', user.id);
         setLoading(true);
-        const userListings = await ListingService.getUserListings(user.id);
+        
+        // Paralel olarak her ikisini de yükle
+        const [userListings, userTransportServices] = await Promise.all([
+          ListingService.getUserListings(user.id),
+          TransportServiceService.getUserServices(user.id)
+        ]);
+        
         console.log('✅ User listings loaded:', userListings);
+        console.log('✅ User transport services loaded:', userTransportServices);
+        
         setListings(userListings);
+        setTransportServices(userTransportServices);
       } catch (error) {
-        console.error('❌ Error loading user listings:', error);
+        console.error('❌ Error loading user data:', error);
         // Hata durumunda da loading'i false yap
         setListings([]);
+        setTransportServices([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadUserListings();
+    loadUserData();
   }, [user]);
 
-  // Arama filtresi
+  // Arama filtreleri
   const filteredListings = listings.filter(listing =>
     listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     listing.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
     listing.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
     listing.load_type?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredTransportServices = transportServices.filter(service =>
+    service.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.destination?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.ship_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.vehicle_type?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleTogglePause = async (listing: ExtendedListing) => {
@@ -124,6 +175,49 @@ const MyListingsSection: React.FC = () => {
     }
   }, [selectedListing?.related_load_listing_id]);
 
+  // Transport Service Handler Functions
+  const handleTransportServiceStatusUpdate = async (transportServiceId: string, newStatus: 'active' | 'completed' | 'inactive' | 'suspended') => {
+    try {
+      console.log('Updating transport service status...');
+      await TransportServiceService.updateService(transportServiceId, { status: newStatus });
+      
+      // Update the local state
+      setTransportServices(prev => prev.map(ts => 
+        ts.id === transportServiceId ? { ...ts, status: newStatus } : ts
+      ));
+      
+      console.log('✅ Transport service status updated');
+    } catch (error) {
+      console.error('Error updating transport service status:', error);
+    }
+  };
+
+  const handleTransportServiceEdit = (transportService: TransportServiceData) => {
+    // TODO: Implement edit functionality
+    console.log('Edit transport service:', transportService);
+  };
+
+  const handleTransportServiceView = (transportService: TransportServiceData) => {
+    // TODO: Implement view functionality  
+    console.log('View transport service:', transportService);
+  };
+
+  const handleTransportServiceDelete = async (transportServiceId: string) => {
+    if (window.confirm('Bu nakliye hizmetini silmek istediğinizden emin misiniz?')) {
+      try {
+        console.log('Deleting transport service...');
+        await TransportServiceService.deleteService(transportServiceId);
+        
+        // Remove from local state
+        setTransportServices(prev => prev.filter(ts => ts.id !== transportServiceId));
+        
+        console.log('✅ Transport service deleted');
+      } catch (error) {
+        console.error('Error deleting transport service:', error);
+      }
+    }
+  };
+
   // Yardımcı fonksiyonlar
   const getListingTypeBadge = (type: string) => {
     const config = {
@@ -147,7 +241,9 @@ const MyListingsSection: React.FC = () => {
       'paused': { label: 'Duraklatıldı', color: 'bg-yellow-100 text-yellow-800' },
       'completed': { label: 'Tamamlandı', color: 'bg-gray-100 text-gray-800' },
       'cancelled': { label: 'İptal Edildi', color: 'bg-red-100 text-red-800' },
-      'expired': { label: 'Süresi Doldu', color: 'bg-red-100 text-red-800' }
+      'expired': { label: 'Süresi Doldu', color: 'bg-red-100 text-red-800' },
+      'inactive': { label: 'Pasif', color: 'bg-gray-100 text-gray-800' },
+      'suspended': { label: 'Askıya Alındı', color: 'bg-red-100 text-red-800' }
     };
     
     const { label, color } = config[status as keyof typeof config] || { label: 'Taslak', color: 'bg-gray-100 text-gray-800' };
@@ -227,16 +323,53 @@ const MyListingsSection: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">İlanlarım</h1>
           <p className="mt-1 text-sm text-gray-600">
-            Toplam {listings.length} ilan
+            {listings.length} Yük İlanı • {transportServices.length} Nakliye Hizmeti
           </p>
         </div>
-        <button
-          onClick={() => setActiveSection('create-load-listing')}
-          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Yeni İlan
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveSection('create-load-listing')}
+            className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Yük İlanı
+          </button>
+          <button
+            onClick={() => setActiveSection('create-transport-service')}
+            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nakliye Hizmeti
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('listings')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'listings'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Package className="h-4 w-4 inline mr-2" />
+            Yük İlanları ({listings.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('transport_services')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'transport_services'
+                ? 'border-purple-500 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Truck className="h-4 w-4 inline mr-2" />
+            Nakliye Hizmetleri ({transportServices.length})
+          </button>
+        </nav>
       </div>
 
       {/* Search */}
@@ -254,40 +387,41 @@ const MyListingsSection: React.FC = () => {
       </div>
 
       {/* Content */}
-      {filteredListings.length === 0 ? (
-        <div className="text-center py-12">
-          <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          {searchTerm ? (
-            <>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Arama sonucu bulunamadı</h3>
-              <p className="text-gray-600">"{searchTerm}" için hiçbir ilan bulunamadı.</p>
-            </>
-          ) : (
-            <>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {listings.length === 0 ? 'Henüz hiç ilanınız yok' : 'İlan bulunamadı'}
-              </h3>
-              <p className="text-gray-600 mb-2">
-                {listings.length === 0 
-                  ? 'İlk ilanınızı oluşturarak başlayın!' 
-                  : `Toplam ${listings.length} ilanınız var ama filtreye uygun olan bulunamadı.`
-                }
-              </p>
-              {/* Debug info */}
-              <div className="text-xs text-gray-400 mb-6">
-                Debug: user_id={user?.id}, total_listings={listings.length}, loading={loading.toString()}
-              </div>
-              <button
-                onClick={() => setActiveSection('create-load-listing')}
-                className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                İlan Oluştur
-              </button>
-            </>
-          )}
-        </div>
-      ) : (
+      {activeTab === 'listings' ? (
+        filteredListings.length === 0 ? (
+          <div className="text-center py-12">
+            <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            {searchTerm ? (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Arama sonucu bulunamadı</h3>
+                <p className="text-gray-600">"{searchTerm}" için hiçbir ilan bulunamadı.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {listings.length === 0 ? 'Henüz hiç ilanınız yok' : 'İlan bulunamadı'}
+                </h3>
+                <p className="text-gray-600 mb-2">
+                  {listings.length === 0 
+                    ? 'İlk ilanınızı oluşturarak başlayın!' 
+                    : `Toplam ${listings.length} ilanınız var ama filtreye uygun olan bulunamadı.`
+                  }
+                </p>
+                {/* Debug info */}
+                <div className="text-xs text-gray-400 mb-6">
+                  Debug: user_id={user?.id}, total_listings={listings.length}, loading={loading.toString()}
+                </div>
+                <button
+                  onClick={() => setActiveSection('create-load-listing')}
+                  className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors duration-200"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  İlan Oluştur
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -396,7 +530,7 @@ const MyListingsSection: React.FC = () => {
                                   vehicle_types: listing.vehicle_types,
                                   load_type: listing.load_type,
                                   selected_vehicleType: vehicleType,
-                                  mapping_result: vehicleTypeMapping[vehicleType]
+                                  mapping_result: vehicleType ? vehicleTypeMapping[vehicleType] : null
                                 });
                                 return vehicleType ? (vehicleTypeMapping[vehicleType] || `🚛 ${vehicleType}`) : '🚛 Araç Tipi Belirtilmemiş';
                               })()
@@ -482,6 +616,182 @@ const MyListingsSection: React.FC = () => {
             </table>
           </div>
         </div>
+        )
+      ) : (
+        // Transport Services Tab
+        filteredTransportServices.length === 0 ? (
+          <div className="text-center py-12">
+            <Truck className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            {searchTerm ? (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Arama sonucu bulunamadı</h3>
+                <p className="text-gray-600">"{searchTerm}" için hiçbir nakliye hizmeti bulunamadı.</p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {transportServices.length === 0 ? 'Henüz hiç nakliye hizmetiniz yok' : 'Nakliye hizmeti bulunamadı'}
+                </h3>
+                <p className="text-gray-600 mb-2">
+                  {transportServices.length === 0 
+                    ? 'İlk nakliye hizmetinizi oluşturarak başlayın!' 
+                    : `Toplam ${transportServices.length} nakliye hizmetiniz var ama filtreye uygun olan bulunamadı.`
+                  }
+                </p>
+                <button
+                  onClick={() => setActiveSection('create-transport-service')}
+                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors duration-200"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nakliye Hizmeti Oluştur
+                </button>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filteredTransportServices.map((service) => (
+              <div key={service.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-purple-100 p-2 rounded-lg">
+                        <Truck className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">{service.title}</h3>
+                        <p className="text-sm text-gray-500">#{service.service_number}</p>
+                      </div>
+                    </div>
+                    {getStatusBadge(service.status)}
+                  </div>
+
+                  {/* Description */}
+                  {service.description && (
+                    <p className="text-sm text-gray-600 mb-4 line-clamp-2">{service.description}</p>
+                  )}
+
+                  {/* Transport Mode & Vehicle Types */}
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="flex items-center space-x-1">
+                        {service.transport_mode === 'road' && <Truck className="h-4 w-4 text-blue-500" />}
+                        {service.transport_mode === 'sea' && <Ship className="h-4 w-4 text-blue-500" />}
+                        {service.transport_mode === 'air' && <Plane className="h-4 w-4 text-blue-500" />}
+                        {service.transport_mode === 'rail' && <Train className="h-4 w-4 text-blue-500" />}
+                        <span className="text-sm font-medium text-gray-700 capitalize">
+                          {service.transport_mode === 'road' && 'Karayolu'}
+                          {service.transport_mode === 'sea' && 'Denizyolu'}
+                          {service.transport_mode === 'air' && 'Havayolu'}
+                          {service.transport_mode === 'rail' && 'Demiryolu'}
+                        </span>
+                      </div>
+                    </div>
+                    {service.vehicle_type && (
+                      <div className="flex flex-wrap gap-1">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {service.vehicle_type}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Route Information */}
+                  {(service.origin || service.destination) && (
+                    <div className="mb-4">
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span>{service.origin || 'Başlangıç'}</span>
+                        <ArrowRight className="h-3 w-3 text-gray-400" />
+                        <span>{service.destination || 'Varış'}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Capacity & Pricing */}
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                    {(service.capacity_value || service.dwt) && (
+                      <div>
+                        <span className="text-gray-500">Kapasite:</span>
+                        <p className="font-medium text-gray-900">
+                          {service.capacity_value ? `${service.capacity_value} ${service.capacity_unit || 'kg'}` : 
+                           service.dwt ? `${service.dwt} DWT` : 'Belirtilmemiş'}
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-gray-500">Tip:</span>
+                      <p className="font-medium text-gray-900">
+                        {service.transport_mode === 'sea' ? 'Denizyolu' :
+                         service.transport_mode === 'road' ? 'Karayolu' :
+                         service.transport_mode === 'air' ? 'Havayolu' :
+                         service.transport_mode === 'rail' ? 'Demiryolu' : 'Taşıma'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                    <div className="bg-gray-50 p-2 rounded">
+                      <div className="text-lg font-semibold text-gray-900">{service.rating || '0.0'}</div>
+                      <div className="text-xs text-gray-500">Puan</div>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <div className="text-lg font-semibold text-gray-900">{service.view_count || '0'}</div>
+                      <div className="text-xs text-gray-500">Görüntülenme</div>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <div className="text-lg font-semibold text-gray-900">{service.rating_count || '0'}</div>
+                      <div className="text-xs text-gray-500">Değ.</div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleTransportServiceView(service)}
+                      className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Görüntüle
+                    </button>
+                    <button
+                      onClick={() => handleTransportServiceEdit(service)}
+                      className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-purple-300 text-sm font-medium rounded-md text-purple-700 bg-purple-50 hover:bg-purple-100 transition-colors duration-200"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Düzenle
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          const newStatus = service.status === 'active' ? 'inactive' : 'active';
+                          handleTransportServiceStatusUpdate(service.id, newStatus);
+                        }}
+                        title={service.status === 'active' ? 'Hizmeti Duraklatın' : 'Hizmeti Aktif Yapın'}
+                        className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                          service.status === 'active' 
+                            ? 'border border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100' 
+                            : 'border border-green-300 text-green-700 bg-green-50 hover:bg-green-100'
+                        }`}
+                      >
+                        {service.status === 'active' ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => handleTransportServiceDelete(service.id)}
+                      title="Hizmeti Sil"
+                      className="inline-flex items-center justify-center px-3 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-200"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* İlan Detay Modalı */}
@@ -1152,14 +1462,15 @@ function prepareTransportServiceDetail(listing: ExtendedListing): ExtendedListin
   console.log('- Original listing.required_documents:', listing.required_documents);
   
   // Metadata'dan required_documents'ı temizle (eğer varsa)
-  let cleanMetadata = listing.metadata && typeof listing.metadata === 'object' 
+  const cleanMetadata = listing.metadata && typeof listing.metadata === 'object' 
     ? { ...listing.metadata } 
     : { contact_info: {}, transport_details: {} };
   
   // required_documents varsa metadata'dan kaldır
   if (cleanMetadata && 'required_documents' in cleanMetadata) {
-    const { required_documents, ...metadataWithoutDocs } = cleanMetadata as any;
-    cleanMetadata = metadataWithoutDocs;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { required_documents, ...rest } = cleanMetadata as Record<string, unknown>;
+    Object.assign(cleanMetadata, rest);
     console.log('🧹 CLEANED required_documents from metadata');
   }
   
