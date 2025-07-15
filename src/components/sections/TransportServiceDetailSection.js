@@ -1,18 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React from 'react';
-import { Truck, Ship, Plane, Train } from 'lucide-react';
+import { Truck, Ship, Plane, Train, MapPin, Calendar, Package, Building, Phone, FileText } from 'lucide-react';
 const TransportServiceDetailSection = ({ listing }) => {
     const { metadata } = listing;
-    const transportDetails = metadata?.transport_details || {};
-    const contactInfo = metadata?.contact_info || {};
-    // Debug: Kapasite verilerini konsola yazdır
-    console.log('🔍 KAPASITE DEBUG - Transport Mode:', listing.transport_mode);
-    console.log('🔍 KAPASITE DEBUG - transportDetails:', transportDetails);
-    console.log('🔍 KAPASITE DEBUG - transportDetails.capacity:', transportDetails?.capacity);
-    console.log('🔍 KAPASITE DEBUG - listing.weight_value:', listing.weight_value);
-    console.log('🔍 KAPASITE DEBUG - listing.volume_value:', listing.volume_value);
-    console.log('🔍 KAPASITE DEBUG - metadata:', metadata);
-    console.log('🏷️ LABEL DEBUG - Transport mode:', listing.transport_mode, 'Label will be:', listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite');
+    const transportDetails = metadata?.transport_details;
+    const contactInfo = metadata?.contact_info;
     // Taşıma moduna göre ikon ve Türkçe metin
     function getTransportModeDisplay(mode) {
         switch (mode) {
@@ -30,81 +22,59 @@ const TransportServiceDetailSection = ({ listing }) => {
     }
     // Kapasite bilgisini taşıma moduna göre akıllı şekilde getir
     function getCapacityInfo() {
-        console.log('🎯 getCapacityInfo called for mode:', listing.transport_mode);
-        console.log('🎯 Checking weight_value:', listing.weight_value, 'type:', typeof listing.weight_value);
-        console.log('🎯 Checking volume_value:', listing.volume_value, 'type:', typeof listing.volume_value);
-        console.log('🎯 Checking legacy capacity field:', listing.capacity, 'type:', typeof listing.capacity);
-        console.log('🎯 Checking transportDetails.capacity:', transportDetails?.capacity);
         // 1. Önce legacy capacity alanını kontrol et (mevcut veriler için)
-        if (listing.capacity && listing.capacity !== null && listing.capacity !== '') {
-            console.log('✅ Found legacy capacity:', listing.capacity);
-            return String(listing.capacity);
+        const legacyCapacity = listing.capacity;
+        if (legacyCapacity && legacyCapacity !== null && legacyCapacity !== '') {
+            return String(legacyCapacity);
         }
         // 2. Ana listing alanlarını kontrol et (yeni veriler için)
         if (listing.weight_value && listing.weight_value > 0) {
             const unit = listing.weight_unit || 'kg';
-            console.log('✅ Found weight_value:', listing.weight_value, unit);
             return `${listing.weight_value} ${unit}`;
         }
         if (listing.volume_value && listing.volume_value > 0) {
             const unit = listing.volume_unit || 'm³';
-            console.log('✅ Found volume_value:', listing.volume_value, unit);
             return `${listing.volume_value} ${unit}`;
         }
         // 3. Metadata'daki genel capacity kontrolü
         if (transportDetails?.capacity) {
-            console.log('✅ Found transportDetails.capacity:', transportDetails.capacity);
-            return transportDetails.capacity;
+            return String(transportDetails.capacity);
         }
         // 4. Taşıma moduna özel alanları kontrol et (son çare)
         switch (listing.transport_mode) {
             case 'road':
-                // Karayolu için metadata'da özel alanlar olabilir
                 if (transportDetails?.truck_capacity) {
-                    console.log('✅ Found truck_capacity:', transportDetails.truck_capacity);
-                    return transportDetails.truck_capacity;
+                    return String(transportDetails.truck_capacity);
                 }
                 if (transportDetails?.load_capacity) {
-                    console.log('✅ Found load_capacity:', transportDetails.load_capacity);
-                    return transportDetails.load_capacity;
+                    return String(transportDetails.load_capacity);
                 }
                 break;
             case 'rail':
-                // Trenyolu için metadata'da özel alanlar olabilir
                 if (transportDetails?.wagon_capacity) {
-                    console.log('✅ Found wagon_capacity:', transportDetails.wagon_capacity);
-                    return transportDetails.wagon_capacity;
+                    return String(transportDetails.wagon_capacity);
                 }
                 if (transportDetails?.train_capacity) {
-                    console.log('✅ Found train_capacity:', transportDetails.train_capacity);
-                    return transportDetails.train_capacity;
+                    return String(transportDetails.train_capacity);
                 }
                 break;
             case 'sea':
-                // Denizyolu için DWT'yi kapasite olarak kullanmayalım (duplikasyon önlemek için)
-                // Sadece ship_capacity gibi alanları kontrol edelim
                 if (transportDetails?.ship_capacity) {
-                    console.log('✅ Found ship_capacity:', transportDetails.ship_capacity);
-                    return transportDetails.ship_capacity;
+                    return String(transportDetails.ship_capacity);
                 }
                 if (transportDetails?.cargo_capacity) {
-                    console.log('✅ Found cargo_capacity:', transportDetails.cargo_capacity);
-                    return transportDetails.cargo_capacity;
+                    return String(transportDetails.cargo_capacity);
                 }
-                // DWT'yi kapasite olarak göstermeyelim, ayrı alanı var
                 break;
             case 'air':
                 if (transportDetails?.payload) {
-                    console.log('✅ Found payload:', transportDetails.payload);
-                    return transportDetails.payload;
+                    return String(transportDetails.payload);
                 }
                 if (transportDetails?.cargo_weight) {
-                    console.log('✅ Found cargo_weight:', transportDetails.cargo_weight);
-                    return transportDetails.cargo_weight;
+                    return String(transportDetails.cargo_weight);
                 }
                 break;
         }
-        console.log('❌ No capacity found, showing default');
         return 'Belirtilmemiş';
     }
     // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD-MM-YYYY)
@@ -188,12 +158,12 @@ const TransportServiceDetailSection = ({ listing }) => {
         };
         return vehicleTypeMapping[vehicleCode] || `🚛 ${vehicleCode}`;
     }
-    return (_jsxs("div", { className: "rounded-3xl shadow-lg p-8 bg-white border border-gray-200 space-y-6", children: [_jsxs("div", { className: "flex items-center space-x-4 mb-4", children: [_jsx("span", { className: "text-lg font-bold text-gray-900", children: listing.listing_number }), _jsx("span", { className: "text-xl font-bold text-gray-900", children: listing.title }), _jsx("span", { className: "ml-auto px-4 py-2 rounded-full bg-green-100 text-green-700 text-xs font-semibold", children: listing.status })] }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "A\u00E7\u0131klama" }), _jsx("div", { className: "text-gray-800 mb-2", children: listing.description })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Ta\u015F\u0131ma Modu" }), _jsx("div", { className: "mb-2", children: getTransportModeDisplay(listing.transport_mode) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Kalk\u0131\u015F B\u00F6lgesi" }), _jsx("div", { className: "text-gray-800 mb-2", children: listing.origin })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Var\u0131\u015F B\u00F6lgesi" }), _jsx("div", { className: "text-gray-800 mb-2", children: listing.destination })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Ara\u00E7 Tipi" }), _jsx("div", { className: "text-gray-800 mb-2", children: listing.vehicle_types && listing.vehicle_types.length > 0
-                                    ? listing.vehicle_types.map(vehicleCode => getVehicleTypeLabel(vehicleCode)).join(', ')
-                                    : 'Belirtilmemiş' })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite' }), _jsx("div", { className: "text-gray-800 mb-2", children: getCapacityInfo() })] }), listing.transport_mode !== 'sea' && (_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Bo\u015Fta Olma Tarihi" }), _jsx("div", { className: "text-gray-800 mb-2", children: formatDate(listing.available_from_date) })] })), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "\u0130leti\u015Fim Bilgileri" }), _jsx("div", { className: "text-gray-800 mb-2", children: contactInfo?.contact }), contactInfo?.company_name && (_jsxs("div", { className: "text-gray-600 text-xs", children: ["Firma: ", contactInfo?.company_name] }))] }), listing.required_documents && listing.required_documents.length > 0 && (_jsxs("div", { className: "col-span-1 md:col-span-2", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Gerekli Evraklar" }), _jsx("div", { className: "bg-gray-50 p-4 rounded-lg", children: _jsx("ul", { className: "list-disc list-inside space-y-1", children: listing.required_documents.map((doc, index) => (_jsx("li", { className: "text-gray-700 text-sm", children: doc }, index))) }) })] })), listing.transport_mode === 'road' && (_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Plaka / \u015Easi No" }), transportDetails?.plate_number && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["Plaka/\u015Easi: ", transportDetails.plate_number] }))] })), listing.transport_mode === 'sea' && (_jsxs(_Fragment, { children: [_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Gemi Ad\u0131" }), transportDetails?.ship_name && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["Gemi Ad\u0131: ", transportDetails.ship_name] }))] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "IMO No" }), transportDetails?.imo_number && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["IMO No: ", transportDetails.imo_number] }))] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "MMSI No" }), transportDetails?.mmsi_number && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["MMSI No: ", transportDetails.mmsi_number] }))] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "DWT / Tonaj" }), transportDetails?.dwt && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["DWT/Tonaj: ", transportDetails.dwt] }))] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Boyutlar" }), transportDetails?.ship_dimensions && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["Boyutlar: ", transportDetails.ship_dimensions] }))] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Laycan Ba\u015Flang\u0131\u00E7" }), _jsx("div", { className: "text-gray-800 mb-2", children: transportDetails?.laycan_start
-                                            ? formatDate(transportDetails.laycan_start)
-                                            : formatDate(listing.available_from_date) })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Laycan Biti\u015F" }), _jsx("div", { className: "text-gray-800 mb-2", children: transportDetails?.laycan_end
-                                            ? formatDate(transportDetails.laycan_end)
-                                            : 'Belirtilmemiş' })] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Navlun Tipi" }), transportDetails?.freight_type && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["Navlun Tipi: ", transportDetails.freight_type] }))] }), _jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Charterer / Broker" }), transportDetails?.charterer_info && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["Charterer/Broker: ", transportDetails.charterer_info] }))] })] })), listing.transport_mode === 'air' && (_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "U\u00E7u\u015F Numaras\u0131" }), transportDetails?.flight_number && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["U\u00E7u\u015F Numaras\u0131: ", transportDetails.flight_number] }))] })), listing.transport_mode === 'rail' && (_jsxs("div", { children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-1", children: "Tren/Kompozisyon No" }), transportDetails?.train_number && (_jsxs("div", { className: "text-gray-800 mb-2", children: ["Tren/Kompozisyon No: ", transportDetails.train_number] }))] }))] })] }));
+    return (_jsxs("div", { className: "bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl border border-gray-200 overflow-hidden", children: [_jsx("div", { className: "bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 text-white", children: _jsxs("div", { className: "flex items-center justify-between", children: [_jsxs("div", { className: "flex items-center space-x-4", children: [_jsxs("div", { className: "bg-white/20 p-3 rounded-xl backdrop-blur-sm", children: [listing.transport_mode === 'road' && _jsx(Truck, { className: "w-6 h-6" }), listing.transport_mode === 'sea' && _jsx(Ship, { className: "w-6 h-6" }), listing.transport_mode === 'air' && _jsx(Plane, { className: "w-6 h-6" }), listing.transport_mode === 'rail' && _jsx(Train, { className: "w-6 h-6" })] }), _jsxs("div", { children: [_jsx("h2", { className: "text-2xl font-bold", children: listing.title }), _jsxs("p", { className: "text-white/80 text-sm mt-1", children: ["\u0130lan No: ", listing.listing_number] })] })] }), _jsx("div", { className: "bg-green-500/20 px-4 py-2 rounded-xl backdrop-blur-sm", children: _jsx("span", { className: "text-white font-medium capitalize", children: listing.status }) })] }) }), _jsxs("div", { className: "p-8 space-y-8", children: [listing.description && (_jsxs("div", { className: "bg-blue-50 rounded-xl p-6 border border-blue-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-blue-900 mb-3 flex items-center", children: [_jsx(FileText, { className: "w-5 h-5 mr-2" }), "A\u00E7\u0131klama"] }), _jsx("p", { className: "text-blue-800 leading-relaxed", children: listing.description })] })), _jsxs("div", { className: "bg-indigo-50 rounded-xl p-6 border border-indigo-200", children: [_jsx("h3", { className: "text-lg font-semibold text-indigo-900 mb-3", children: "Ta\u015F\u0131ma Modu" }), _jsx("div", { children: getTransportModeDisplay(listing.transport_mode) })] }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { className: "bg-green-50 rounded-xl p-6 border border-green-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-green-900 mb-4 flex items-center", children: [_jsx(MapPin, { className: "w-5 h-5 mr-2" }), "Kalk\u0131\u015F B\u00F6lgesi"] }), _jsx("p", { className: "text-green-800 text-lg font-medium", children: listing.origin })] }), _jsxs("div", { className: "bg-orange-50 rounded-xl p-6 border border-orange-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-orange-900 mb-4 flex items-center", children: [_jsx(MapPin, { className: "w-5 h-5 mr-2" }), "Var\u0131\u015F B\u00F6lgesi"] }), _jsx("p", { className: "text-orange-800 text-lg font-medium", children: listing.destination })] })] }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { className: "bg-purple-50 rounded-xl p-6 border border-purple-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-purple-900 mb-4 flex items-center", children: [_jsx(Truck, { className: "w-5 h-5 mr-2" }), "Ara\u00E7 Tipi"] }), _jsx("p", { className: "text-purple-800 font-medium", children: listing.vehicle_types && listing.vehicle_types.length > 0
+                                            ? listing.vehicle_types.map(vehicleCode => getVehicleTypeLabel(vehicleCode)).join(', ')
+                                            : 'Belirtilmemiş' })] }), _jsxs("div", { className: "bg-cyan-50 rounded-xl p-6 border border-cyan-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-cyan-900 mb-4 flex items-center", children: [_jsx(Package, { className: "w-5 h-5 mr-2" }), listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite'] }), _jsx("p", { className: "text-cyan-800 text-lg font-medium", children: getCapacityInfo() })] })] }), listing.transport_mode !== 'sea' ? (_jsxs("div", { className: "bg-yellow-50 rounded-xl p-6 border border-yellow-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-yellow-900 mb-4 flex items-center", children: [_jsx(Calendar, { className: "w-5 h-5 mr-2" }), "Bo\u015Fta Olma Tarihi"] }), _jsx("p", { className: "text-yellow-800 font-medium", children: formatDate(listing.available_from_date) })] })) : null, _jsxs("div", { className: "bg-gray-50 rounded-xl p-6 border border-gray-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-gray-900 mb-4 flex items-center", children: [_jsx(Building, { className: "w-5 h-5 mr-2" }), "\u0130leti\u015Fim Bilgileri"] }), _jsxs("div", { className: "space-y-3", children: [contactInfo?.contact_info ? (_jsxs("div", { className: "flex items-center space-x-3", children: [_jsx(Phone, { className: "w-4 h-4 text-gray-500" }), _jsx("span", { className: "text-gray-800", children: String(contactInfo.contact_info) })] })) : null, contactInfo?.company_name ? (_jsxs("div", { className: "flex items-center space-x-3", children: [_jsx(Building, { className: "w-4 h-4 text-gray-500" }), _jsx("span", { className: "text-gray-800 font-medium", children: String(contactInfo.company_name) })] })) : null] })] }), listing.required_documents && listing.required_documents.length > 0 && (_jsxs("div", { className: "bg-amber-50 rounded-xl p-6 border border-amber-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-amber-900 mb-4 flex items-center", children: [_jsx(FileText, { className: "w-5 h-5 mr-2" }), "Gerekli Evraklar"] }), _jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-2", children: listing.required_documents.map((doc, index) => (_jsxs("div", { className: "flex items-center space-x-2", children: [_jsx("div", { className: "w-2 h-2 bg-amber-500 rounded-full" }), _jsx("span", { className: "text-amber-800 text-sm", children: doc })] }, index))) })] })), (listing.transport_mode === 'road' && transportDetails?.plate_number) ? (_jsxs("div", { className: "bg-yellow-50 rounded-xl p-6 border border-yellow-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-yellow-900 mb-4 flex items-center", children: [_jsx(Truck, { className: "w-5 h-5 mr-2" }), "Karayolu Detaylar\u0131"] }), _jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("span", { className: "text-sm font-medium text-yellow-700", children: "Plaka:" }), _jsx("span", { className: "text-yellow-800 font-medium", children: String(transportDetails.plate_number) })] })] })) : null, listing.transport_mode === 'sea' && (_jsxs(_Fragment, { children: [_jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6", children: [_jsxs("div", { className: "bg-blue-50 rounded-xl p-6 border border-blue-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-blue-900 mb-4 flex items-center", children: [_jsx(Calendar, { className: "w-5 h-5 mr-2" }), "Laycan Ba\u015Flang\u0131\u00E7"] }), _jsx("p", { className: "text-blue-800 font-medium", children: transportDetails?.laycan_start
+                                                    ? formatDate(String(transportDetails.laycan_start))
+                                                    : formatDate(listing.available_from_date) })] }), _jsxs("div", { className: "bg-blue-50 rounded-xl p-6 border border-blue-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-blue-900 mb-4 flex items-center", children: [_jsx(Calendar, { className: "w-5 h-5 mr-2" }), "Laycan Biti\u015F"] }), _jsx("p", { className: "text-blue-800 font-medium", children: transportDetails?.laycan_end
+                                                    ? formatDate(String(transportDetails.laycan_end))
+                                                    : 'Belirtilmemiş' })] })] }), _jsxs("div", { className: "bg-blue-50 rounded-xl p-6 border border-blue-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-blue-900 mb-4 flex items-center", children: [_jsx(Ship, { className: "w-5 h-5 mr-2" }), "Denizyolu Detaylar\u0131"] }), _jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [transportDetails?.ship_name ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "Gemi Ad\u0131:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.ship_name) })] })) : null, transportDetails?.imo_number ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "IMO No:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.imo_number) })] })) : null, transportDetails?.mmsi_number ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "MMSI No:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.mmsi_number) })] })) : null, transportDetails?.dwt ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "DWT:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.dwt) })] })) : null, transportDetails?.ship_dimensions ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "Boyutlar:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.ship_dimensions) })] })) : null, transportDetails?.freight_type ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "Navlun Tipi:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.freight_type) })] })) : null, transportDetails?.charterer_info ? (_jsxs("div", { className: "flex items-center justify-between p-3 bg-white rounded-lg", children: [_jsx("span", { className: "text-sm font-medium text-blue-700", children: "Charterer:" }), _jsx("span", { className: "text-blue-800 font-medium", children: String(transportDetails.charterer_info) })] })) : null] })] })] })), (listing.transport_mode === 'air' && transportDetails?.flight_number) ? (_jsxs("div", { className: "bg-cyan-50 rounded-xl p-6 border border-cyan-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-cyan-900 mb-4 flex items-center", children: [_jsx(Plane, { className: "w-5 h-5 mr-2" }), "Havayolu Detaylar\u0131"] }), _jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("span", { className: "text-sm font-medium text-cyan-700", children: "U\u00E7u\u015F Numaras\u0131:" }), _jsx("span", { className: "text-cyan-800 font-medium", children: String(transportDetails.flight_number) })] })] })) : null, (listing.transport_mode === 'rail' && transportDetails?.train_number) ? (_jsxs("div", { className: "bg-gray-50 rounded-xl p-6 border border-gray-200", children: [_jsxs("h3", { className: "text-lg font-semibold text-gray-900 mb-4 flex items-center", children: [_jsx(Train, { className: "w-5 h-5 mr-2" }), "Demiryolu Detaylar\u0131"] }), _jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("span", { className: "text-sm font-medium text-gray-700", children: "Tren/Kompozisyon No:" }), _jsx("span", { className: "text-gray-800 font-medium", children: String(transportDetails.train_number) })] })] })) : null] })] }));
 };
 export default TransportServiceDetailSection;

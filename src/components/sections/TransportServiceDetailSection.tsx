@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, Ship, Plane, Train } from 'lucide-react';
+import { Truck, Ship, Plane, Train, MapPin, Calendar, Package, Building, Phone, FileText } from 'lucide-react';
 import type { ExtendedListing } from '../../types/database-types';
 
 interface TransportServiceDetailProps {
@@ -8,17 +8,8 @@ interface TransportServiceDetailProps {
 
 const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ listing }) => {
   const { metadata } = listing;
-  const transportDetails = (metadata as any)?.transport_details || {};
-  const contactInfo = (metadata as any)?.contact_info || {};
-
-  // Debug: Kapasite verilerini konsola yazdır
-  console.log('🔍 KAPASITE DEBUG - Transport Mode:', listing.transport_mode);
-  console.log('🔍 KAPASITE DEBUG - transportDetails:', transportDetails);
-  console.log('🔍 KAPASITE DEBUG - transportDetails.capacity:', transportDetails?.capacity);
-  console.log('🔍 KAPASITE DEBUG - listing.weight_value:', listing.weight_value);
-  console.log('🔍 KAPASITE DEBUG - listing.volume_value:', listing.volume_value);
-  console.log('🔍 KAPASITE DEBUG - metadata:', metadata);
-  console.log('🏷️ LABEL DEBUG - Transport mode:', listing.transport_mode, 'Label will be:', listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite');
+  const transportDetails = (metadata as Record<string, unknown>)?.transport_details as Record<string, unknown> | undefined;
+  const contactInfo = (metadata as Record<string, unknown>)?.contact_info as Record<string, unknown> | undefined;
 
   // Taşıma moduna göre ikon ve Türkçe metin
   function getTransportModeDisplay(mode: string) {
@@ -38,90 +29,67 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
 
   // Kapasite bilgisini taşıma moduna göre akıllı şekilde getir
   function getCapacityInfo(): string {
-    console.log('🎯 getCapacityInfo called for mode:', listing.transport_mode);
-    console.log('🎯 Checking weight_value:', listing.weight_value, 'type:', typeof listing.weight_value);
-    console.log('🎯 Checking volume_value:', listing.volume_value, 'type:', typeof listing.volume_value);
-    console.log('🎯 Checking legacy capacity field:', (listing as any).capacity, 'type:', typeof (listing as any).capacity);
-    console.log('🎯 Checking transportDetails.capacity:', transportDetails?.capacity);
-    
     // 1. Önce legacy capacity alanını kontrol et (mevcut veriler için)
-    if ((listing as any).capacity && (listing as any).capacity !== null && (listing as any).capacity !== '') {
-      console.log('✅ Found legacy capacity:', (listing as any).capacity);
-      return String((listing as any).capacity);
+    const legacyCapacity = (listing as Record<string, unknown>).capacity;
+    if (legacyCapacity && legacyCapacity !== null && legacyCapacity !== '') {
+      return String(legacyCapacity);
     }
 
     // 2. Ana listing alanlarını kontrol et (yeni veriler için)
     if (listing.weight_value && listing.weight_value > 0) {
       const unit = listing.weight_unit || 'kg';
-      console.log('✅ Found weight_value:', listing.weight_value, unit);
       return `${listing.weight_value} ${unit}`;
     }
 
     if (listing.volume_value && listing.volume_value > 0) {
       const unit = listing.volume_unit || 'm³';
-      console.log('✅ Found volume_value:', listing.volume_value, unit);
       return `${listing.volume_value} ${unit}`;
     }
 
     // 3. Metadata'daki genel capacity kontrolü
     if (transportDetails?.capacity) {
-      console.log('✅ Found transportDetails.capacity:', transportDetails.capacity);
-      return transportDetails.capacity;
+      return String(transportDetails.capacity);
     }
 
     // 4. Taşıma moduna özel alanları kontrol et (son çare)
     switch (listing.transport_mode) {
       case 'road':
-        // Karayolu için metadata'da özel alanlar olabilir
         if (transportDetails?.truck_capacity) {
-          console.log('✅ Found truck_capacity:', transportDetails.truck_capacity);
-          return transportDetails.truck_capacity;
+          return String(transportDetails.truck_capacity);
         }
         if (transportDetails?.load_capacity) {
-          console.log('✅ Found load_capacity:', transportDetails.load_capacity);
-          return transportDetails.load_capacity;
+          return String(transportDetails.load_capacity);
         }
         break;
         
       case 'rail':
-        // Trenyolu için metadata'da özel alanlar olabilir
         if (transportDetails?.wagon_capacity) {
-          console.log('✅ Found wagon_capacity:', transportDetails.wagon_capacity);
-          return transportDetails.wagon_capacity;
+          return String(transportDetails.wagon_capacity);
         }
         if (transportDetails?.train_capacity) {
-          console.log('✅ Found train_capacity:', transportDetails.train_capacity);
-          return transportDetails.train_capacity;
+          return String(transportDetails.train_capacity);
         }
         break;
         
       case 'sea':
-        // Denizyolu için DWT'yi kapasite olarak kullanmayalım (duplikasyon önlemek için)
-        // Sadece ship_capacity gibi alanları kontrol edelim
         if (transportDetails?.ship_capacity) {
-          console.log('✅ Found ship_capacity:', transportDetails.ship_capacity);
-          return transportDetails.ship_capacity;
+          return String(transportDetails.ship_capacity);
         }
         if (transportDetails?.cargo_capacity) {
-          console.log('✅ Found cargo_capacity:', transportDetails.cargo_capacity);
-          return transportDetails.cargo_capacity;
+          return String(transportDetails.cargo_capacity);
         }
-        // DWT'yi kapasite olarak göstermeyelim, ayrı alanı var
         break;
         
       case 'air':
         if (transportDetails?.payload) {
-          console.log('✅ Found payload:', transportDetails.payload);
-          return transportDetails.payload;
+          return String(transportDetails.payload);
         }
         if (transportDetails?.cargo_weight) {
-          console.log('✅ Found cargo_weight:', transportDetails.cargo_weight);
-          return transportDetails.cargo_weight;
+          return String(transportDetails.cargo_weight);
         }
         break;
     }
 
-    console.log('❌ No capacity found, showing default');
     return 'Belirtilmemiş';
   }
 
@@ -215,164 +183,269 @@ const TransportServiceDetailSection: React.FC<TransportServiceDetailProps> = ({ 
   }
 
   return (
-    <div className="rounded-3xl shadow-lg p-8 bg-white border border-gray-200 space-y-6">
-      <div className="flex items-center space-x-4 mb-4">
-        <span className="text-lg font-bold text-gray-900">{listing.listing_number}</span>
-        <span className="text-xl font-bold text-gray-900">{listing.title}</span>
-        <span className="ml-auto px-4 py-2 rounded-full bg-green-100 text-green-700 text-xs font-semibold">{listing.status}</span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
-          <div className="text-gray-800 mb-2">{listing.description}</div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Taşıma Modu</label>
-          <div className="mb-2">{getTransportModeDisplay(listing.transport_mode)}</div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Kalkış Bölgesi</label>
-          <div className="text-gray-800 mb-2">{listing.origin}</div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Varış Bölgesi</label>
-          <div className="text-gray-800 mb-2">{listing.destination}</div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Araç Tipi</label>
-          <div className="text-gray-800 mb-2">
-            {listing.vehicle_types && listing.vehicle_types.length > 0 
-              ? listing.vehicle_types.map(vehicleCode => getVehicleTypeLabel(vehicleCode)).join(', ')
-              : 'Belirtilmemiş'
-            }
+    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-6 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+              {listing.transport_mode === 'road' && <Truck className="w-6 h-6" />}
+              {listing.transport_mode === 'sea' && <Ship className="w-6 h-6" />}
+              {listing.transport_mode === 'air' && <Plane className="w-6 h-6" />}
+              {listing.transport_mode === 'rail' && <Train className="w-6 h-6" />}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold">{listing.title}</h2>
+              <p className="text-white/80 text-sm mt-1">İlan No: {listing.listing_number}</p>
+            </div>
+          </div>
+          <div className="bg-green-500/20 px-4 py-2 rounded-xl backdrop-blur-sm">
+            <span className="text-white font-medium capitalize">{listing.status}</span>
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite'}
-          </label>
-          <div className="text-gray-800 mb-2">{getCapacityInfo()}</div>
-        </div>
-        {/* Boşta Olma Tarihi - Denizyolu hariç diğer modlar için */}
-        {listing.transport_mode !== 'sea' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Boşta Olma Tarihi</label>
-            <div className="text-gray-800 mb-2">{formatDate(listing.available_from_date)}</div>
+      </div>
+
+      {/* Content */}
+      <div className="p-8 space-y-8">
+        {/* Description */}
+        {listing.description && (
+          <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+            <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Açıklama
+            </h3>
+            <p className="text-blue-800 leading-relaxed">{listing.description}</p>
           </div>
         )}
-        {/* İletişim Bilgileri */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">İletişim Bilgileri</label>
-          <div className="text-gray-800 mb-2">{contactInfo?.contact}</div>
-          {contactInfo?.company_name && (
-            <div className="text-gray-600 text-xs">Firma: {contactInfo?.company_name}</div>
-          )}
+
+        {/* Transport Mode */}
+        <div className="bg-indigo-50 rounded-xl p-6 border border-indigo-200">
+          <h3 className="text-lg font-semibold text-indigo-900 mb-3">
+            Taşıma Modu
+          </h3>
+          <div>{getTransportModeDisplay(listing.transport_mode)}</div>
         </div>
-        
-        {/* Gerekli Evraklar - Sadece ana kolondan oku, metadata'dan değil */}
+
+        {/* Route Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-green-50 rounded-xl p-6 border border-green-200">
+            <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Kalkış Bölgesi
+            </h3>
+            <p className="text-green-800 text-lg font-medium">{listing.origin}</p>
+          </div>
+          
+          <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
+            <h3 className="text-lg font-semibold text-orange-900 mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Varış Bölgesi
+            </h3>
+            <p className="text-orange-800 text-lg font-medium">{listing.destination}</p>
+          </div>
+        </div>
+
+        {/* Vehicle and Capacity Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+            <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
+              <Truck className="w-5 h-5 mr-2" />
+              Araç Tipi
+            </h3>
+            <p className="text-purple-800 font-medium">
+              {listing.vehicle_types && listing.vehicle_types.length > 0 
+                ? listing.vehicle_types.map(vehicleCode => getVehicleTypeLabel(vehicleCode)).join(', ')
+                : 'Belirtilmemiş'
+              }
+            </p>
+          </div>
+          
+          <div className="bg-cyan-50 rounded-xl p-6 border border-cyan-200">
+            <h3 className="text-lg font-semibold text-cyan-900 mb-4 flex items-center">
+              <Package className="w-5 h-5 mr-2" />
+              {listing.transport_mode === 'sea' ? 'Gross Tonnage' : 'Kapasite'}
+            </h3>
+            <p className="text-cyan-800 text-lg font-medium">{getCapacityInfo()}</p>
+          </div>
+        </div>
+
+        {/* Date Information */}
+        {listing.transport_mode !== 'sea' ? (
+          <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-4 flex items-center">
+              <Calendar className="w-5 h-5 mr-2" />
+              Boşta Olma Tarihi
+            </h3>
+            <p className="text-yellow-800 font-medium">
+              {formatDate(listing.available_from_date)}
+            </p>
+          </div>
+        ) : null}
+
+        {/* Contact Information */}
+        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Building className="w-5 h-5 mr-2" />
+            İletişim Bilgileri
+          </h3>
+          <div className="space-y-3">
+            {contactInfo?.contact_info ? (
+              <div className="flex items-center space-x-3">
+                <Phone className="w-4 h-4 text-gray-500" />
+                <span className="text-gray-800">{String(contactInfo.contact_info)}</span>
+              </div>
+            ) : null}
+            {contactInfo?.company_name ? (
+              <div className="flex items-center space-x-3">
+                <Building className="w-4 h-4 text-gray-500" />
+                <span className="text-gray-800 font-medium">{String(contactInfo.company_name)}</span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* Required Documents */}
         {listing.required_documents && listing.required_documents.length > 0 && (
-          <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Gerekli Evraklar</label>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <ul className="list-disc list-inside space-y-1">
-                {listing.required_documents.map((doc, index) => (
-                  <li key={index} className="text-gray-700 text-sm">{doc}</li>
-                ))}
-              </ul>
+          <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
+            <h3 className="text-lg font-semibold text-amber-900 mb-4 flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Gerekli Evraklar
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {listing.required_documents.map((doc, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                  <span className="text-amber-800 text-sm">{doc}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
-        
-        {/* Modlara özel detaylar */}
-        {listing.transport_mode === 'road' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Plaka / Şasi No</label>
-            {/* Dinamik metadata alanları - taşıma moduna göre uygun kolonlar */}
-            {transportDetails?.plate_number && (
-              <div className="text-gray-800 mb-2">Plaka/Şasi: {transportDetails.plate_number}</div>
-            )}
+
+        {/* Transport Mode Specific Details */}
+        {(listing.transport_mode === 'road' && transportDetails?.plate_number) ? (
+          <div className="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-4 flex items-center">
+              <Truck className="w-5 h-5 mr-2" />
+              Karayolu Detayları
+            </h3>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-yellow-700">Plaka:</span>
+              <span className="text-yellow-800 font-medium">{String(transportDetails.plate_number)}</span>
+            </div>
           </div>
-        )}
+        ) : null}
+
         {listing.transport_mode === 'sea' && (
           <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Gemi Adı</label>
-              {transportDetails?.ship_name && (
-                <div className="text-gray-800 mb-2">Gemi Adı: {transportDetails.ship_name}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">IMO No</label>
-              {transportDetails?.imo_number && (
-                <div className="text-gray-800 mb-2">IMO No: {transportDetails.imo_number}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">MMSI No</label>
-              {transportDetails?.mmsi_number && (
-                <div className="text-gray-800 mb-2">MMSI No: {transportDetails.mmsi_number}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">DWT / Tonaj</label>
-              {transportDetails?.dwt && (
-                <div className="text-gray-800 mb-2">DWT/Tonaj: {transportDetails.dwt}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Boyutlar</label>
-              {transportDetails?.ship_dimensions && (
-                <div className="text-gray-800 mb-2">Boyutlar: {transportDetails.ship_dimensions}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Laycan Başlangıç</label>
-              <div className="text-gray-800 mb-2">
-                {transportDetails?.laycan_start 
-                  ? formatDate(transportDetails.laycan_start)
-                  : formatDate(listing.available_from_date)
-                }
+            {/* Laycan Information for Sea Transport */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Laycan Başlangıç
+                </h3>
+                <p className="text-blue-800 font-medium">
+                  {transportDetails?.laycan_start 
+                    ? formatDate(String(transportDetails.laycan_start))
+                    : formatDate(listing.available_from_date)
+                  }
+                </p>
+              </div>
+              
+              <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Laycan Bitiş
+                </h3>
+                <p className="text-blue-800 font-medium">
+                  {transportDetails?.laycan_end 
+                    ? formatDate(String(transportDetails.laycan_end))
+                    : 'Belirtilmemiş'
+                  }
+                </p>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Laycan Bitiş</label>
-              <div className="text-gray-800 mb-2">
-                {transportDetails?.laycan_end 
-                  ? formatDate(transportDetails.laycan_end)
-                  : 'Belirtilmemiş'
-                }
+
+            {/* Sea Transport Details */}
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+              <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                <Ship className="w-5 h-5 mr-2" />
+                Denizyolu Detayları
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {transportDetails?.ship_name ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">Gemi Adı:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.ship_name)}</span>
+                  </div>
+                ) : null}
+                {transportDetails?.imo_number ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">IMO No:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.imo_number)}</span>
+                  </div>
+                ) : null}
+                {transportDetails?.mmsi_number ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">MMSI No:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.mmsi_number)}</span>
+                  </div>
+                ) : null}
+                {transportDetails?.dwt ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">DWT:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.dwt)}</span>
+                  </div>
+                ) : null}
+                {transportDetails?.ship_dimensions ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">Boyutlar:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.ship_dimensions)}</span>
+                  </div>
+                ) : null}
+                {transportDetails?.freight_type ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">Navlun Tipi:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.freight_type)}</span>
+                  </div>
+                ) : null}
+                {transportDetails?.charterer_info ? (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg">
+                    <span className="text-sm font-medium text-blue-700">Charterer:</span>
+                    <span className="text-blue-800 font-medium">{String(transportDetails.charterer_info)}</span>
+                  </div>
+                ) : null}
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Navlun Tipi</label>
-              {transportDetails?.freight_type && (
-                <div className="text-gray-800 mb-2">Navlun Tipi: {transportDetails.freight_type}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Charterer / Broker</label>
-              {transportDetails?.charterer_info && (
-                <div className="text-gray-800 mb-2">Charterer/Broker: {transportDetails.charterer_info}</div>
-              )}
             </div>
           </>
         )}
-        {listing.transport_mode === 'air' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Uçuş Numarası</label>
-            {transportDetails?.flight_number && (
-              <div className="text-gray-800 mb-2">Uçuş Numarası: {transportDetails.flight_number}</div>
-            )}
+
+        {(listing.transport_mode === 'air' && transportDetails?.flight_number) ? (
+          <div className="bg-cyan-50 rounded-xl p-6 border border-cyan-200">
+            <h3 className="text-lg font-semibold text-cyan-900 mb-4 flex items-center">
+              <Plane className="w-5 h-5 mr-2" />
+              Havayolu Detayları
+            </h3>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-cyan-700">Uçuş Numarası:</span>
+              <span className="text-cyan-800 font-medium">{String(transportDetails.flight_number)}</span>
+            </div>
           </div>
-        )}
-        {listing.transport_mode === 'rail' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tren/Kompozisyon No</label>
-            {transportDetails?.train_number && (
-              <div className="text-gray-800 mb-2">Tren/Kompozisyon No: {transportDetails.train_number}</div>
-            )}
+        ) : null}
+
+        {(listing.transport_mode === 'rail' && transportDetails?.train_number) ? (
+          <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Train className="w-5 h-5 mr-2" />
+              Demiryolu Detayları
+            </h3>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-gray-700">Tren/Kompozisyon No:</span>
+              <span className="text-gray-800 font-medium">{String(transportDetails.train_number)}</span>
+            </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

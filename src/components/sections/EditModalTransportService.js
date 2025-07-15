@@ -267,22 +267,22 @@ const EditModalTransportService = ({ listing, isOpen, onClose, onSave }) => {
                 serviceDestination: listing.destination || '',
                 serviceVehicleType: listing.vehicle_types?.[0] || '',
                 serviceAvailableDate: listing.available_from_date || '',
-                serviceCapacity: transportDetails.capacity || listing.weight_value?.toString() || '',
-                serviceCompanyName: contactInfo.company_name || '',
-                serviceContact: contactInfo.contact || '',
+                serviceCapacity: String(transportDetails.capacity || '') || listing.weight_value?.toString() || '',
+                serviceCompanyName: String(contactInfo.company_name || ''),
+                serviceContact: String(contactInfo.contact || ''),
                 // Transport mode specific fields
-                plateNumber: transportDetails.plate_number || '',
-                shipName: transportDetails.ship_name || '',
-                imoNumber: transportDetails.imo_number || '',
-                mmsiNumber: transportDetails.mmsi_number || '',
-                dwt: transportDetails.dwt || '',
-                shipDimensions: transportDetails.ship_dimensions || '',
+                plateNumber: String(transportDetails.plate_number || ''),
+                shipName: String(transportDetails.ship_name || ''),
+                imoNumber: String(transportDetails.imo_number || ''),
+                mmsiNumber: String(transportDetails.mmsi_number || ''),
+                dwt: String(transportDetails.dwt || ''),
+                shipDimensions: String(transportDetails.ship_dimensions || ''),
                 laycanStart: listing.available_from_date || '',
-                laycanEnd: transportDetails.laycan_end || '',
-                freightType: transportDetails.freight_type || '',
-                chartererInfo: transportDetails.charterer_info || '',
-                flightNumber: transportDetails.flight_number || '',
-                trainNumber: transportDetails.train_number || ''
+                laycanEnd: String(transportDetails.laycan_end || ''),
+                freightType: String(transportDetails.freight_type || ''),
+                chartererInfo: String(transportDetails.charterer_info || ''),
+                flightNumber: String(transportDetails.flight_number || ''),
+                trainNumber: String(transportDetails.train_number || '')
             });
             // Set required documents
             setSelectedDocuments(listing.required_documents || []);

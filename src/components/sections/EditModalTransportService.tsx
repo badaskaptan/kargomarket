@@ -268,19 +268,19 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
       console.log('🔍 EDIT MODAL LOADING DATA:');
       console.log('- listing.metadata:', JSON.stringify(listing.metadata, null, 2));
       console.log('- listing.required_documents:', listing.required_documents);
-      
+
       // Extract metadata for transport service
-      const metadata = listing.metadata as any;
-      const contactInfo = metadata?.contact_info || {};
-      const transportDetails = metadata?.transport_details || {};
+      const metadata = listing.metadata as Record<string, unknown>;
+      const contactInfo = (metadata?.contact_info as Record<string, unknown>) || {};
+      const transportDetails = (metadata?.transport_details as Record<string, unknown>) || {};
 
       console.log('- contactInfo extracted:', contactInfo);
       console.log('- transportDetails extracted:', transportDetails);
-      
+
       // Metadata'dan required_documents okuma - sadece ana kolondan oku
       console.log('- Required documents source: MAIN COLUMN ONLY');
       console.log('- listing.required_documents (main):', listing.required_documents);
-      
+
       // Metadata'da required_documents varsa uyar
       if (metadata && 'required_documents' in metadata) {
         console.warn('⚠️ FOUND required_documents in metadata - this should be cleaned!');
@@ -295,22 +295,22 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
         serviceDestination: listing.destination || '',
         serviceVehicleType: listing.vehicle_types?.[0] || '',
         serviceAvailableDate: listing.available_from_date || '',
-        serviceCapacity: transportDetails.capacity || listing.weight_value?.toString() || '',
-        serviceCompanyName: contactInfo.company_name || '',
-        serviceContact: contactInfo.contact || '',
+        serviceCapacity: String(transportDetails.capacity || '') || listing.weight_value?.toString() || '',
+        serviceCompanyName: String(contactInfo.company_name || ''),
+        serviceContact: String(contactInfo.contact || ''),
         // Transport mode specific fields
-        plateNumber: transportDetails.plate_number || '',
-        shipName: transportDetails.ship_name || '',
-        imoNumber: transportDetails.imo_number || '',
-        mmsiNumber: transportDetails.mmsi_number || '',
-        dwt: transportDetails.dwt || '',
-        shipDimensions: transportDetails.ship_dimensions || '',
+        plateNumber: String(transportDetails.plate_number || ''),
+        shipName: String(transportDetails.ship_name || ''),
+        imoNumber: String(transportDetails.imo_number || ''),
+        mmsiNumber: String(transportDetails.mmsi_number || ''),
+        dwt: String(transportDetails.dwt || ''),
+        shipDimensions: String(transportDetails.ship_dimensions || ''),
         laycanStart: listing.available_from_date || '',
-        laycanEnd: transportDetails.laycan_end || '',
-        freightType: transportDetails.freight_type || '',
-        chartererInfo: transportDetails.charterer_info || '',
-        flightNumber: transportDetails.flight_number || '',
-        trainNumber: transportDetails.train_number || ''
+        laycanEnd: String(transportDetails.laycan_end || ''),
+        freightType: String(transportDetails.freight_type || ''),
+        chartererInfo: String(transportDetails.charterer_info || ''),
+        flightNumber: String(transportDetails.flight_number || ''),
+        trainNumber: String(transportDetails.train_number || '')
       });
 
       // Set required documents
@@ -376,17 +376,17 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
       console.log('- required_documents (main column):', updateData.required_documents);
       console.log('- metadata structure:', JSON.stringify(updateData.metadata, null, 2));
       console.log('- metadata contains required_documents?:', 'required_documents' in (updateData.metadata || {}));
-      
+
       // Metadata temizlik kontrolü
       if (updateData.metadata && 'required_documents' in updateData.metadata) {
         console.error('🚨 ERROR: required_documents found in metadata! This should not happen!');
       } else {
         console.log('✅ CLEAN: No required_documents in metadata - only in main column');
       }
-      
+
       console.log('- Full updateData keys:', Object.keys(updateData));
       console.log('- Metadata keys:', Object.keys(updateData.metadata || {}));
-      
+
       const updatedListing = await ListingService.updateListing(listing.id, updateData);
       setSuccess(true);
       onSave(updatedListing);
@@ -454,7 +454,7 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        
+
         // Dosya validasyonu
         const validation = UploadService.validateFile(file, false);
         if (!validation.valid) {
@@ -515,16 +515,16 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
     return {
       origin: mode === 'sea' ? 'Kalkış Limanı / Bölgesi'
         : mode === 'air' ? 'Kalkış Havalimanı'
-        : mode === 'rail' ? 'Kalkış İstasyonu / Bölgesi'
-        : 'Kalkış Bölgesi/Noktası',
+          : mode === 'rail' ? 'Kalkış İstasyonu / Bölgesi'
+            : 'Kalkış Bölgesi/Noktası',
       destination: mode === 'sea' ? 'Varış Limanı / Bölgesi'
         : mode === 'air' ? 'Varış Havalimanı'
-        : mode === 'rail' ? 'Varış İstasyonu / Bölgesi'
-        : 'Varış Bölgesi/Noktası',
+          : mode === 'rail' ? 'Varış İstasyonu / Bölgesi'
+            : 'Varış Bölgesi/Noktası',
       availableDate: mode === 'sea' ? 'Laycan (Başlangıç)' : 'Boşta Olma Tarihi',
       capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)'
         : mode === 'sea' ? 'DWT / Kapasite'
-        : 'Kapasite (ton/m³)'
+          : 'Kapasite (ton/m³)'
     };
   };
 
@@ -534,18 +534,18 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
     return {
       origin:
         mode === 'sea' ? 'Örn: İstanbul Limanı'
-        : mode === 'air' ? 'Örn: İstanbul Havalimanı'
-        : mode === 'rail' ? 'Örn: Halkalı İstasyonu'
-        : 'Örn: İstanbul',
+          : mode === 'air' ? 'Örn: İstanbul Havalimanı'
+            : mode === 'rail' ? 'Örn: Halkalı İstasyonu'
+              : 'Örn: İstanbul',
       destination:
         mode === 'sea' ? 'Örn: İzmir Limanı'
-        : mode === 'air' ? 'Örn: Ankara Esenboğa'
-        : mode === 'rail' ? 'Örn: Ankara Garı'
-        : 'Örn: Ankara',
+          : mode === 'air' ? 'Örn: Ankara Esenboğa'
+            : mode === 'rail' ? 'Örn: Ankara Garı'
+              : 'Örn: Ankara',
       capacity:
         mode === 'air' ? 'Örn: 5000 kg'
-        : mode === 'sea' ? 'Örn: 25000 DWT'
-        : 'Örn: 20 ton'
+          : mode === 'sea' ? 'Örn: 25000 DWT'
+            : 'Örn: 20 ton'
     };
   };
 
@@ -560,7 +560,7 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
           <div className="absolute inset-0 opacity-10">
             <div className="absolute inset-0 bg-white bg-opacity-10" />
           </div>
-          
+
           <div className="relative flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
@@ -803,7 +803,7 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
             </div>
 
             {/* ============ TAŞIMA MODUNA GÖRE EK ALANLAR ============ */}
-            
+
             {/* 🚛 Karayolu Ek Alanları */}
             {formData.serviceTransportMode === 'road' && (
               <div>
@@ -1029,7 +1029,7 @@ const EditModalTransportService: React.FC<EditModalTransportServiceProps> = ({
               <Upload className="mr-2 text-purple-600" size={20} />
               Evrak Yükleme & Dosya Ekleme
             </h3>
-            
+
             {/* Dosya Yükleme Alanı */}
             <div className="mb-6">
               <div className="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center hover:border-purple-400 transition-colors">

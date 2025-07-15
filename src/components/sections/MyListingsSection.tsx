@@ -174,6 +174,115 @@ const getListingTypeDisplay = (listingType: string): string => {
   return typeMapping[listingType as keyof typeof typeMapping] || `📋 ${listingType}`;
 };
 
+// TransportService'i ExtendedListing formatına çevir
+const convertTransportServiceToExtendedListing = (transportService: TransportService): ExtendedListing => {
+  return {
+    id: transportService.id,
+    created_at: transportService.created_at,
+    updated_at: transportService.updated_at,
+    user_id: transportService.user_id,
+    listing_number: transportService.service_number || `TS-${transportService.id.slice(0, 8)}`,
+    listing_type: 'transport_service' as const,
+    role_type: null,
+    title: transportService.title,
+    description: transportService.description,
+    category: null,
+    subcategory: null,
+    origin: transportService.origin || '',
+    destination: transportService.destination || '',
+    origin_coordinates: null,
+    destination_coordinates: null,
+    origin_details: null,
+    destination_details: null,
+    route_waypoints: null,
+    load_type: null,
+    load_category: null,
+    weight_value: transportService.capacity_value,
+    weight_unit: transportService.capacity_unit,
+    volume_value: null,
+    volume_unit: null,
+    dimensions: null,
+    quantity: null,
+    packaging_type: null,
+    special_handling_requirements: null,
+    loading_date: transportService.available_from_date,
+    loading_time: null,
+    delivery_date: transportService.available_until_date,
+    delivery_time: null,
+    available_from_date: transportService.available_from_date,
+    available_until_date: transportService.available_until_date,
+    flexible_dates: null,
+    transport_mode: transportService.transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal',
+    vehicle_types: transportService.vehicle_type ? [transportService.vehicle_type] : null,
+    transport_responsible: null,
+    special_requirements: null,
+    temperature_controlled: null,
+    temperature_range: null,
+    humidity_controlled: null,
+    hazardous_materials: null,
+    fragile_cargo: null,
+    offer_type: null,
+    price_amount: null,
+    price_currency: null,
+    price_per: null,
+    budget_min: null,
+    budget_max: null,
+    required_documents: null,
+    insurance_required: null,
+    insurance_value: null,
+    customs_clearance_required: null,
+    related_load_listing_id: null,
+    status: transportService.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired',
+    is_urgent: null,
+    priority_level: null,
+    visibility: null,
+    view_count: null,
+    offer_count: null,
+    favorite_count: null,
+    search_tags: null,
+    seo_keywords: null,
+    document_urls: null,
+    image_urls: null,
+    published_at: null,
+    expires_at: null,
+    metadata: {
+      contact_info: {
+        company_name: transportService.company_name,
+        contact_info: transportService.contact_info
+      },
+      transport_details: {
+        plate_number: transportService.plate_number,
+        ship_name: transportService.ship_name,
+        imo_number: transportService.imo_number,
+        mmsi_number: transportService.mmsi_number,
+        dwt: transportService.dwt,
+        gross_tonnage: transportService.gross_tonnage,
+        net_tonnage: transportService.net_tonnage,
+        ship_dimensions: transportService.ship_dimensions,
+        freight_type: transportService.freight_type,
+        charterer_info: transportService.charterer_info
+      }
+    },
+    transport_details: null,
+    contact_info: null,
+    cargo_details: null,
+    owner_name: undefined,
+    owner_email: undefined,
+    owner_phone: undefined,
+    owner_company: transportService.company_name || undefined,
+    owner_city: undefined,
+    owner_rating: undefined,
+    owner_address: undefined,
+    owner_tax_office: undefined,
+    owner_tax_number: undefined,
+    owner_avatar_url: undefined,
+    owner_user_type: undefined,
+    owner_total_listings: undefined,
+    owner_total_completed_transactions: undefined,
+    owner_rating_count: undefined
+  };
+};
+
 const MyListingsSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
@@ -184,6 +293,8 @@ const MyListingsSection: React.FC = () => {
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
   const [editListing, setEditListing] = useState<ExtendedListing | null>(null);
   const [relatedLoadListing, setRelatedLoadListing] = useState<ExtendedListing | null>(null);
+  const [selectedTransportService, setSelectedTransportService] = useState<TransportService | null>(null);
+  const [editTransportService, setEditTransportService] = useState<TransportService | null>(null);
   const [activeTab, setActiveTab] = useState<'listings' | 'transport_services'>('listings');
 
   // Kullanıcının ilanlarını ve nakliye hizmetlerini yükle
@@ -311,13 +422,20 @@ const MyListingsSection: React.FC = () => {
   };
 
   const handleTransportServiceEdit = (transportService: TransportService) => {
-    // TODO: Implement edit functionality
-    console.log('Edit transport service:', transportService);
+    setEditTransportService(transportService);
+    console.log('Selected transport service for editing:', transportService);
   };
 
   const handleTransportServiceView = (transportService: TransportService) => {
-    // TODO: Implement view functionality  
-    console.log('View transport service:', transportService);
+    setSelectedTransportService(transportService);
+    console.log('Selected transport service for viewing:', transportService);
+  };
+
+  const handleUpdateTransportService = (updatedTransportService: TransportService) => {
+    setTransportServices(prev => prev.map(ts => 
+      ts.id === updatedTransportService.id ? updatedTransportService : ts
+    ));
+    console.log('✅ Transport service updated');
   };
 
   const handleTransportServiceDelete = async (transportServiceId: string) => {
@@ -1494,6 +1612,86 @@ const MyListingsSection: React.FC = () => {
           isOpen={true}
           onClose={() => setEditListing(null)}
           onSave={handleUpdateListing}
+        />
+      )}
+
+      {/* Transport Service Modal'ları */}
+      {selectedTransportService && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-auto shadow-2xl border border-gray-100">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 px-8 py-6 rounded-t-2xl relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0 bg-white bg-opacity-10" />
+              </div>
+              
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                      <Truck className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Nakliye Hizmeti Detayı</h2>
+                      <p className="text-white/80 text-sm mt-1">Detaylı hizmet bilgileri</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedTransportService(null)}
+                    className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-xl backdrop-blur-sm"
+                    title="Modalı Kapat"
+                    aria-label="Modalı Kapat"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8">
+              <TransportServiceDetailSection listing={convertTransportServiceToExtendedListing(selectedTransportService)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editTransportService && (
+        <EditModalTransportService
+          listing={convertTransportServiceToExtendedListing(editTransportService)}
+          isOpen={true}
+          onClose={() => setEditTransportService(null)}
+          onSave={(updatedListing: ExtendedListing) => {
+            // ExtendedListing'i geri TransportService'e çevir ve güncelle
+            const metadata = updatedListing.metadata as Record<string, unknown> | null;
+            const contactInfo = metadata?.contact_info as Record<string, unknown> | undefined;
+            const transportDetails = metadata?.transport_details as Record<string, unknown> | undefined;
+            
+            const updatedService: TransportService = {
+              ...editTransportService,
+              title: updatedListing.title,
+              description: updatedListing.description,
+              origin: updatedListing.origin,
+              destination: updatedListing.destination,
+              available_from_date: updatedListing.loading_date,
+              available_until_date: updatedListing.delivery_date,
+              capacity_value: updatedListing.weight_value,
+              capacity_unit: updatedListing.weight_unit,
+              vehicle_type: updatedListing.vehicle_types?.[0] || null,
+              company_name: (contactInfo?.company_name as string) || editTransportService.company_name,
+              contact_info: (contactInfo?.contact_info as string) || editTransportService.contact_info,
+              plate_number: (transportDetails?.plate_number as string) || null,
+              ship_name: (transportDetails?.ship_name as string) || null,
+              imo_number: (transportDetails?.imo_number as string) || null,
+              mmsi_number: (transportDetails?.mmsi_number as string) || null,
+              dwt: (transportDetails?.dwt as number) || null,
+              gross_tonnage: (transportDetails?.gross_tonnage as number) || null,
+              net_tonnage: (transportDetails?.net_tonnage as number) || null,
+              ship_dimensions: (transportDetails?.ship_dimensions as string) || null,
+              freight_type: (transportDetails?.freight_type as string) || null,
+              charterer_info: (transportDetails?.charterer_info as string) || null,
+            };
+            handleUpdateTransportService(updatedService);
+          }}
         />
       )}
     </div>

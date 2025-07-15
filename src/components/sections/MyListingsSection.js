@@ -136,6 +136,114 @@ const getListingTypeDisplay = (listingType) => {
     };
     return typeMapping[listingType] || `📋 ${listingType}`;
 };
+// TransportService'i ExtendedListing formatına çevir
+const convertTransportServiceToExtendedListing = (transportService) => {
+    return {
+        id: transportService.id,
+        created_at: transportService.created_at,
+        updated_at: transportService.updated_at,
+        user_id: transportService.user_id,
+        listing_number: transportService.service_number || `TS-${transportService.id.slice(0, 8)}`,
+        listing_type: 'transport_service',
+        role_type: null,
+        title: transportService.title,
+        description: transportService.description,
+        category: null,
+        subcategory: null,
+        origin: transportService.origin || '',
+        destination: transportService.destination || '',
+        origin_coordinates: null,
+        destination_coordinates: null,
+        origin_details: null,
+        destination_details: null,
+        route_waypoints: null,
+        load_type: null,
+        load_category: null,
+        weight_value: transportService.capacity_value,
+        weight_unit: transportService.capacity_unit,
+        volume_value: null,
+        volume_unit: null,
+        dimensions: null,
+        quantity: null,
+        packaging_type: null,
+        special_handling_requirements: null,
+        loading_date: transportService.available_from_date,
+        loading_time: null,
+        delivery_date: transportService.available_until_date,
+        delivery_time: null,
+        available_from_date: transportService.available_from_date,
+        available_until_date: transportService.available_until_date,
+        flexible_dates: null,
+        transport_mode: transportService.transport_mode,
+        vehicle_types: transportService.vehicle_type ? [transportService.vehicle_type] : null,
+        transport_responsible: null,
+        special_requirements: null,
+        temperature_controlled: null,
+        temperature_range: null,
+        humidity_controlled: null,
+        hazardous_materials: null,
+        fragile_cargo: null,
+        offer_type: null,
+        price_amount: null,
+        price_currency: null,
+        price_per: null,
+        budget_min: null,
+        budget_max: null,
+        required_documents: null,
+        insurance_required: null,
+        insurance_value: null,
+        customs_clearance_required: null,
+        related_load_listing_id: null,
+        status: transportService.status,
+        is_urgent: null,
+        priority_level: null,
+        visibility: null,
+        view_count: null,
+        offer_count: null,
+        favorite_count: null,
+        search_tags: null,
+        seo_keywords: null,
+        document_urls: null,
+        image_urls: null,
+        published_at: null,
+        expires_at: null,
+        metadata: {
+            contact_info: {
+                company_name: transportService.company_name,
+                contact_info: transportService.contact_info
+            },
+            transport_details: {
+                plate_number: transportService.plate_number,
+                ship_name: transportService.ship_name,
+                imo_number: transportService.imo_number,
+                mmsi_number: transportService.mmsi_number,
+                dwt: transportService.dwt,
+                gross_tonnage: transportService.gross_tonnage,
+                net_tonnage: transportService.net_tonnage,
+                ship_dimensions: transportService.ship_dimensions,
+                freight_type: transportService.freight_type,
+                charterer_info: transportService.charterer_info
+            }
+        },
+        transport_details: null,
+        contact_info: null,
+        cargo_details: null,
+        owner_name: undefined,
+        owner_email: undefined,
+        owner_phone: undefined,
+        owner_company: transportService.company_name || undefined,
+        owner_city: undefined,
+        owner_rating: undefined,
+        owner_address: undefined,
+        owner_tax_office: undefined,
+        owner_tax_number: undefined,
+        owner_avatar_url: undefined,
+        owner_user_type: undefined,
+        owner_total_listings: undefined,
+        owner_total_completed_transactions: undefined,
+        owner_rating_count: undefined
+    };
+};
 const MyListingsSection = () => {
     const { setActiveSection } = useDashboard();
     const { user } = useAuth();
@@ -146,6 +254,8 @@ const MyListingsSection = () => {
     const [selectedListing, setSelectedListing] = useState(null);
     const [editListing, setEditListing] = useState(null);
     const [relatedLoadListing, setRelatedLoadListing] = useState(null);
+    const [selectedTransportService, setSelectedTransportService] = useState(null);
+    const [editTransportService, setEditTransportService] = useState(null);
     const [activeTab, setActiveTab] = useState('listings');
     // Kullanıcının ilanlarını ve nakliye hizmetlerini yükle
     useEffect(() => {
@@ -251,12 +361,16 @@ const MyListingsSection = () => {
         }
     };
     const handleTransportServiceEdit = (transportService) => {
-        // TODO: Implement edit functionality
-        console.log('Edit transport service:', transportService);
+        setEditTransportService(transportService);
+        console.log('Selected transport service for editing:', transportService);
     };
     const handleTransportServiceView = (transportService) => {
-        // TODO: Implement view functionality  
-        console.log('View transport service:', transportService);
+        setSelectedTransportService(transportService);
+        console.log('Selected transport service for viewing:', transportService);
+    };
+    const handleUpdateTransportService = (updatedTransportService) => {
+        setTransportServices(prev => prev.map(ts => ts.id === updatedTransportService.id ? updatedTransportService : ts));
+        console.log('✅ Transport service updated');
     };
     const handleTransportServiceDelete = async (transportServiceId) => {
         if (window.confirm('Bu nakliye hizmetini silmek istediğinizden emin misiniz?')) {
@@ -436,7 +550,37 @@ const MyListingsSection = () => {
                                                         }) })] })), selectedListing.image_urls && selectedListing.image_urls.length > 0 && (_jsxs("div", { children: [_jsxs("div", { className: "flex items-center mb-4", children: [_jsx("div", { className: "bg-green-100 p-2 rounded-lg mr-3", children: _jsx(ImageIcon, { className: "h-5 w-5 text-green-600" }) }), _jsxs("h4", { className: "text-lg font-medium text-gray-800", children: ["G\u00F6rseller (", selectedListing.image_urls.length, ")"] })] }), _jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4", children: selectedListing.image_urls.map((url, index) => {
                                                             const fileName = url.split('/').pop() || `Görsel ${index + 1}`;
                                                             return (_jsxs("a", { href: url, target: "_blank", rel: "noopener noreferrer", className: "group bg-white rounded-xl border border-gray-200 overflow-hidden hover:border-green-300 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1", children: [_jsx("div", { className: "aspect-w-16 aspect-h-12 bg-gradient-to-br from-gray-100 to-gray-200", children: _jsx("div", { className: "flex items-center justify-center", children: _jsx("div", { className: "bg-green-100 group-hover:bg-green-200 p-4 rounded-full transition-colors", children: _jsx(ImageIcon, { className: "h-8 w-8 text-green-600" }) }) }) }), _jsxs("div", { className: "p-3", children: [_jsxs("div", { className: "flex items-center justify-between mb-1", children: [_jsxs("h5", { className: "text-sm font-medium text-gray-900 truncate", children: ["G\u00F6rsel ", index + 1] }), _jsx("span", { className: "text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium", children: "IMG" })] }), _jsx("p", { className: "text-xs text-gray-500 truncate mb-2", children: fileName }), _jsxs("div", { className: "flex items-center text-green-600 group-hover:text-green-700", children: [_jsx("span", { className: "text-xs font-medium", children: "G\u00F6r\u00FCnt\u00FCle" }), _jsx(ExternalLink, { className: "h-3 w-3 ml-1" })] })] })] }, index));
-                                                        }) })] }))] }) })) : null] })] }) })), editListing && editListing.listing_type === 'load_listing' && (_jsx(EditModalLoadListing, { listing: editListing, isOpen: true, onClose: () => setEditListing(null), onSave: handleUpdateListing })), editListing && editListing.listing_type === 'shipment_request' && (_jsx(EditModalShipmentRequest, { listing: editListing, isOpen: true, onClose: () => setEditListing(null), onSave: handleUpdateListing })), editListing && editListing.listing_type === 'transport_service' && (_jsx(EditModalTransportService, { listing: editListing, isOpen: true, onClose: () => setEditListing(null), onSave: handleUpdateListing }))] }));
+                                                        }) })] }))] }) })) : null] })] }) })), editListing && editListing.listing_type === 'load_listing' && (_jsx(EditModalLoadListing, { listing: editListing, isOpen: true, onClose: () => setEditListing(null), onSave: handleUpdateListing })), editListing && editListing.listing_type === 'shipment_request' && (_jsx(EditModalShipmentRequest, { listing: editListing, isOpen: true, onClose: () => setEditListing(null), onSave: handleUpdateListing })), editListing && editListing.listing_type === 'transport_service' && (_jsx(EditModalTransportService, { listing: editListing, isOpen: true, onClose: () => setEditListing(null), onSave: handleUpdateListing })), selectedTransportService && (_jsx("div", { className: "fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50", children: _jsxs("div", { className: "bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-auto shadow-2xl border border-gray-100", children: [_jsxs("div", { className: "bg-gradient-to-br from-purple-600 via-purple-700 to-purple-800 px-8 py-6 rounded-t-2xl relative overflow-hidden", children: [_jsx("div", { className: "absolute inset-0 opacity-10", children: _jsx("div", { className: "absolute inset-0 bg-white bg-opacity-10" }) }), _jsx("div", { className: "relative", children: _jsxs("div", { className: "flex items-center justify-between", children: [_jsxs("div", { className: "flex items-center space-x-4", children: [_jsx("div", { className: "bg-white/20 p-3 rounded-xl backdrop-blur-sm", children: _jsx(Truck, { className: "h-7 w-7 text-white" }) }), _jsxs("div", { children: [_jsx("h2", { className: "text-2xl font-bold text-white", children: "Nakliye Hizmeti Detay\u0131" }), _jsx("p", { className: "text-white/80 text-sm mt-1", children: "Detayl\u0131 hizmet bilgileri" })] })] }), _jsx("button", { onClick: () => setSelectedTransportService(null), className: "text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-xl backdrop-blur-sm", title: "Modal\u0131 Kapat", "aria-label": "Modal\u0131 Kapat", children: _jsx(X, { className: "h-6 w-6" }) })] }) })] }), _jsx("div", { className: "p-8", children: _jsx(TransportServiceDetailSection, { listing: convertTransportServiceToExtendedListing(selectedTransportService) }) })] }) })), editTransportService && (_jsx(EditModalTransportService, { listing: convertTransportServiceToExtendedListing(editTransportService), isOpen: true, onClose: () => setEditTransportService(null), onSave: (updatedListing) => {
+                    // ExtendedListing'i geri TransportService'e çevir ve güncelle
+                    const metadata = updatedListing.metadata;
+                    const contactInfo = metadata?.contact_info;
+                    const transportDetails = metadata?.transport_details;
+                    const updatedService = {
+                        ...editTransportService,
+                        title: updatedListing.title,
+                        description: updatedListing.description,
+                        origin: updatedListing.origin,
+                        destination: updatedListing.destination,
+                        available_from_date: updatedListing.loading_date,
+                        available_until_date: updatedListing.delivery_date,
+                        capacity_value: updatedListing.weight_value,
+                        capacity_unit: updatedListing.weight_unit,
+                        vehicle_type: updatedListing.vehicle_types?.[0] || null,
+                        company_name: contactInfo?.company_name || editTransportService.company_name,
+                        contact_info: contactInfo?.contact_info || editTransportService.contact_info,
+                        plate_number: transportDetails?.plate_number || null,
+                        ship_name: transportDetails?.ship_name || null,
+                        imo_number: transportDetails?.imo_number || null,
+                        mmsi_number: transportDetails?.mmsi_number || null,
+                        dwt: transportDetails?.dwt || null,
+                        gross_tonnage: transportDetails?.gross_tonnage || null,
+                        net_tonnage: transportDetails?.net_tonnage || null,
+                        ship_dimensions: transportDetails?.ship_dimensions || null,
+                        freight_type: transportDetails?.freight_type || null,
+                        charterer_info: transportDetails?.charterer_info || null,
+                    };
+                    handleUpdateTransportService(updatedService);
+                } }))] }));
 };
 // TransportServiceDetailSection için veri hazırlama fonksiyonu
 function prepareTransportServiceDetail(listing) {
