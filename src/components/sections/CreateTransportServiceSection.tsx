@@ -3,10 +3,62 @@ import Modal from '../common/Modal'; // Modal component
 import { ArrowLeft, Truck, Ship, Plane, Train, FileText, Upload, Eye, Download, Trash2, Loader2, MapPin, Package, Calendar } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
-import { TransportServiceService, generateServiceNumber, validateIMO, validateMMSI } from '../../services/transportServiceNew';
-import toast from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
-import type { TransportService, TransportServiceFormData } from '../../types/transport-service-types';
+import toast from 'react-hot-toast';
+import type { Database } from '../../types/database-types';
+
+type TransportService = Database['public']['Tables']['transport_services']['Row'];
+type TransportServiceInsert = Database['public']['Tables']['transport_services']['Insert'];
+
+// Utility functions
+const generateServiceNumber = (): string => {
+  const prefix = 'TS';
+  const timestamp = Date.now().toString().slice(-8);
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `${prefix}${timestamp}${random}`;
+};
+
+const validateIMO = (imo: string): boolean => {
+  if (!imo) return false;
+  const imoRegex = /^\d{7}$/;
+  return imoRegex.test(imo.trim());
+};
+
+const validateMMSI = (mmsi: string): boolean => {
+  if (!mmsi) return false;
+  const mmsiRegex = /^\d{9}$/;
+  return mmsiRegex.test(mmsi.trim());
+};
+
+// Transport Service API class
+class TransportServiceService {
+  static async createTransportService(serviceData: TransportServiceInsert): Promise<TransportService> {
+    console.log('🚀 Creating new transport service:', serviceData);
+    
+    const { data, error } = await supabase
+      .from('transport_services')
+      .insert(serviceData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Transport service creation failed:', error);
+      throw new Error(`Transport service creation failed: ${error.message}`);
+    }
+
+    if (!data) {
+      throw new Error('No data returned from transport service creation');
+    }
+
+    console.log('✅ Transport service created successfully:', data);
+    return data;
+  }
+}
+
+// Form data tipi (UI için)
+interface TransportServiceFormData {
+  [key: string]: string | number | boolean | string[] | null | undefined;
+}
 
 
 // Document interface tanımı
@@ -503,20 +555,20 @@ const CreateTransportServiceSection: React.FC = () => {
         return;
       }
       
-      if (!validateIMO(formData.imoNumber)) {
+      if (!validateIMO(String(formData.imoNumber || ''))) {
         toast.error('IMO numarası geçersiz! (Örn: IMO 1234567)');
         return;
       }
       
-      if (!validateMMSI(formData.mmsiNumber)) {
+      if (!validateMMSI(String(formData.mmsiNumber || ''))) {
         toast.error('MMSI numarası geçersiz! (9 haneli sayı olmalı)');
         return;
       }
       
       // Tarih validasyonu
       if (formData.serviceAvailableDate && formData.serviceAvailableUntilDate) {
-        const startDate = new Date(formData.serviceAvailableDate);
-        const endDate = new Date(formData.serviceAvailableUntilDate);
+        const startDate = new Date(String(formData.serviceAvailableDate || ''));
+        const endDate = new Date(String(formData.serviceAvailableUntilDate || ''));
         if (startDate >= endDate) {
           toast.error('Bitiş tarihi başlangıç tarihinden sonra olmalı!');
           return;
@@ -533,51 +585,51 @@ const CreateTransportServiceSection: React.FC = () => {
       // Yeni TransportService verisini hazırla
       const serviceData = {
         user_id: user.id,
-        service_number: formData.serviceNumber,
-        title: formData.serviceTitle,
-        description: formData.serviceDescription,
+        service_number: String(formData.serviceNumber || ''),
+        title: String(formData.serviceTitle || ''),
+        description: String(formData.serviceDescription || ''),
         transport_mode: formData.serviceTransportMode as 'road' | 'sea' | 'air' | 'rail',
-        vehicle_type: formData.serviceVehicleType,
-        origin: formData.serviceOrigin,
-        destination: formData.serviceDestination,
-        available_from_date: formData.serviceAvailableDate || undefined,
-        available_until_date: formData.serviceAvailableUntilDate || undefined,
-        capacity_value: formData.serviceCapacity ? parseFloat(formData.serviceCapacity) : undefined,
+        vehicle_type: String(formData.serviceVehicleType || ''),
+        origin: String(formData.serviceOrigin || ''),
+        destination: String(formData.serviceDestination || ''),
+        available_from_date: String(formData.serviceAvailableDate || ''),
+        available_until_date: String(formData.serviceAvailableUntilDate || ''),
+        capacity_value: formData.serviceCapacity ? parseFloat(String(formData.serviceCapacity)) : undefined,
         capacity_unit: 'kg',
-        contact_info: formData.serviceContact,
-        company_name: formData.serviceCompanyName || undefined,
+        contact_info: String(formData.serviceContact || ''),
+        company_name: String(formData.serviceCompanyName || ''),
         status: 'active' as const,
         
         // Karayolu alanları
-        plate_number: formData.serviceTransportMode === 'road' ? formData.plateNumber : undefined,
+        plate_number: formData.serviceTransportMode === 'road' ? String(formData.plateNumber || '') : undefined,
         
         // Denizyolu alanları
-        ship_name: formData.serviceTransportMode === 'sea' ? formData.shipName : undefined,
-        imo_number: formData.serviceTransportMode === 'sea' ? formData.imoNumber : undefined,
-        mmsi_number: formData.serviceTransportMode === 'sea' ? formData.mmsiNumber : undefined,
-        dwt: formData.serviceTransportMode === 'sea' && formData.dwt ? parseFloat(formData.dwt) : undefined,
-        gross_tonnage: formData.serviceTransportMode === 'sea' && formData.grossTonnage ? parseFloat(formData.grossTonnage) : undefined,
-        net_tonnage: formData.serviceTransportMode === 'sea' && formData.netTonnage ? parseFloat(formData.netTonnage) : undefined,
-        ship_dimensions: formData.serviceTransportMode === 'sea' ? formData.shipDimensions : undefined,
-        freight_type: formData.serviceTransportMode === 'sea' ? formData.freightType : undefined,
-        charterer_info: formData.serviceTransportMode === 'sea' ? formData.chartererInfo : undefined,
-        ship_flag: formData.serviceTransportMode === 'sea' ? formData.shipFlag : undefined,
-        home_port: formData.serviceTransportMode === 'sea' ? formData.homePort : undefined,
-        year_built: formData.serviceTransportMode === 'sea' && formData.yearBuilt ? parseInt(formData.yearBuilt) : undefined,
-        speed_knots: formData.serviceTransportMode === 'sea' && formData.speedKnots ? parseFloat(formData.speedKnots) : undefined,
-        fuel_consumption: formData.serviceTransportMode === 'sea' ? formData.fuelConsumption : undefined,
-        ballast_capacity: formData.serviceTransportMode === 'sea' && formData.ballastCapacity ? parseFloat(formData.ballastCapacity) : undefined,
+        ship_name: formData.serviceTransportMode === 'sea' ? String(formData.shipName || '') : undefined,
+        imo_number: formData.serviceTransportMode === 'sea' ? String(formData.imoNumber || '') : undefined,
+        mmsi_number: formData.serviceTransportMode === 'sea' ? String(formData.mmsiNumber || '') : undefined,
+        dwt: formData.serviceTransportMode === 'sea' && formData.dwt ? parseFloat(String(formData.dwt)) : undefined,
+        gross_tonnage: formData.serviceTransportMode === 'sea' && formData.grossTonnage ? parseFloat(String(formData.grossTonnage)) : undefined,
+        net_tonnage: formData.serviceTransportMode === 'sea' && formData.netTonnage ? parseFloat(String(formData.netTonnage)) : undefined,
+        ship_dimensions: formData.serviceTransportMode === 'sea' ? String(formData.shipDimensions || '') : undefined,
+        freight_type: formData.serviceTransportMode === 'sea' ? String(formData.freightType || '') : undefined,
+        charterer_info: formData.serviceTransportMode === 'sea' ? String(formData.chartererInfo || '') : undefined,
+        ship_flag: formData.serviceTransportMode === 'sea' ? String(formData.shipFlag || '') : undefined,
+        home_port: formData.serviceTransportMode === 'sea' ? String(formData.homePort || '') : undefined,
+        year_built: formData.serviceTransportMode === 'sea' && formData.yearBuilt ? parseInt(String(formData.yearBuilt)) : undefined,
+        speed_knots: formData.serviceTransportMode === 'sea' && formData.speedKnots ? parseFloat(String(formData.speedKnots)) : undefined,
+        fuel_consumption: formData.serviceTransportMode === 'sea' ? String(formData.fuelConsumption || '') : undefined,
+        ballast_capacity: formData.serviceTransportMode === 'sea' && formData.ballastCapacity ? parseFloat(String(formData.ballastCapacity)) : undefined,
         
         // Havayolu alanları
-        flight_number: formData.serviceTransportMode === 'air' ? formData.flightNumber : undefined,
-        aircraft_type: formData.serviceTransportMode === 'air' ? formData.aircraftType : undefined,
-        max_payload: formData.serviceTransportMode === 'air' && formData.maxPayload ? parseFloat(formData.maxPayload) : undefined,
-        cargo_volume: formData.serviceTransportMode === 'air' && formData.cargoVolume ? parseFloat(formData.cargoVolume) : undefined,
+        flight_number: formData.serviceTransportMode === 'air' ? String(formData.flightNumber || '') : undefined,
+        aircraft_type: formData.serviceTransportMode === 'air' ? String(formData.aircraftType || '') : undefined,
+        max_payload: formData.serviceTransportMode === 'air' && formData.maxPayload ? parseFloat(String(formData.maxPayload)) : undefined,
+        cargo_volume: formData.serviceTransportMode === 'air' && formData.cargoVolume ? parseFloat(String(formData.cargoVolume)) : undefined,
         
         // Demiryolu alanları
-        train_number: formData.serviceTransportMode === 'rail' ? formData.trainNumber : undefined,
-        wagon_count: formData.serviceTransportMode === 'rail' && formData.wagonCount ? parseInt(formData.wagonCount) : undefined,
-        wagon_types: formData.serviceTransportMode === 'rail' && formData.wagonTypes ? formData.wagonTypes.split(',').map(t => t.trim()) : undefined,
+        train_number: formData.serviceTransportMode === 'rail' ? String(formData.trainNumber || '') : undefined,
+        wagon_count: formData.serviceTransportMode === 'rail' && formData.wagonCount ? parseInt(String(formData.wagonCount)) : undefined,
+        wagon_types: formData.serviceTransportMode === 'rail' && formData.wagonTypes ? String(formData.wagonTypes).split(',').map(t => t.trim()) : undefined,
         
         // Evraklar
         required_documents: selectedDocuments.length > 0 ? selectedDocuments : undefined,
@@ -767,7 +819,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="text"
                 id="serviceNumber"
                 name="serviceNumber"
-                value={formData.serviceNumber}
+                value={String(formData.serviceNumber || '')}
                 className="w-full px-6 py-4 bg-gray-50 border border-gray-300 rounded-full text-gray-500 cursor-not-allowed shadow-sm"
                 readOnly
               />
@@ -782,7 +834,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="text"
                 id="serviceTitle"
                 name="serviceTitle"
-                value={formData.serviceTitle}
+                value={String(formData.serviceTitle || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -798,7 +850,7 @@ const CreateTransportServiceSection: React.FC = () => {
               <select
                 id="serviceTransportMode"
                 name="serviceTransportMode"
-                value={formData.serviceTransportMode}
+                value={String(formData.serviceTransportMode || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -821,7 +873,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="text"
                 id="serviceOrigin"
                 name="serviceOrigin"
-                value={formData.serviceOrigin}
+                value={String(formData.serviceOrigin || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -839,7 +891,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="text"
                 id="serviceDestination"
                 name="serviceDestination"
-                value={formData.serviceDestination}
+                value={String(formData.serviceDestination || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -857,7 +909,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 <select
                   id="serviceVehicleType"
                   name="serviceVehicleType"
-                  value={formData.serviceVehicleType}
+                  value={String(formData.serviceVehicleType || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                   required
@@ -886,7 +938,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="date"
                 id="serviceAvailableDate"
                 name="serviceAvailableDate"
-                value={formData.serviceAvailableDate}
+                value={String(formData.serviceAvailableDate || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -906,7 +958,7 @@ const CreateTransportServiceSection: React.FC = () => {
                   type="date"
                   id="serviceAvailableUntilDate"
                   name="serviceAvailableUntilDate"
-                  value={formData.serviceAvailableUntilDate}
+                  value={String(formData.serviceAvailableUntilDate || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 />
@@ -923,7 +975,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="number"
                 id="serviceCapacity"
                 name="serviceCapacity"
-                value={formData.serviceCapacity}
+                value={String(formData.serviceCapacity || '')}
                 onChange={handleInputChange}
                 min="0.1"
                 step="0.1"
@@ -942,7 +994,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="text"
                 id="serviceCompanyName"
                 name="serviceCompanyName"
-                value={formData.serviceCompanyName}
+                value={String(formData.serviceCompanyName || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 placeholder="Örn: ABC Lojistik A.Ş."
@@ -958,7 +1010,7 @@ const CreateTransportServiceSection: React.FC = () => {
                 type="text"
                 id="serviceContact"
                 name="serviceContact"
-                value={formData.serviceContact}
+                value={String(formData.serviceContact || '')}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                 required
@@ -978,7 +1030,7 @@ const CreateTransportServiceSection: React.FC = () => {
                   type="text"
                   id="plateNumber"
                   name="plateNumber"
-                  value={formData.plateNumber}
+                  value={String(formData.plateNumber || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                   placeholder="Örn: 34 ABC 123 veya WJMM62AUZ7C123456"
@@ -997,7 +1049,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="shipName"
                     name="shipName"
-                    value={formData.shipName}
+                    value={String(formData.shipName || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     required
@@ -1012,7 +1064,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="imoNumber"
                     name="imoNumber"
-                    value={formData.imoNumber}
+                    value={String(formData.imoNumber || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     required
@@ -1027,7 +1079,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="mmsiNumber"
                     name="mmsiNumber"
-                    value={formData.mmsiNumber}
+                    value={String(formData.mmsiNumber || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     required
@@ -1042,7 +1094,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="shipDimensions"
                     name="shipDimensions"
-                    value={formData.shipDimensions}
+                    value={String(formData.shipDimensions || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     required
@@ -1057,7 +1109,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="freightType"
                     name="freightType"
-                    value={formData.freightType}
+                    value={String(formData.freightType || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     required
@@ -1072,7 +1124,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="chartererInfo"
                     name="chartererInfo"
-                    value={formData.chartererInfo}
+                    value={String(formData.chartererInfo || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: ABC Shipping & Brokerage"
@@ -1088,7 +1140,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="grossTonnage"
                     name="grossTonnage"
-                    value={formData.grossTonnage}
+                    value={String(formData.grossTonnage || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 15000 GT"
@@ -1102,7 +1154,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="netTonnage"
                     name="netTonnage"
-                    value={formData.netTonnage}
+                    value={String(formData.netTonnage || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 8000 NT"
@@ -1116,7 +1168,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="shipFlag"
                     name="shipFlag"
-                    value={formData.shipFlag}
+                    value={String(formData.shipFlag || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: Turkey, Malta, Panama"
@@ -1130,7 +1182,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="homePort"
                     name="homePort"
-                    value={formData.homePort}
+                    value={String(formData.homePort || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: İstanbul"
@@ -1144,7 +1196,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="yearBuilt"
                     name="yearBuilt"
-                    value={formData.yearBuilt}
+                    value={String(formData.yearBuilt || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 2018"
@@ -1158,7 +1210,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="speedKnots"
                     name="speedKnots"
-                    value={formData.speedKnots}
+                    value={String(formData.speedKnots || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 14.5 knot"
@@ -1172,7 +1224,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="fuelConsumption"
                     name="fuelConsumption"
-                    value={formData.fuelConsumption}
+                    value={String(formData.fuelConsumption || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 25 MT/day"
@@ -1186,7 +1238,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="ballastCapacity"
                     name="ballastCapacity"
-                    value={formData.ballastCapacity}
+                    value={String(formData.ballastCapacity || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 8000 MT"
@@ -1206,7 +1258,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="flightNumber"
                     name="flightNumber"
-                    value={formData.flightNumber}
+                    value={String(formData.flightNumber || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: TK123 veya CRG456"
@@ -1220,7 +1272,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="aircraftType"
                     name="aircraftType"
-                    value={formData.aircraftType}
+                    value={String(formData.aircraftType || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: Boeing 747F, Airbus A330F"
@@ -1234,7 +1286,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="maxPayload"
                     name="maxPayload"
-                    value={formData.maxPayload}
+                    value={String(formData.maxPayload || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 134000"
@@ -1248,7 +1300,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="cargoVolume"
                     name="cargoVolume"
-                    value={formData.cargoVolume}
+                    value={String(formData.cargoVolume || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 858"
@@ -1268,7 +1320,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="trainNumber"
                     name="trainNumber"
-                    value={formData.trainNumber}
+                    value={String(formData.trainNumber || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: TR-12345 veya K-KARGO-67"
@@ -1282,7 +1334,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="wagonCount"
                     name="wagonCount"
-                    value={formData.wagonCount}
+                    value={String(formData.wagonCount || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 25"
@@ -1296,7 +1348,7 @@ const CreateTransportServiceSection: React.FC = () => {
                     type="text"
                     id="wagonTypes"
                     name="wagonTypes"
-                    value={formData.wagonTypes}
+                    value={String(formData.wagonTypes || '')}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: Açık Yük Vagonu, Kapalı Yük Vagonu"
@@ -1314,7 +1366,7 @@ const CreateTransportServiceSection: React.FC = () => {
             <textarea
               id="serviceDescription"
               name="serviceDescription"
-              value={formData.serviceDescription}
+              value={String(formData.serviceDescription || '')}
               onChange={handleInputChange}
               rows={4}
               className="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"

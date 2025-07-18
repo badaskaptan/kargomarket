@@ -1,4 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import React from 'react';
-const RevenueModelPage = () => (_jsxs("div", { className: "container mx-auto px-6 py-12 max-w-3xl", children: [_jsx("h1", { className: "text-3xl font-bold mb-6 text-primary-600", children: "Gelir Modeli" }), _jsx("p", { className: "mb-4", children: "Platformun t\u00FCm gelirleri yaln\u0131zca \u00FCyelik \u00FCcretleri ve reklam/ilan yay\u0131nlama bedellerinden elde edilmektedir. Kullan\u0131c\u0131lar aras\u0131nda yap\u0131lan i\u015Flemlerden komisyon al\u0131nmaz, platform ticari taraf de\u011Fildir." }), _jsxs("p", { className: "mb-4", children: ["Detayl\u0131 bilgi i\u00E7in ", _jsx("a", { href: "/legal-disclaimer", className: "text-primary-600 underline", children: "Sorumluluk Reddi" }), " sayfas\u0131na bak\u0131n\u0131z."] })] }));
-export default RevenueModelPage;

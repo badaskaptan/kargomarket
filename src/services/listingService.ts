@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.js';
+import { supabase } from '../lib/supabase';
 import type { Database, ExtendedListing } from '../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
@@ -47,7 +47,7 @@ interface FormListingData {
 
 export class ListingService {
   // Metadata'dan gereksiz alanları temizle
-  private static cleanMetadata(metadata: any): any {
+  private static cleanMetadata(metadata: Record<string, unknown> | null): Record<string, unknown> | null {
     if (!metadata || typeof metadata !== 'object') {
       return metadata;
     }
@@ -112,7 +112,7 @@ export class ListingService {
         status: (listingData.status as 'draft' | 'active' | 'paused' | 'completed' | 'cancelled' | 'expired') || 'active',
         listing_number: listingData.listing_number || this.generateListingNumber(),
         available_from_date: listingData.available_from_date,
-        metadata: this.cleanMetadata(listingData.metadata),
+        metadata: listingData.metadata ? this.cleanMetadata(listingData.metadata) : null,
         transport_details: listingData.transport_details,
         contact_info: listingData.contact_info,
         cargo_details: listingData.cargo_details,
@@ -301,7 +301,7 @@ export class ListingService {
     console.log('- Updates.required_documents:', updates.required_documents);
 
     // Metadata'ı temizle (eğer varsa)
-    let cleanedUpdates = { ...updates };
+    const cleanedUpdates = { ...updates };
     if (cleanedUpdates.metadata) {
       cleanedUpdates.metadata = this.cleanMetadata(cleanedUpdates.metadata);
       console.log('🧹 Cleaned metadata for update:', JSON.stringify(cleanedUpdates.metadata, null, 2));
@@ -419,7 +419,7 @@ export class ListingService {
   // İlan numarası üret
   static generateListingNumber(): string {
     const now = new Date();
-    const year = now.getFullYear().toString().substr(-2);
+    const year = now.getFullYear().toString().slice(-2);
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');

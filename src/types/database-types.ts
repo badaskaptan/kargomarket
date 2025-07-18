@@ -468,66 +468,162 @@ export interface Database {
       transport_services: {
         Row: {
           id: string
-          created_at: string
-          updated_at: string
-          user_id: string
-          service_name: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string | null
+          service_number: string
+          title: string
           description: string | null
-          vehicle_types: string[] | null
-          capacity: string | null
-          coverage_areas: string[]
-          pricing: Record<string, unknown>
-          availability: Record<string, unknown>
-          status: 'active' | 'inactive' | 'busy' | 'maintenance'
-          rating: number
-          rating_count: number
-          total_jobs: number
-          is_verified: boolean
-          contact_info: Record<string, unknown>
-          additional_services: Record<string, unknown>
-          metadata: GenericMetadata
+          status: 'active' | 'inactive' | 'completed' | 'suspended' | null
+          transport_mode: 'road' | 'sea' | 'air' | 'rail'
+          vehicle_type: string | null
+          origin: string | null
+          destination: string | null
+          available_from_date: string | null
+          available_until_date: string | null
+          capacity_value: number | null
+          capacity_unit: string | null
+          contact_info: string | null
+          company_name: string | null
+          plate_number: string | null
+          ship_name: string | null
+          imo_number: string | null
+          mmsi_number: string | null
+          dwt: number | null
+          gross_tonnage: number | null
+          net_tonnage: number | null
+          ship_dimensions: string | null
+          freight_type: string | null
+          charterer_info: string | null
+          ship_flag: string | null
+          home_port: string | null
+          year_built: number | null
+          speed_knots: number | null
+          fuel_consumption: string | null
+          ballast_capacity: number | null
+          flight_number: string | null
+          aircraft_type: string | null
+          max_payload: number | null
+          cargo_volume: number | null
+          train_number: string | null
+          wagon_count: number | null
+          wagon_types: string[] | null
+          required_documents: string[] | null
+          document_urls: string[] | null
+          rating: number | null
+          rating_count: number | null
+          view_count: number | null
+          last_updated_by: string | null
+          is_featured: boolean | null
+          featured_until: string | null
+          created_by_user_type: string | null
+          last_activity_at: string | null
         }
         Insert: {
           id?: string
-          created_at?: string
-          updated_at?: string
-          user_id: string
-          service_name: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          service_number: string
+          title: string
           description?: string | null
-          vehicle_types?: string[] | null
-          capacity?: string | null
-          coverage_areas?: string[]
-          pricing?: Record<string, unknown>
-          availability?: Record<string, unknown>
-          status?: 'active' | 'inactive' | 'busy' | 'maintenance'
-          rating?: number
-          rating_count?: number
-          total_jobs?: number
-          is_verified?: boolean
-          contact_info?: Record<string, unknown>
-          additional_services?: Record<string, unknown>
-          metadata?: GenericMetadata
+          status?: 'active' | 'inactive' | 'completed' | 'suspended' | null
+          transport_mode: 'road' | 'sea' | 'air' | 'rail'
+          vehicle_type?: string | null
+          origin?: string | null
+          destination?: string | null
+          available_from_date?: string | null
+          available_until_date?: string | null
+          capacity_value?: number | null
+          capacity_unit?: string | null
+          contact_info?: string | null
+          company_name?: string | null
+          plate_number?: string | null
+          ship_name?: string | null
+          imo_number?: string | null
+          mmsi_number?: string | null
+          dwt?: number | null
+          gross_tonnage?: number | null
+          net_tonnage?: number | null
+          ship_dimensions?: string | null
+          freight_type?: string | null
+          charterer_info?: string | null
+          ship_flag?: string | null
+          home_port?: string | null
+          year_built?: number | null
+          speed_knots?: number | null
+          fuel_consumption?: string | null
+          ballast_capacity?: number | null
+          flight_number?: string | null
+          aircraft_type?: string | null
+          max_payload?: number | null
+          cargo_volume?: number | null
+          train_number?: string | null
+          wagon_count?: number | null
+          wagon_types?: string[] | null
+          required_documents?: string[] | null
+          document_urls?: string[] | null
+          rating?: number | null
+          rating_count?: number | null
+          view_count?: number | null
+          last_updated_by?: string | null
+          is_featured?: boolean | null
+          featured_until?: string | null
+          created_by_user_type?: string | null
+          last_activity_at?: string | null
         }
         Update: {
           id?: string
-          created_at?: string
-          updated_at?: string
-          user_id?: string
-          service_name?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          service_number?: string
+          title?: string
           description?: string | null
-          vehicle_types?: string[] | null
-          capacity?: string | null
-          coverage_areas?: string[]
-          pricing?: Record<string, unknown>
-          availability?: Record<string, unknown>
-          status?: 'active' | 'inactive' | 'busy' | 'maintenance'
-          rating?: number
-          rating_count?: number
-          total_jobs?: number
-          is_verified?: boolean
-          contact_info?: Record<string, unknown>
-          additional_services?: Record<string, unknown>
-          metadata?: GenericMetadata
+          status?: 'active' | 'inactive' | 'completed' | 'suspended' | null
+          transport_mode?: 'road' | 'sea' | 'air' | 'rail'
+          vehicle_type?: string | null
+          origin?: string | null
+          destination?: string | null
+          available_from_date?: string | null
+          available_until_date?: string | null
+          capacity_value?: number | null
+          capacity_unit?: string | null
+          contact_info?: string | null
+          company_name?: string | null
+          plate_number?: string | null
+          ship_name?: string | null
+          imo_number?: string | null
+          mmsi_number?: string | null
+          dwt?: number | null
+          gross_tonnage?: number | null
+          net_tonnage?: number | null
+          ship_dimensions?: string | null
+          freight_type?: string | null
+          charterer_info?: string | null
+          ship_flag?: string | null
+          home_port?: string | null
+          year_built?: number | null
+          speed_knots?: number | null
+          fuel_consumption?: string | null
+          ballast_capacity?: number | null
+          flight_number?: string | null
+          aircraft_type?: string | null
+          max_payload?: number | null
+          cargo_volume?: number | null
+          train_number?: string | null
+          wagon_count?: number | null
+          wagon_types?: string[] | null
+          required_documents?: string[] | null
+          document_urls?: string[] | null
+          rating?: number | null
+          rating_count?: number | null
+          view_count?: number | null
+          last_updated_by?: string | null
+          is_featured?: boolean | null
+          featured_until?: string | null
+          created_by_user_type?: string | null
+          last_activity_at?: string | null
         }
       }
       offers: {

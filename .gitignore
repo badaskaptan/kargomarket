@@ -28,4 +28,7 @@ dist-ssr
 *_OLD.*
 *_BACKUP.*
 *.tmp
+
+# TypeScript compiled output in src (prevent JS/TS conflicts)
+src/**/*.js
 *.bak
