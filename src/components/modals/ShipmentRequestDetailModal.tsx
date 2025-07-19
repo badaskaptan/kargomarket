@@ -8,8 +8,6 @@ import {
   Settings, 
   FileText, 
   Shield, 
-  AlertTriangle,
-  Thermometer,
   DollarSign,
   Clock,
   Eye,
@@ -72,6 +70,32 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
   const formatTime = (timeString: string | null): string => {
     if (!timeString) return 'Belirtilmemiş';
     return timeString.slice(0, 5);
+  };
+
+  // Dosya tipi kontrolü
+  const getFileType = (url: string) => {
+    const extension = url.split('.').pop()?.toLowerCase() || '';
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    const documentExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'rtf'];
+    if (imageExtensions.includes(extension)) return 'image';
+    if (documentExtensions.includes(extension)) return 'document';
+    return 'file';
+  };
+
+  // Dosya adı çıkarma
+  const getFileName = (url: string) => {
+    return url.split('/').pop()?.split('?')[0] || 'Dosya';
+  };
+
+  // Dosya indirme
+  const handleDownload = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Durum badge'i
@@ -278,7 +302,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                 <FileText className="h-6 w-6 mr-3" />
                 Taşınacak Yük Bilgileri
               </h3>
-              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {listing.load_type && (
                   <div className="bg-white rounded-lg p-4 border border-orange-100">
@@ -289,7 +312,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                     )}
                   </div>
                 )}
-                
                 {listing.weight_value && (
                   <div className="bg-white rounded-lg p-4 border border-orange-100">
                     <div className="text-sm font-medium text-orange-700 mb-1">Ağırlık</div>
@@ -298,7 +320,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                     </div>
                   </div>
                 )}
-                
                 {listing.volume_value && (
                   <div className="bg-white rounded-lg p-4 border border-orange-100">
                     <div className="text-sm font-medium text-orange-700 mb-1">Hacim</div>
@@ -308,7 +329,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                   </div>
                 )}
               </div>
-
               {(listing.quantity || listing.packaging_type) && (
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                   {listing.quantity && (
@@ -317,7 +337,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                       <div className="text-lg font-semibold text-gray-900">{listing.quantity}</div>
                     </div>
                   )}
-                  
                   {listing.packaging_type && (
                     <div className="bg-white rounded-lg p-4 border border-orange-100">
                       <div className="text-sm font-medium text-orange-700 mb-1">Ambalaj Tipi</div>
@@ -326,7 +345,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                   )}
                 </div>
               )}
-
               {listing.dimensions && Object.keys(listing.dimensions).length > 0 && (
                 <div className="mt-4 bg-white rounded-lg p-4 border border-orange-100">
                   <div className="text-sm font-medium text-orange-700 mb-2">Boyutlar</div>
@@ -404,81 +422,6 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
           </section>
 
           {/* Özel Koşullar */}
-          <section className="bg-gradient-to-r from-red-50 to-pink-50 rounded-xl p-6 border border-red-200">
-            <h3 className="text-xl font-semibold text-red-900 mb-4 flex items-center">
-              <AlertTriangle className="h-6 w-6 mr-3" />
-              Özel Koşullar ve Gereksinimler
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className={`bg-white rounded-lg p-4 border ${listing.temperature_controlled ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
-                <div className="flex items-center">
-                  <Thermometer className={`h-5 w-5 mr-2 ${listing.temperature_controlled ? 'text-red-600' : 'text-gray-400'}`} />
-                  <span className={`font-medium ${listing.temperature_controlled ? 'text-red-900' : 'text-gray-600'}`}>
-                    Sıcaklık Kontrolü
-                  </span>
-                </div>
-                <div className="text-sm mt-1">
-                  {listing.temperature_controlled ? 'Gerekli' : 'Gerekli değil'}
-                </div>
-                {listing.temperature_controlled && listing.temperature_range && (
-                  <div className="text-xs text-red-600 mt-1">
-                    Aralık: {JSON.stringify(listing.temperature_range)}
-                  </div>
-                )}
-              </div>
-              
-              <div className={`bg-white rounded-lg p-4 border ${listing.humidity_controlled ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
-                <div className="flex items-center">
-                  <div className={`w-5 h-5 mr-2 ${listing.humidity_controlled ? 'text-red-600' : 'text-gray-400'}`}>💧</div>
-                  <span className={`font-medium ${listing.humidity_controlled ? 'text-red-900' : 'text-gray-600'}`}>
-                    Nem Kontrolü
-                  </span>
-                </div>
-                <div className="text-sm mt-1">
-                  {listing.humidity_controlled ? 'Gerekli' : 'Gerekli değil'}
-                </div>
-              </div>
-              
-              <div className={`bg-white rounded-lg p-4 border ${listing.hazardous_materials ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
-                <div className="flex items-center">
-                  <div className={`w-5 h-5 mr-2 ${listing.hazardous_materials ? 'text-red-600' : 'text-gray-400'}`}>☢️</div>
-                  <span className={`font-medium ${listing.hazardous_materials ? 'text-red-900' : 'text-gray-600'}`}>
-                    Tehlikeli Madde
-                  </span>
-                </div>
-                <div className="text-sm mt-1">
-                  {listing.hazardous_materials ? 'Var' : 'Yok'}
-                </div>
-              </div>
-              
-              <div className={`bg-white rounded-lg p-4 border ${listing.fragile_cargo ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}>
-                <div className="flex items-center">
-                  <div className={`w-5 h-5 mr-2 ${listing.fragile_cargo ? 'text-red-600' : 'text-gray-400'}`}>⚠️</div>
-                  <span className={`font-medium ${listing.fragile_cargo ? 'text-red-900' : 'text-gray-600'}`}>
-                    Kırılabilir
-                  </span>
-                </div>
-                <div className="text-sm mt-1">
-                  {listing.fragile_cargo ? 'Evet' : 'Hayır'}
-                </div>
-              </div>
-            </div>
-
-            {listing.special_handling_requirements && listing.special_handling_requirements.length > 0 && (
-              <div className="mt-4 bg-white rounded-lg p-4 border border-red-100">
-                <div className="text-sm font-medium text-red-700 mb-2">Özel Elleçleme Gereksinimleri</div>
-                <div className="space-y-1">
-                  {listing.special_handling_requirements.map((requirement, index) => (
-                    <div key={index} className="text-sm text-gray-700 flex items-center">
-                      <div className="w-2 h-2 bg-red-400 rounded-full mr-2"></div>
-                      {requirement}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
 
           {/* İlgili Yük İlanı */}
           {listing.related_load_listing_id && (
@@ -565,27 +508,19 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
           <section className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl p-6 border border-cyan-200">
             <h3 className="text-xl font-semibold text-cyan-900 mb-4 flex items-center">
               <Shield className="h-6 w-6 mr-3" />
-              Sigorta ve Evrak Gereksinimleri
+              Sigorta
             </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className={`bg-white rounded-lg p-4 border ${listing.insurance_required ? 'border-cyan-200 bg-cyan-50' : 'border-gray-200'}`}>
                 <div className="text-sm font-medium text-cyan-700 mb-1">Sigorta</div>
                 <div className="text-lg font-semibold text-gray-900">
-                  {listing.insurance_required ? '✅ Gerekli' : '❌ Gerekli değil'}
+                  {listing.insurance_required ? '✅ Gerekli' : 'Geliştirme aşamasında'}
                 </div>
                 {listing.insurance_required && listing.insurance_value && (
                   <div className="text-sm text-cyan-600 mt-1">
                     Değer: {listing.insurance_value.toLocaleString('tr-TR')} {listing.price_currency || 'TRY'}
                   </div>
                 )}
-              </div>
-              
-              <div className={`bg-white rounded-lg p-4 border ${listing.customs_clearance_required ? 'border-cyan-200 bg-cyan-50' : 'border-gray-200'}`}>
-                <div className="text-sm font-medium text-cyan-700 mb-1">Gümrük İşlemleri</div>
-                <div className="text-lg font-semibold text-gray-900">
-                  {listing.customs_clearance_required ? '✅ Gerekli' : '❌ Gerekli değil'}
-                </div>
               </div>
             </div>
 
@@ -603,6 +538,119 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               </div>
             )}
           </section>
+
+          {/* Yüklenen Dosyalar ve Resimler */}
+          {((listing.document_urls && listing.document_urls.length > 0) || (listing.image_urls && listing.image_urls.length > 0)) && (
+            <section className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-xl font-semibold text-purple-900 mb-4 flex items-center">
+                <FileText className="h-6 w-6 mr-3" />
+                Yüklenen Dosyalar ve Resimler
+              </h3>
+              {/* Resimler */}
+              {listing.image_urls && listing.image_urls.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+                    <Eye className="h-5 w-5 mr-2" />
+                    Resimler ({listing.image_urls.length})
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {listing.image_urls.map((imageUrl: string, index: number) => (
+                      <div key={index} className="bg-white rounded-lg p-3 border border-purple-100 group hover:shadow-md transition-shadow">
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                          <img
+                            src={imageUrl}
+                            alt={`İlan resmi ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            onClick={() => window.open(imageUrl, '_blank')}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0EyIDIgMCAwIDAgMTkgNUg1QTIgMiAwIDAgMCAzIDdWMTdBMiAyIDAgMCAwIDUgMTlIMTVNMjEgMTVMMTggMTJMMTUgMTVNMjEgMTlMMTggMTZMMTUgMTkiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-600 truncate flex-1">
+                            {getFileName(imageUrl)}
+                          </p>
+                          <div className="flex space-x-1 ml-2">
+                            <button
+                              onClick={() => window.open(imageUrl, '_blank')}
+                              className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                              title="Büyük boyutta görüntüle"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDownload(imageUrl, getFileName(imageUrl))}
+                              className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                              title="İndir"
+                            >
+                              <FileText className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Dökümanlar */}
+              {listing.document_urls && listing.document_urls.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Dökümanlar ({listing.document_urls.length})
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {listing.document_urls.map((docUrl: string, index: number) => {
+                      const fileName = getFileName(docUrl);
+                      const fileType = getFileType(docUrl);
+                      return (
+                        <div key={index} className="bg-white rounded-lg p-4 border border-purple-100 group hover:shadow-md transition-shadow">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 mr-3">
+                              {fileType === 'document' ? (
+                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                  <FileText className="h-5 w-5 text-red-600" />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                  <FileText className="h-5 w-5 text-gray-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {fileName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {fileType === 'document' ? 'Döküman' : 'Dosya'}
+                              </p>
+                            </div>
+                            <div className="flex space-x-2 ml-3">
+                              <button
+                                onClick={() => window.open(docUrl, '_blank')}
+                                className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                title="Görüntüle"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDownload(docUrl, fileName)}
+                                className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                title="İndir"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* İstatistikler */}
           <section className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
