@@ -35,7 +35,7 @@ const validateMMSI = (mmsi: string): boolean => {
 class TransportServiceService {
   static async createTransportService(serviceData: TransportServiceInsert): Promise<TransportService> {
     console.log('🚀 Creating new transport service:', serviceData);
-    
+
     const { data, error } = await supabase
       .from('transport_services')
       .insert(serviceData)
@@ -350,7 +350,7 @@ const CreateTransportServiceSection: React.FC = () => {
     ],
     rail: [
       'CIM Belgesi',
-    'Hamule Senedi / Railway Consignment Note (CIM)',
+      'Hamule Senedi / Railway Consignment Note (CIM)',
       'Taşıma Sözleşmesi',
       'Vagon Sertifikası / Vagon Muayene Belgesi',
       'Vagon Numarası / Tipi',
@@ -375,7 +375,7 @@ const CreateTransportServiceSection: React.FC = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Taşıma modu değiştiğinde state'i güncelle ve araç tipini sıfırla
     if (name === 'serviceTransportMode') {
       setTransportMode(value);
@@ -447,11 +447,11 @@ const CreateTransportServiceSection: React.FC = () => {
           try {
             // Dosyayı Supabase'e yükle
             const fileUrl = await uploadFile(file, 'documents', user.id);
-            
+
             // Başarılı yükleme sonrası URL'i güncelle
-            setUploadedDocuments(prev => 
-              prev.map(doc => 
-                doc.id === tempDocument.id 
+            setUploadedDocuments(prev =>
+              prev.map(doc =>
+                doc.id === tempDocument.id
                   ? { ...doc, url: fileUrl }
                   : doc
               )
@@ -461,9 +461,9 @@ const CreateTransportServiceSection: React.FC = () => {
           } catch (error) {
             console.error('File upload error:', error);
             toast.error(`${file.name} yüklenirken hata oluştu.`);
-            
+
             // Hatalı dosyayı listeden kaldır
-            setUploadedDocuments(prev => 
+            setUploadedDocuments(prev =>
               prev.filter(doc => doc.id !== tempDocument.id)
             );
           }
@@ -511,11 +511,11 @@ const CreateTransportServiceSection: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log('🚀 Form submit started!');
     console.log('📋 Form Data:', formData);
     console.log('👤 User:', user);
-    
+
     // Kullanıcı kontrolü
     if (!user) {
       console.log('❌ No user found');
@@ -530,7 +530,7 @@ const CreateTransportServiceSection: React.FC = () => {
     console.log('- serviceTransportMode:', formData.serviceTransportMode);
     console.log('- serviceVehicleType:', formData.serviceVehicleType);
     console.log('- serviceContact:', formData.serviceContact);
-    
+
     if (!formData.serviceTitle || !formData.serviceDescription || !formData.serviceTransportMode) {
       console.log('❌ Validation failed: Missing required fields');
       toast.error('Lütfen tüm zorunlu alanları doldurun!');
@@ -555,17 +555,17 @@ const CreateTransportServiceSection: React.FC = () => {
         toast.error('Denizyolu için gemi adı, IMO ve MMSI numaraları zorunludur!');
         return;
       }
-      
+
       if (!validateIMO(String(formData.imoNumber || ''))) {
         toast.error('IMO numarası geçersiz! (Örn: IMO 1234567)');
         return;
       }
-      
+
       if (!validateMMSI(String(formData.mmsiNumber || ''))) {
         toast.error('MMSI numarası geçersiz! (9 haneli sayı olmalı)');
         return;
       }
-      
+
       // Tarih validasyonu
       if (formData.serviceAvailableDate && formData.serviceAvailableUntilDate) {
         const startDate = new Date(String(formData.serviceAvailableDate || ''));
@@ -582,7 +582,7 @@ const CreateTransportServiceSection: React.FC = () => {
 
     try {
       console.log('📝 Creating transport service data...');
-      
+
       // Yeni TransportService verisini hazırla
       const serviceData = {
         user_id: user.id,
@@ -600,10 +600,10 @@ const CreateTransportServiceSection: React.FC = () => {
         contact_info: String(formData.serviceContact || ''),
         company_name: String(formData.serviceCompanyName || ''),
         status: 'active' as const,
-        
+
         // Karayolu alanları
         plate_number: formData.serviceTransportMode === 'road' ? String(formData.plateNumber || '') : undefined,
-        
+
         // Denizyolu alanları
         ship_name: formData.serviceTransportMode === 'sea' ? String(formData.shipName || '') : undefined,
         imo_number: formData.serviceTransportMode === 'sea' ? String(formData.imoNumber || '') : undefined,
@@ -620,18 +620,18 @@ const CreateTransportServiceSection: React.FC = () => {
         speed_knots: formData.serviceTransportMode === 'sea' && formData.speedKnots ? parseFloat(String(formData.speedKnots)) : undefined,
         fuel_consumption: formData.serviceTransportMode === 'sea' ? String(formData.fuelConsumption || '') : undefined,
         ballast_capacity: formData.serviceTransportMode === 'sea' && formData.ballastCapacity ? parseFloat(String(formData.ballastCapacity)) : undefined,
-        
+
         // Havayolu alanları
         flight_number: formData.serviceTransportMode === 'air' ? String(formData.flightNumber || '') : undefined,
         aircraft_type: formData.serviceTransportMode === 'air' ? String(formData.aircraftType || '') : undefined,
         max_payload: formData.serviceTransportMode === 'air' && formData.maxPayload ? parseFloat(String(formData.maxPayload)) : undefined,
         cargo_volume: formData.serviceTransportMode === 'air' && formData.cargoVolume ? parseFloat(String(formData.cargoVolume)) : undefined,
-        
+
         // Demiryolu alanları
         train_number: formData.serviceTransportMode === 'rail' ? String(formData.trainNumber || '') : undefined,
         wagon_count: formData.serviceTransportMode === 'rail' && formData.wagonCount ? parseInt(String(formData.wagonCount)) : undefined,
         wagon_types: formData.serviceTransportMode === 'rail' && formData.wagonTypes ? String(formData.wagonTypes).split(',').map(t => t.trim()) : undefined,
-        
+
         // Evraklar
         required_documents: selectedDocuments.length > 0 ? selectedDocuments : undefined,
         document_urls: uploadedDocuments
@@ -644,14 +644,14 @@ const CreateTransportServiceSection: React.FC = () => {
       // TransportService oluştur
       const newService = await TransportServiceService.createTransportService(serviceData);
       console.log('✅ Transport service created successfully:', newService);
-      
+
       // Son oluşturulan servisi state'e kaydet
       setLastCreatedService(newService);
       setDetailOpen(true);
 
       toast.success('Nakliye hizmeti ilanı başarıyla oluşturuldu!');
       setActiveSection('my-listings');
-      
+
     } catch (error) {
       console.error('❌ Error creating transport service:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
@@ -668,16 +668,16 @@ const CreateTransportServiceSection: React.FC = () => {
     return {
       origin: mode === 'sea' ? 'Kalkış Limanı / Bölgesi'
         : mode === 'air' ? 'Kalkış Havalimanı'
-        : mode === 'rail' ? 'Kalkış İstasyonu / Bölgesi'
-        : 'Kalkış Bölgesi/Noktası',
+          : mode === 'rail' ? 'Kalkış İstasyonu / Bölgesi'
+            : 'Kalkış Bölgesi/Noktası',
       destination: mode === 'sea' ? 'Varış Limanı / Bölgesi'
         : mode === 'air' ? 'Varış Havalimanı'
-        : mode === 'rail' ? 'Varış İstasyonu / Bölgesi'
-        : 'Varış Bölgesi/Noktası',
+          : mode === 'rail' ? 'Varış İstasyonu / Bölgesi'
+            : 'Varış Bölgesi/Noktası',
       availableDate: 'Müsaitlik Başlangıç Tarihi',
       capacity: mode === 'air' ? 'Kargo Kapasitesi (kg/m³)'
         : mode === 'sea' ? 'Yük Kapasitesi (DWT) *'
-        : 'Kapasite (ton/m³)'
+          : 'Kapasite (ton/m³)'
     };
   };
 
@@ -735,18 +735,18 @@ const CreateTransportServiceSection: React.FC = () => {
     return {
       origin:
         mode === 'sea' ? 'Örn: İstanbul Limanı'
-        : mode === 'air' ? 'Örn: İstanbul Havalimanı'
-        : mode === 'rail' ? 'Örn: Halkalı İstasyonu'
-        : 'Örn: İstanbul',
+          : mode === 'air' ? 'Örn: İstanbul Havalimanı'
+            : mode === 'rail' ? 'Örn: Halkalı İstasyonu'
+              : 'Örn: İstanbul',
       destination:
         mode === 'sea' ? 'Örn: İzmir Limanı'
-        : mode === 'air' ? 'Örn: Ankara Esenboğa'
-        : mode === 'rail' ? 'Örn: Ankara Garı'
-        : 'Örn: Ankara',
+          : mode === 'air' ? 'Örn: Ankara Esenboğa'
+            : mode === 'rail' ? 'Örn: Ankara Garı'
+              : 'Örn: Ankara',
       capacity:
         mode === 'air' ? 'Örn: 5000 kg'
-        : mode === 'sea' ? 'Örn: 25000 GT'
-        : 'Örn: 20 ton'
+          : mode === 'sea' ? 'Örn: 25000 GT'
+            : 'Örn: 20 ton'
     };
   }
   // ...existing code...
@@ -782,798 +782,798 @@ const CreateTransportServiceSection: React.FC = () => {
         )}
       </Modal>
       <div className="space-y-6 animate-fade-in">
-      <div className={`rounded-3xl shadow-lg p-6 transition-all duration-300 ${getTransportBackground()}`}>
-        {/* Background Image */}
-        {transportMode && (
-          <div 
-            className="absolute inset-0 opacity-5 pointer-events-none"
-            dangerouslySetInnerHTML={{ __html: getTransportBackgroundImage() }}
-          />
-        )}
-        
-        {/* Header */}
-        <div className="flex items-center mb-8 relative z-10">
-          <button
-            onClick={() => setActiveSection('my-listings')}
-            className="mr-4 p-2 text-gray-600 hover:text-primary-600 transition-colors rounded-full"
-            title="Geri"
-          >
-            <ArrowLeft size={24} />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Yeni Nakliye İlanı Oluştur</h1>
+        <div className={`rounded-3xl shadow-lg p-6 transition-all duration-300 ${getTransportBackground()}`}>
+          {/* Background Image */}
           {transportMode && (
-            <div className="ml-auto hidden md:block">
-              {getTransportIcon()}
-            </div>
+            <div
+              className="absolute inset-0 opacity-5 pointer-events-none"
+              dangerouslySetInnerHTML={{ __html: getTransportBackgroundImage() }}
+            />
           )}
-        </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Nakliye İlanı No */}
-            <div>
-              <label htmlFor="serviceNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                Nakliye İlanı No
-              </label>
-              <input
-                type="text"
-                id="serviceNumber"
-                name="serviceNumber"
-                value={String(formData.serviceNumber || '')}
-                className="w-full px-6 py-4 bg-gray-50 border border-gray-300 rounded-full text-gray-500 cursor-not-allowed shadow-sm"
-                readOnly
-              />
-            </div>
-
-            {/* İlan Başlığı */}
-            <div>
-              <label htmlFor="serviceTitle" className="block text-sm font-medium text-gray-700 mb-2">
-                İlan Başlığı *
-              </label>
-              <input
-                type="text"
-                id="serviceTitle"
-                name="serviceTitle"
-                value={String(formData.serviceTitle || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-                placeholder="Örn: İstanbul-Ankara Güzergahı Nakliye Hizmeti"
-              />
-            </div>
-
-            {/* Taşıma Modu */}
-            <div>
-              <label htmlFor="serviceTransportMode" className="block text-sm font-medium text-gray-700 mb-2">
-                Taşıma Modu *
-              </label>
-              <select
-                id="serviceTransportMode"
-                name="serviceTransportMode"
-                value={String(formData.serviceTransportMode || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-              >
-                <option value="">Seçiniz</option>
-                <option value="road">🚛 Karayolu</option>
-                <option value="sea">🚢 Denizyolu</option>
-                <option value="air">✈️ Havayolu</option>
-                <option value="rail">🚂 Demiryolu</option>
-              </select>
-            </div>
-
-            {/* Kalkış Bölgesi */}
-            <div>
-              <label htmlFor="serviceOrigin" className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="inline w-4 h-4 mr-1" />
-                {getDynamicFieldLabels().origin} *
-              </label>
-              <input
-                type="text"
-                id="serviceOrigin"
-                name="serviceOrigin"
-                value={String(formData.serviceOrigin || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-                placeholder={getDynamicPlaceholders().origin}
-              />
-            </div>
-
-            {/* Varış Bölgesi */}
-            <div>
-              <label htmlFor="serviceDestination" className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="inline w-4 h-4 mr-1" />
-                {getDynamicFieldLabels().destination} *
-              </label>
-              <input
-                type="text"
-                id="serviceDestination"
-                name="serviceDestination"
-                value={String(formData.serviceDestination || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-                placeholder={getDynamicPlaceholders().destination}
-              />
-            </div>
-
-            {/* Araç Tipi - Taşıma modu seçildikten sonra gösterilir */}
+          {/* Header */}
+          <div className="flex items-center mb-8 relative z-10">
+            <button
+              onClick={() => setActiveSection('my-listings')}
+              className="mr-4 p-2 text-gray-600 hover:text-primary-600 transition-colors rounded-full"
+              title="Geri"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-3xl font-bold text-gray-900">Yeni Nakliye İlanı Oluştur</h1>
             {transportMode && (
+              <div className="ml-auto hidden md:block">
+                {getTransportIcon()}
+              </div>
+            )}
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Nakliye İlanı No */}
               <div>
-                <label htmlFor="serviceVehicleType" className="block text-sm font-medium text-gray-700 mb-2">
-                  <Truck className="inline w-4 h-4 mr-1" />
-                  Araç Tipi *
+                <label htmlFor="serviceNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nakliye İlanı No
+                </label>
+                <input
+                  type="text"
+                  id="serviceNumber"
+                  name="serviceNumber"
+                  value={String(formData.serviceNumber || '')}
+                  className="w-full px-6 py-4 bg-gray-50 border border-gray-300 rounded-full text-gray-500 cursor-not-allowed shadow-sm"
+                  readOnly
+                />
+              </div>
+
+              {/* İlan Başlığı */}
+              <div>
+                <label htmlFor="serviceTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                  İlan Başlığı *
+                </label>
+                <input
+                  type="text"
+                  id="serviceTitle"
+                  name="serviceTitle"
+                  value={String(formData.serviceTitle || '')}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  required
+                  placeholder="Örn: İstanbul-Ankara Güzergahı Nakliye Hizmeti"
+                />
+              </div>
+
+              {/* Taşıma Modu */}
+              <div>
+                <label htmlFor="serviceTransportMode" className="block text-sm font-medium text-gray-700 mb-2">
+                  Taşıma Modu *
                 </label>
                 <select
-                  id="serviceVehicleType"
-                  name="serviceVehicleType"
-                  value={String(formData.serviceVehicleType || '')}
+                  id="serviceTransportMode"
+                  name="serviceTransportMode"
+                  value={String(formData.serviceTransportMode || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                   required
                 >
-                  <option value="">Araç tipi seçiniz...</option>
-                  {vehicleTypes[transportMode as keyof typeof vehicleTypes]?.map((group, groupIndex) => (
-                    <optgroup key={groupIndex} label={group.group}>
-                      {group.vehicles.map((vehicle) => (
-                        <option key={vehicle.value} value={vehicle.value}>
-                          {vehicle.label}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
+                  <option value="">Seçiniz</option>
+                  <option value="road">🚛 Karayolu</option>
+                  <option value="sea">🚢 Denizyolu</option>
+                  <option value="air">✈️ Havayolu</option>
+                  <option value="rail">🚂 Demiryolu</option>
                 </select>
               </div>
-            )}
 
-            {/* Boşta Olma Tarihi */}
-            <div>
-              <label htmlFor="serviceAvailableDate" className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="inline w-4 h-4 mr-1" />
-                {getDynamicFieldLabels().availableDate} *
-              </label>
-              <input
-                type="date"
-                id="serviceAvailableDate"
-                name="serviceAvailableDate"
-                value={String(formData.serviceAvailableDate || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-              />
-            </div>
-
-            {/* Laycan End (Sadece Denizyolu) - KALDIRILDI: Artık müsaitlik için laycan kullanmıyoruz */}
-            
-            {/* Müsaitlik Bitiş Tarihi (Tüm modlar için) */}
-            {formData.serviceTransportMode && (
+              {/* Kalkış Bölgesi */}
               <div>
-                <label htmlFor="serviceAvailableUntilDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="inline w-4 h-4 mr-1" />
-                  Müsaitlik Bitiş Tarihi
-                </label>
-                <input
-                  type="date"
-                  id="serviceAvailableUntilDate"
-                  name="serviceAvailableUntilDate"
-                  value={String(formData.serviceAvailableUntilDate || '')}
-                  onChange={handleInputChange}
-                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                />
-              </div>
-            )}
-
-            {/* Kapasite */}
-            <div>
-              <label htmlFor="serviceCapacity" className="block text-sm font-medium text-gray-700 mb-2">
-                <Package className="inline w-4 h-4 mr-1" />
-                {getDynamicFieldLabels().capacity} *
-              </label>
-              <input
-                type="number"
-                id="serviceCapacity"
-                name="serviceCapacity"
-                value={String(formData.serviceCapacity || '')}
-                onChange={handleInputChange}
-                min="0.1"
-                step="0.1"
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-                placeholder={getDynamicPlaceholders().capacity}
-              />
-            </div>
-
-            {/* Firma Adı */}
-            <div>
-              <label htmlFor="serviceCompanyName" className="block text-sm font-medium text-gray-700 mb-2">
-                Firma Adı (Opsiyonel)
-              </label>
-              <input
-                type="text"
-                id="serviceCompanyName"
-                name="serviceCompanyName"
-                value={String(formData.serviceCompanyName || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                placeholder="Örn: ABC Lojistik A.Ş."
-              />
-            </div>
-
-            {/* İletişim Bilgileri */}
-            <div>
-              <label htmlFor="serviceContact" className="block text-sm font-medium text-gray-700 mb-2">
-                İletişim Bilgileri (E-posta/Telefon) *
-              </label>
-              <input
-                type="text"
-                id="serviceContact"
-                name="serviceContact"
-                value={String(formData.serviceContact || '')}
-                onChange={handleInputChange}
-                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
-                placeholder="Örn: info@abclojistik.com veya +90 555 123 4567"
-              />
-            </div>
-
-            {/* ============ TAŞIMA MODUNA GÖRE EK ALANLAR ============ */}
-            
-            {/* 🚛 Karayolu Ek Alanları */}
-            {formData.serviceTransportMode === 'road' && (
-              <div>
-                <label htmlFor="plateNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  🚛 Plaka / Şasi Numarası
+                <label htmlFor="serviceOrigin" className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="inline w-4 h-4 mr-1" />
+                  {getDynamicFieldLabels().origin} *
                 </label>
                 <input
                   type="text"
-                  id="plateNumber"
-                  name="plateNumber"
-                  value={String(formData.plateNumber || '')}
+                  id="serviceOrigin"
+                  name="serviceOrigin"
+                  value={String(formData.serviceOrigin || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  placeholder="Örn: 34 ABC 123 veya WJMM62AUZ7C123456"
+                  required
+                  placeholder={getDynamicPlaceholders().origin}
                 />
+              </div>
+
+              {/* Varış Bölgesi */}
+              <div>
+                <label htmlFor="serviceDestination" className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="inline w-4 h-4 mr-1" />
+                  {getDynamicFieldLabels().destination} *
+                </label>
+                <input
+                  type="text"
+                  id="serviceDestination"
+                  name="serviceDestination"
+                  value={String(formData.serviceDestination || '')}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  required
+                  placeholder={getDynamicPlaceholders().destination}
+                />
+              </div>
+
+              {/* Araç Tipi - Taşıma modu seçildikten sonra gösterilir */}
+              {transportMode && (
+                <div>
+                  <label htmlFor="serviceVehicleType" className="block text-sm font-medium text-gray-700 mb-2">
+                    <Truck className="inline w-4 h-4 mr-1" />
+                    Araç Tipi *
+                  </label>
+                  <select
+                    id="serviceVehicleType"
+                    name="serviceVehicleType"
+                    value={String(formData.serviceVehicleType || '')}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    required
+                  >
+                    <option value="">Araç tipi seçiniz...</option>
+                    {vehicleTypes[transportMode as keyof typeof vehicleTypes]?.map((group, groupIndex) => (
+                      <optgroup key={groupIndex} label={group.group}>
+                        {group.vehicles.map((vehicle) => (
+                          <option key={vehicle.value} value={vehicle.value}>
+                            {vehicle.label}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Boşta Olma Tarihi */}
+              <div>
+                <label htmlFor="serviceAvailableDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="inline w-4 h-4 mr-1" />
+                  {getDynamicFieldLabels().availableDate} *
+                </label>
+                <input
+                  type="date"
+                  id="serviceAvailableDate"
+                  name="serviceAvailableDate"
+                  value={String(formData.serviceAvailableDate || '')}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  required
+                />
+              </div>
+
+              {/* Laycan End (Sadece Denizyolu) - KALDIRILDI: Artık müsaitlik için laycan kullanmıyoruz */}
+
+              {/* Müsaitlik Bitiş Tarihi (Tüm modlar için) */}
+              {formData.serviceTransportMode && (
+                <div>
+                  <label htmlFor="serviceAvailableUntilDate" className="block text-sm font-medium text-gray-700 mb-2">
+                    <Calendar className="inline w-4 h-4 mr-1" />
+                    Müsaitlik Bitiş Tarihi
+                  </label>
+                  <input
+                    type="date"
+                    id="serviceAvailableUntilDate"
+                    name="serviceAvailableUntilDate"
+                    value={String(formData.serviceAvailableUntilDate || '')}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  />
+                </div>
+              )}
+
+              {/* Kapasite */}
+              <div>
+                <label htmlFor="serviceCapacity" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Package className="inline w-4 h-4 mr-1" />
+                  {getDynamicFieldLabels().capacity} *
+                </label>
+                <input
+                  type="number"
+                  id="serviceCapacity"
+                  name="serviceCapacity"
+                  value={String(formData.serviceCapacity || '')}
+                  onChange={handleInputChange}
+                  min="0.1"
+                  step="0.1"
+                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  required
+                  placeholder={getDynamicPlaceholders().capacity}
+                />
+              </div>
+
+              {/* Firma Adı */}
+              <div>
+                <label htmlFor="serviceCompanyName" className="block text-sm font-medium text-gray-700 mb-2">
+                  Firma Adı (Opsiyonel)
+                </label>
+                <input
+                  type="text"
+                  id="serviceCompanyName"
+                  name="serviceCompanyName"
+                  value={String(formData.serviceCompanyName || '')}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  placeholder="Örn: ABC Lojistik A.Ş."
+                />
+              </div>
+
+              {/* İletişim Bilgileri */}
+              <div>
+                <label htmlFor="serviceContact" className="block text-sm font-medium text-gray-700 mb-2">
+                  İletişim Bilgileri (E-posta/Telefon) *
+                </label>
+                <input
+                  type="text"
+                  id="serviceContact"
+                  name="serviceContact"
+                  value={String(formData.serviceContact || '')}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                  required
+                  placeholder="Örn: info@abclojistik.com veya +90 555 123 4567"
+                />
+              </div>
+
+              {/* ============ TAŞIMA MODUNA GÖRE EK ALANLAR ============ */}
+
+              {/* 🚛 Karayolu Ek Alanları */}
+              {formData.serviceTransportMode === 'road' && (
+                <div>
+                  <label htmlFor="plateNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    🚛 Plaka / Şasi Numarası
+                  </label>
+                  <input
+                    type="text"
+                    id="plateNumber"
+                    name="plateNumber"
+                    value={String(formData.plateNumber || '')}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 34 ABC 123 veya WJMM62AUZ7C123456"
+                  />
+                </div>
+              )}
+
+              {/* 🚢 Denizyolu Ek Alanları */}
+              {formData.serviceTransportMode === 'sea' && (
+                <>
+                  <div>
+                    <label htmlFor="shipName" className="block text-sm font-medium text-gray-700 mb-2">
+                      🚢 Gemi Adı *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipName"
+                      name="shipName"
+                      value={String(formData.shipName || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      required
+                      placeholder="Örn: MV KARGO EXPRESS"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="imoNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                      🆔 IMO No *
+                    </label>
+                    <input
+                      type="text"
+                      id="imoNumber"
+                      name="imoNumber"
+                      value={String(formData.imoNumber || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      required
+                      placeholder="Örn: IMO 1234567"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="mmsiNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                      📡 MMSI No *
+                    </label>
+                    <input
+                      type="text"
+                      id="mmsiNumber"
+                      name="mmsiNumber"
+                      value={String(formData.mmsiNumber || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      required
+                      placeholder="Örn: 271234567"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="shipDimensions" className="block text-sm font-medium text-gray-700 mb-2">
+                      📏 Boyutlar (LOA, Beam) *
+                    </label>
+                    <input
+                      type="text"
+                      id="shipDimensions"
+                      name="shipDimensions"
+                      value={String(formData.shipDimensions || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      required
+                      placeholder="Örn: LOA: 180m, Beam: 28m"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="freightType" className="block text-sm font-medium text-gray-700 mb-2">
+                      💰 Navlun Tipi *
+                    </label>
+                    <input
+                      type="text"
+                      id="freightType"
+                      name="freightType"
+                      value={String(formData.freightType || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      required
+                      placeholder="Örn: Lump sum, USD/ton, Time charter"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="chartererInfo" className="block text-sm font-medium text-gray-700 mb-2">
+                      🏢 Charterer / Broker Bilgisi
+                    </label>
+                    <input
+                      type="text"
+                      id="chartererInfo"
+                      name="chartererInfo"
+                      value={String(formData.chartererInfo || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: ABC Shipping & Brokerage"
+                    />
+                  </div>
+
+                  {/* Ek denizyolu alanları */}
+                  <div>
+                    <label htmlFor="grossTonnage" className="block text-sm font-medium text-gray-700 mb-2">
+                      📊 Gross Tonnage (GT)
+                    </label>
+                    <input
+                      type="text"
+                      id="grossTonnage"
+                      name="grossTonnage"
+                      value={String(formData.grossTonnage || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 15000 GT"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="netTonnage" className="block text-sm font-medium text-gray-700 mb-2">
+                      📊 Net Tonnage (NT)
+                    </label>
+                    <input
+                      type="text"
+                      id="netTonnage"
+                      name="netTonnage"
+                      value={String(formData.netTonnage || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 8000 NT"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="shipFlag" className="block text-sm font-medium text-gray-700 mb-2">
+                      🏴 Bayrak Devleti
+                    </label>
+                    <input
+                      type="text"
+                      id="shipFlag"
+                      name="shipFlag"
+                      value={String(formData.shipFlag || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: Turkey, Malta, Panama"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="homePort" className="block text-sm font-medium text-gray-700 mb-2">
+                      🏠 Bağlama Limanı
+                    </label>
+                    <input
+                      type="text"
+                      id="homePort"
+                      name="homePort"
+                      value={String(formData.homePort || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: İstanbul"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="yearBuilt" className="block text-sm font-medium text-gray-700 mb-2">
+                      🔨 İnşa Yılı
+                    </label>
+                    <input
+                      type="text"
+                      id="yearBuilt"
+                      name="yearBuilt"
+                      value={String(formData.yearBuilt || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 2018"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="speedKnots" className="block text-sm font-medium text-gray-700 mb-2">
+                      ⚡ Hız (Knot)
+                    </label>
+                    <input
+                      type="text"
+                      id="speedKnots"
+                      name="speedKnots"
+                      value={String(formData.speedKnots || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 14.5 knot"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="fuelConsumption" className="block text-sm font-medium text-gray-700 mb-2">
+                      ⛽ Yakıt Tüketimi
+                    </label>
+                    <input
+                      type="text"
+                      id="fuelConsumption"
+                      name="fuelConsumption"
+                      value={String(formData.fuelConsumption || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 25 MT/day"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ballastCapacity" className="block text-sm font-medium text-gray-700 mb-2">
+                      🌊 Balast Kapasitesi
+                    </label>
+                    <input
+                      type="text"
+                      id="ballastCapacity"
+                      name="ballastCapacity"
+                      value={String(formData.ballastCapacity || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 8000 MT"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* ✈️ Havayolu Ek Alanları */}
+              {formData.serviceTransportMode === 'air' && (
+                <>
+                  <div>
+                    <label htmlFor="flightNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                      ✈️ Uçuş Numarası
+                    </label>
+                    <input
+                      type="text"
+                      id="flightNumber"
+                      name="flightNumber"
+                      value={String(formData.flightNumber || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: TK123 veya CRG456"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="aircraftType" className="block text-sm font-medium text-gray-700 mb-2">
+                      ✈️ Uçak Tipi
+                    </label>
+                    <input
+                      type="text"
+                      id="aircraftType"
+                      name="aircraftType"
+                      value={String(formData.aircraftType || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: Boeing 747F, Airbus A330F"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="maxPayload" className="block text-sm font-medium text-gray-700 mb-2">
+                      📦 Maksimum Payload (kg)
+                    </label>
+                    <input
+                      type="text"
+                      id="maxPayload"
+                      name="maxPayload"
+                      value={String(formData.maxPayload || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 134000"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cargoVolume" className="block text-sm font-medium text-gray-700 mb-2">
+                      📏 Kargo Hacmi (m³)
+                    </label>
+                    <input
+                      type="text"
+                      id="cargoVolume"
+                      name="cargoVolume"
+                      value={String(formData.cargoVolume || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 858"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* 🚂 Demiryolu Ek Alanları */}
+              {formData.serviceTransportMode === 'rail' && (
+                <>
+                  <div>
+                    <label htmlFor="trainNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                      🚂 Tren/Kompozisyon No
+                    </label>
+                    <input
+                      type="text"
+                      id="trainNumber"
+                      name="trainNumber"
+                      value={String(formData.trainNumber || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: TR-12345 veya K-KARGO-67"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="wagonCount" className="block text-sm font-medium text-gray-700 mb-2">
+                      🚃 Vagon Sayısı
+                    </label>
+                    <input
+                      type="text"
+                      id="wagonCount"
+                      name="wagonCount"
+                      value={String(formData.wagonCount || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: 25"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="wagonTypes" className="block text-sm font-medium text-gray-700 mb-2">
+                      🚃 Vagon Tipleri (virgülle ayırın)
+                    </label>
+                    <input
+                      type="text"
+                      id="wagonTypes"
+                      name="wagonTypes"
+                      value={String(formData.wagonTypes || '')}
+                      onChange={handleInputChange}
+                      className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                      placeholder="Örn: Açık Yük Vagonu, Kapalı Yük Vagonu"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Açıklama */}
+            <div>
+              <label htmlFor="serviceDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                Açıklama *
+              </label>
+              <textarea
+                id="serviceDescription"
+                name="serviceDescription"
+                value={String(formData.serviceDescription || '')}
+                onChange={handleInputChange}
+                rows={4}
+                className="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                required
+                placeholder="Nakliye hizmetiniz hakkında detaylı bilgi verin..."
+              />
+            </div>
+
+            {/* Dynamic Document List */}
+            {formData.serviceTransportMode && (
+              <div className="bg-white/50 rounded-3xl p-6 border border-gray-200">
+                <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2 text-primary-600" size={20} />
+                  📋 Gerekli Evraklar ({formData.serviceTransportMode === 'road' ? 'Karayolu' : formData.serviceTransportMode === 'sea' ? 'Denizyolu' : formData.serviceTransportMode === 'air' ? 'Havayolu' : 'Demiryolu'})
+                </h4>
+                {formData.serviceTransportMode === 'sea' ? (
+                  <>
+                    {[
+                      {
+                        group: 'GEMİ OPERASYONEL & UYGUNLUK BELGELERİ (Vetting/Yeterlilik)',
+                        documents: [
+                          'Q88 Formu (Tanker teknik bilgi formu)',
+                          'SIRE Inspection Report (Son, temiz)',
+                          'CDI Certificate (Kimyasal taşımada)',
+                          'PSC Inspection Records (Son liman devleti kontrolü)',
+                          'Vetting Approval Record / Broker Questionnaire',
+                          'DOC/SMC/ISPS Sertifikaları',
+                          'Class Certificate / Class Status Report',
+                          'P&I Insurance Certificate (Sorumluluk sigortası)',
+                          'Hull & Machinery Insurance (Gövde/Makina Sigortası)',
+                          'Last Drydock/Special Survey Report',
+                          'Vessel Particulars / Registration Certificate'
+                        ]
+                      },
+                      {
+                        group: 'STANDART DENİZYOLU TAŞIMA BELGELERİ',
+                        documents: [
+                          'Bill of Lading (B/L) – Konşimento / Sea Waybill',
+                          'Charter Party / Fixture Note (Varsa, kiralama)',
+                          'Yükleme Listesi / Manifesto',
+                          'Loading Certificate / Yükleme Sertifikası',
+                          'Yükleme Planı (Loading Plan)',
+                          'Mate’s Receipt',
+                          'Surveyor Raporları (Ullage, Draft, SGS, Intertek)',
+                          'IMO Deklarasyonu (Tehlikeli yük için)',
+                          'Arrival Notice / Delivery Order',
+                          'Liman Belgeleri (Tally Sheet, EIR)',
+                          'Tank/Ambar Temizlik Sertifikası',
+                          'Fumigasyon Sertifikası (gerekiyorsa)',
+                          'Crew List / Personel Sertifikaları',
+                          'ISM/ISPS Belgeleri',
+                          'Gemi Fotoğrafları',
+                          'Son 3 Yük (Last 3 Cargo)',
+                          'Diğer (Belirtiniz): __________'
+                        ]
+                      }
+                    ].map((group, groupIdx) => (
+                      <div key={groupIdx} className="mb-6">
+                        <div className="font-semibold text-primary-700 mb-2">{group.group}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {group.documents.map((document, idx) => (
+                            <div key={idx} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={`sea_doc_${groupIdx}_${idx}`}
+                                checked={selectedDocuments.includes(document)}
+                                onChange={() => handleDocumentSelect(document)}
+                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                              />
+                              <label htmlFor={`sea_doc_${groupIdx}_${idx}`} className="ml-3 text-sm text-gray-700">
+                                {document}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {requiredDocuments[formData.serviceTransportMode as keyof typeof requiredDocuments]?.map((document, index) => (
+                      <div key={index} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`document-${index}`}
+                          checked={selectedDocuments.includes(document)}
+                          onChange={() => handleDocumentSelect(document)}
+                          className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        />
+                        <label htmlFor={`document-${index}`} className="ml-2 text-sm text-gray-700">
+                          📄 {document}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {selectedDocuments.length > 0 && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-2xl border border-blue-200">
+                    <p className="text-sm text-blue-800 font-medium">
+                      Seçilen Evraklar ({selectedDocuments.length})
+                    </p>
+                    <div className="mt-2 text-xs text-blue-600">
+                      {selectedDocuments.join(', ')}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* 🚢 Denizyolu Ek Alanları */}
-            {formData.serviceTransportMode === 'sea' && (
-              <>
-                <div>
-                  <label htmlFor="shipName" className="block text-sm font-medium text-gray-700 mb-2">
-                    🚢 Gemi Adı *
-                  </label>
-                  <input
-                    type="text"
-                    id="shipName"
-                    name="shipName"
-                    value={String(formData.shipName || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    required
-                    placeholder="Örn: MV KARGO EXPRESS"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="imoNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    🆔 IMO No *
-                  </label>
-                  <input
-                    type="text"
-                    id="imoNumber"
-                    name="imoNumber"
-                    value={String(formData.imoNumber || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    required
-                    placeholder="Örn: IMO 1234567"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="mmsiNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    📡 MMSI No *
-                  </label>
-                  <input
-                    type="text"
-                    id="mmsiNumber"
-                    name="mmsiNumber"
-                    value={String(formData.mmsiNumber || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    required
-                    placeholder="Örn: 271234567"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="shipDimensions" className="block text-sm font-medium text-gray-700 mb-2">
-                    📏 Boyutlar (LOA, Beam) *
-                  </label>
-                  <input
-                    type="text"
-                    id="shipDimensions"
-                    name="shipDimensions"
-                    value={String(formData.shipDimensions || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    required
-                    placeholder="Örn: LOA: 180m, Beam: 28m"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="freightType" className="block text-sm font-medium text-gray-700 mb-2">
-                    💰 Navlun Tipi *
-                  </label>
-                  <input
-                    type="text"
-                    id="freightType"
-                    name="freightType"
-                    value={String(formData.freightType || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    required
-                    placeholder="Örn: Lump sum, USD/ton, Time charter"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="chartererInfo" className="block text-sm font-medium text-gray-700 mb-2">
-                    🏢 Charterer / Broker Bilgisi
-                  </label>
-                  <input
-                    type="text"
-                    id="chartererInfo"
-                    name="chartererInfo"
-                    value={String(formData.chartererInfo || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: ABC Shipping & Brokerage"
-                  />
-                </div>
-                
-                {/* Ek denizyolu alanları */}
-                <div>
-                  <label htmlFor="grossTonnage" className="block text-sm font-medium text-gray-700 mb-2">
-                    📊 Gross Tonnage (GT)
-                  </label>
-                  <input
-                    type="text"
-                    id="grossTonnage"
-                    name="grossTonnage"
-                    value={String(formData.grossTonnage || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 15000 GT"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="netTonnage" className="block text-sm font-medium text-gray-700 mb-2">
-                    📊 Net Tonnage (NT)
-                  </label>
-                  <input
-                    type="text"
-                    id="netTonnage"
-                    name="netTonnage"
-                    value={String(formData.netTonnage || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 8000 NT"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="shipFlag" className="block text-sm font-medium text-gray-700 mb-2">
-                    🏴 Bayrak Devleti
-                  </label>
-                  <input
-                    type="text"
-                    id="shipFlag"
-                    name="shipFlag"
-                    value={String(formData.shipFlag || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: Turkey, Malta, Panama"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="homePort" className="block text-sm font-medium text-gray-700 mb-2">
-                    🏠 Bağlama Limanı
-                  </label>
-                  <input
-                    type="text"
-                    id="homePort"
-                    name="homePort"
-                    value={String(formData.homePort || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: İstanbul"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="yearBuilt" className="block text-sm font-medium text-gray-700 mb-2">
-                    🔨 İnşa Yılı
-                  </label>
-                  <input
-                    type="text"
-                    id="yearBuilt"
-                    name="yearBuilt"
-                    value={String(formData.yearBuilt || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 2018"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="speedKnots" className="block text-sm font-medium text-gray-700 mb-2">
-                    ⚡ Hız (Knot)
-                  </label>
-                  <input
-                    type="text"
-                    id="speedKnots"
-                    name="speedKnots"
-                    value={String(formData.speedKnots || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 14.5 knot"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="fuelConsumption" className="block text-sm font-medium text-gray-700 mb-2">
-                    ⛽ Yakıt Tüketimi
-                  </label>
-                  <input
-                    type="text"
-                    id="fuelConsumption"
-                    name="fuelConsumption"
-                    value={String(formData.fuelConsumption || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 25 MT/day"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="ballastCapacity" className="block text-sm font-medium text-gray-700 mb-2">
-                    🌊 Balast Kapasitesi
-                  </label>
-                  <input
-                    type="text"
-                    id="ballastCapacity"
-                    name="ballastCapacity"
-                    value={String(formData.ballastCapacity || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 8000 MT"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* ✈️ Havayolu Ek Alanları */}
-            {formData.serviceTransportMode === 'air' && (
-              <>
-                <div>
-                  <label htmlFor="flightNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    ✈️ Uçuş Numarası
-                  </label>
-                  <input
-                    type="text"
-                    id="flightNumber"
-                    name="flightNumber"
-                    value={String(formData.flightNumber || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: TK123 veya CRG456"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="aircraftType" className="block text-sm font-medium text-gray-700 mb-2">
-                    ✈️ Uçak Tipi
-                  </label>
-                  <input
-                    type="text"
-                    id="aircraftType"
-                    name="aircraftType"
-                    value={String(formData.aircraftType || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: Boeing 747F, Airbus A330F"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="maxPayload" className="block text-sm font-medium text-gray-700 mb-2">
-                    📦 Maksimum Payload (kg)
-                  </label>
-                  <input
-                    type="text"
-                    id="maxPayload"
-                    name="maxPayload"
-                    value={String(formData.maxPayload || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 134000"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="cargoVolume" className="block text-sm font-medium text-gray-700 mb-2">
-                    📏 Kargo Hacmi (m³)
-                  </label>
-                  <input
-                    type="text"
-                    id="cargoVolume"
-                    name="cargoVolume"
-                    value={String(formData.cargoVolume || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 858"
-                  />
-                </div>
-              </>
-            )}
-
-            {/* 🚂 Demiryolu Ek Alanları */}
-            {formData.serviceTransportMode === 'rail' && (
-              <>
-                <div>
-                  <label htmlFor="trainNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    🚂 Tren/Kompozisyon No
-                  </label>
-                  <input
-                    type="text"
-                    id="trainNumber"
-                    name="trainNumber"
-                    value={String(formData.trainNumber || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: TR-12345 veya K-KARGO-67"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="wagonCount" className="block text-sm font-medium text-gray-700 mb-2">
-                    🚃 Vagon Sayısı
-                  </label>
-                  <input
-                    type="text"
-                    id="wagonCount"
-                    name="wagonCount"
-                    value={String(formData.wagonCount || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: 25"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="wagonTypes" className="block text-sm font-medium text-gray-700 mb-2">
-                    🚃 Vagon Tipleri (virgülle ayırın)
-                  </label>
-                  <input
-                    type="text"
-                    id="wagonTypes"
-                    name="wagonTypes"
-                    value={String(formData.wagonTypes || '')}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                    placeholder="Örn: Açık Yük Vagonu, Kapalı Yük Vagonu"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Açıklama */}
-          <div>
-            <label htmlFor="serviceDescription" className="block text-sm font-medium text-gray-700 mb-2">
-              Açıklama *
-            </label>
-            <textarea
-              id="serviceDescription"
-              name="serviceDescription"
-              value={String(formData.serviceDescription || '')}
-              onChange={handleInputChange}
-              rows={4}
-              className="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-              required
-              placeholder="Nakliye hizmetiniz hakkında detaylı bilgi verin..."
-            />
-          </div>
-
-          {/* Dynamic Document List */}
-          {formData.serviceTransportMode && (
-            <div className="bg-white/50 rounded-3xl p-6 border border-gray-200">
-              <h4 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            {/* Evrak Yükleme Alanı */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                 <FileText className="mr-2 text-primary-600" size={20} />
-                📋 Gerekli Evraklar ({formData.serviceTransportMode === 'road' ? 'Karayolu' : formData.serviceTransportMode === 'sea' ? 'Denizyolu' : formData.serviceTransportMode === 'air' ? 'Havayolu' : 'Demiryolu'})
-              </h4>
-              {formData.serviceTransportMode === 'sea' ? (
-                <>
-                  {[
-                    {
-                      group: 'GEMİ OPERASYONEL & UYGUNLUK BELGELERİ (Vetting/Yeterlilik)',
-                      documents: [
-                        'Q88 Formu (Tanker teknik bilgi formu)',
-                        'SIRE Inspection Report (Son, temiz)',
-                        'CDI Certificate (Kimyasal taşımada)',
-                        'PSC Inspection Records (Son liman devleti kontrolü)',
-                        'Vetting Approval Record / Broker Questionnaire',
-                        'DOC/SMC/ISPS Sertifikaları',
-                        'Class Certificate / Class Status Report',
-                        'P&I Insurance Certificate (Sorumluluk sigortası)',
-                        'Hull & Machinery Insurance (Gövde/Makina Sigortası)',
-                        'Last Drydock/Special Survey Report',
-                        'Vessel Particulars / Registration Certificate'
-                      ]
-                    },
-                    {
-                      group: 'STANDART DENİZYOLU TAŞIMA BELGELERİ',
-                      documents: [
-                        'Bill of Lading (B/L) – Konşimento / Sea Waybill',
-                        'Charter Party / Fixture Note (Varsa, kiralama)',
-                        'Yükleme Listesi / Manifesto',
-                        'Loading Certificate / Yükleme Sertifikası',
-                        'Yükleme Planı (Loading Plan)',
-                        'Mate’s Receipt',
-                        'Surveyor Raporları (Ullage, Draft, SGS, Intertek)',
-                        'IMO Deklarasyonu (Tehlikeli yük için)',
-                        'Arrival Notice / Delivery Order',
-                        'Liman Belgeleri (Tally Sheet, EIR)',
-                        'Tank/Ambar Temizlik Sertifikası',
-                        'Fumigasyon Sertifikası (gerekiyorsa)',
-                        'Crew List / Personel Sertifikaları',
-                        'ISM/ISPS Belgeleri',
-                        'Gemi Fotoğrafları',
-                        'Son 3 Yük (Last 3 Cargo)',
-                        'Diğer (Belirtiniz): __________'
-                      ]
-                    }
-                  ].map((group, groupIdx) => (
-                    <div key={groupIdx} className="mb-6">
-                      <div className="font-semibold text-primary-700 mb-2">{group.group}</div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {group.documents.map((document, idx) => (
-                          <div key={idx} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              id={`sea_doc_${groupIdx}_${idx}`}
-                              checked={selectedDocuments.includes(document)}
-                              onChange={() => handleDocumentSelect(document)}
-                              className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                            />
-                            <label htmlFor={`sea_doc_${groupIdx}_${idx}`} className="ml-3 text-sm text-gray-700">
-                              {document}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {requiredDocuments[formData.serviceTransportMode as keyof typeof requiredDocuments]?.map((document, index) => (
-                    <div key={index} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`document-${index}`}
-                        checked={selectedDocuments.includes(document)}
-                        onChange={() => handleDocumentSelect(document)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-                      />
-                      <label htmlFor={`document-${index}`} className="ml-2 text-sm text-gray-700">
-                        📄 {document}
-                      </label>
-                    </div>
-                  ))}
+                Evrak Yükleme Alanı
+              </h3>
+
+              {/* Dosya Yükleme Alanı */}
+              <div className="mb-6">
+                <div className="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center hover:border-primary-400 transition-colors">
+                  <input
+                    type="file"
+                    id="documentUpload"
+                    multiple
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <label htmlFor="documentUpload" className="cursor-pointer">
+                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-lg font-medium text-gray-700 mb-2">Evrakları buraya sürükleyin veya tıklayın</p>
+                    <p className="text-sm text-gray-500">
+                      Desteklenen formatlar: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), PNG, JPEG
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Maksimum dosya boyutu: 10MB</p>
+                  </label>
                 </div>
-              )}
-              {selectedDocuments.length > 0 && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-2xl border border-blue-200">
-                  <p className="text-sm text-blue-800 font-medium">
-                    Seçilen Evraklar ({selectedDocuments.length})
-                  </p>
-                  <div className="mt-2 text-xs text-blue-600">
-                    {selectedDocuments.join(', ')}
+              </div>
+
+              {/* Yüklenen Dosyalar Listesi */}
+              {uploadedDocuments.length > 0 && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Yüklenen Evraklar ({uploadedDocuments.length})</h4>
+                  <div className="space-y-3">
+                    {uploadedDocuments.map((document) => (
+                      <div key={document.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-3xl border border-gray-200">
+                        <div className="flex items-center flex-1">
+                          <span className="text-2xl mr-3">{getFileIcon(document.type)}</span>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 truncate">{document.name}</p>
+                            <p className="text-sm text-gray-500">{document.size}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            type="button"
+                            onClick={() => handleDocumentPreview(document)}
+                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                            title="Önizleme"
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDocumentDownload(document)}
+                            className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors"
+                            title="İndir"
+                          >
+                            <Download size={18} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDocumentDelete(document.id)}
+                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                            title="Sil"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
             </div>
-          )}
 
-          {/* Evrak Yükleme Alanı */}
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FileText className="mr-2 text-primary-600" size={20} />
-              Evrak Yükleme Alanı
-            </h3>
-            
-            {/* Dosya Yükleme Alanı */}
-            <div className="mb-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center hover:border-primary-400 transition-colors">
-                <input
-                  type="file"
-                  id="documentUpload"
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <label htmlFor="documentUpload" className="cursor-pointer">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-lg font-medium text-gray-700 mb-2">Evrakları buraya sürükleyin veya tıklayın</p>
-                  <p className="text-sm text-gray-500">
-                    Desteklenen formatlar: PDF, Word (.doc, .docx), Excel (.xls, .xlsx), PNG, JPEG
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">Maksimum dosya boyutu: 10MB</p>
-                </label>
-              </div>
+            {/* Form Actions */}
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setActiveSection('my-listings')}
+                className="px-8 py-4 bg-gray-200 text-gray-800 rounded-full font-medium hover:bg-gray-300 transition-colors shadow-sm"
+                disabled={isSubmitting}
+              >
+                İptal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting && <Loader2 className="h-5 w-5 mr-2 animate-spin" />}
+                {isSubmitting ? 'Oluşturuluyor...' : 'İlanı Oluştur'}
+              </button>
             </div>
-
-            {/* Yüklenen Dosyalar Listesi */}
-            {uploadedDocuments.length > 0 && (
-              <div>
-                <h4 className="text-md font-medium text-gray-900 mb-3">Yüklenen Evraklar ({uploadedDocuments.length})</h4>
-                <div className="space-y-3">
-                  {uploadedDocuments.map((document) => (
-                    <div key={document.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-3xl border border-gray-200">
-                      <div className="flex items-center flex-1">
-                        <span className="text-2xl mr-3">{getFileIcon(document.type)}</span>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900 truncate">{document.name}</p>
-                          <p className="text-sm text-gray-500">{document.size}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 ml-4">
-                        <button
-                          type="button"
-                          onClick={() => handleDocumentPreview(document)}
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
-                          title="Önizleme"
-                        >
-                          <Eye size={18} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDocumentDownload(document)}
-                          className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full transition-colors"
-                          title="İndir"
-                        >
-                          <Download size={18} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDocumentDelete(document.id)}
-                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
-                          title="Sil"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={() => setActiveSection('my-listings')}
-              className="px-8 py-4 bg-gray-200 text-gray-800 rounded-full font-medium hover:bg-gray-300 transition-colors shadow-sm"
-              disabled={isSubmitting}
-            >
-              İptal
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-4 bg-primary-600 text-white rounded-full font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting && <Loader2 className="h-5 w-5 mr-2 animate-spin" />}
-              {isSubmitting ? 'Oluşturuluyor...' : 'İlanı Oluştur'}
-            </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        </div>
       </div>
     </>
   );

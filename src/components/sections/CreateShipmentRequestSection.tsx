@@ -56,7 +56,7 @@ const CreateShipmentRequestSection: React.FC = () => {
 
   // Örnek yük ilanları listesi - Artık Supabase'den çekilecek
   // const loadListings = [...] kaldırıldı
-  
+
   // Aktif yük ilanlarını Supabase'den çek
   useEffect(() => {
     const fetchLoadListings = async () => {
@@ -67,7 +67,7 @@ const CreateShipmentRequestSection: React.FC = () => {
           listingType: 'load_listing',
           limit: 50
         });
-        
+
         setLoadListings(listings);
         console.log('✅ Load listings fetched:', listings.length, '(including own listings)');
       } catch (error) {
@@ -410,7 +410,7 @@ const CreateShipmentRequestSection: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Kullanıcı kontrolü
     if (!user) {
       toast.error('Giriş yapmanız gerekiyor!');
@@ -486,11 +486,11 @@ const CreateShipmentRequestSection: React.FC = () => {
         if (doc.file && doc.documentType) {
           try {
             const { data: uploadData, error: uploadError } = await storage.uploadListingDocument(
-              listingId, 
-              doc.file, 
+              listingId,
+              doc.file,
               doc.documentType
             );
-            
+
             if (uploadError) {
               console.error('Document upload error:', uploadError);
               toast.error(`${doc.name} dosyası yüklenirken hata oluştu.`);
@@ -518,7 +518,7 @@ const CreateShipmentRequestSection: React.FC = () => {
 
       toast.success('Nakliye talebi başarıyla oluşturuldu!');
       setActiveSection('my-listings');
-      
+
     } catch (error) {
       console.error('Error creating shipment request:', error);
       toast.error('Nakliye talebi oluşturulurken bir hata oluştu.');
@@ -550,7 +550,7 @@ const CreateShipmentRequestSection: React.FC = () => {
 
   const getTransportBackgroundImage = () => {
     if (!transportMode) return '';
-    
+
     const backgroundImages = {
       road: `
         <div class="absolute inset-0 opacity-5">
@@ -595,7 +595,7 @@ const CreateShipmentRequestSection: React.FC = () => {
         </div>
       `
     };
-    
+
     return backgroundImages[transportMode as keyof typeof backgroundImages] || '';
   };
 
@@ -604,12 +604,12 @@ const CreateShipmentRequestSection: React.FC = () => {
       <div className={`rounded-3xl shadow-lg p-6 transition-all duration-300 ${getTransportBackground()}`}>
         {/* Background Image */}
         {transportMode && (
-          <div 
+          <div
             className="absolute inset-0 opacity-5 pointer-events-none"
             dangerouslySetInnerHTML={{ __html: getTransportBackgroundImage() }}
           />
         )}
-        
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8 relative z-10">
           <div className="flex items-center">
@@ -1135,7 +1135,7 @@ const CreateShipmentRequestSection: React.FC = () => {
               <Upload className="mr-2 text-primary-600" size={20} />
               Evrak Yükleme & Dosya Ekleme
             </h3>
-            
+
             {/* Dosya Yükleme Alanı */}
             <div className="mb-6">
               <div className="border-2 border-dashed border-gray-300 rounded-3xl p-8 text-center hover:border-primary-400 transition-colors">
@@ -1226,7 +1226,7 @@ const CreateShipmentRequestSection: React.FC = () => {
           </div>
         </form>
       </div>
-      
+
       {/* Toast Notifikasyonları */}
       <Toaster position="top-right" />
     </div>

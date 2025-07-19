@@ -395,7 +395,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
             <p className="text-xl lg:text-2xl mb-8 text-blue-100 leading-relaxed max-w-4xl mx-auto">
               Alıcı, Satıcı ve Nakliyecileri Uçtan Uca Bağlayan Pazaryeri. Kargo Market ile yük alım satımı ve nakliye süreçlerinizi tek platformda yönetin.
             </p>
-            
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center">
               <button
@@ -527,10 +527,10 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors duration-300">{feature.title}</h3>
                 <p className="text-primary-600 font-semibold mb-4 group-hover:text-primary-700 transition-colors duration-300">{feature.subtitle}</p>
                 <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">{feature.description}</p>
-                
+
                 {/* Hover Effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-primary-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
+
                 {/* Floating Elements */}
                 <div className="absolute -top-2 -right-2 w-4 h-4 bg-primary-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-bounce transition-all duration-500"></div>
                 <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-700"></div>
@@ -560,20 +560,20 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                   <div className={`w-16 h-16 ${step.color} rounded-full flex items-center justify-center mx-auto mb-6 text-white font-bold text-xl shadow-lg group-hover:scale-125 group-hover:rotate-12 transition-all duration-500`}>
                     {step.number}
                   </div>
-                  
+
                   {/* Icon */}
                   <div className="mb-4">
                     <step.icon className="text-gray-400 mx-auto group-hover:text-primary-600 group-hover:scale-125 transition-all duration-300" size={40} />
                   </div>
-                  
+
                   <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">{step.title}</h3>
                   <p className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">{step.description}</p>
-                  
+
                   {/* Active Indicator */}
                   {currentStep === index && (
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-2xl"></div>
                   )}
-                  
+
                   {/* Connection Line */}
                   {index < steps.length - 1 && (
                     <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary-300 to-primary-500"></div>
@@ -681,7 +681,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
 
                 {/* Mini Map */}
                 <div className="h-32 border-t border-gray-100">
-                  <LiveMap 
+                  <LiveMap
                     coordinates={[listing.coordinates]}
                     height="128px"
                     onClick={() => setSelectedListing(listing)}
@@ -692,29 +692,28 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 {/* Actions */}
                 <div className="p-6 pt-4 border-t border-gray-100">
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={() => handleShowOffer(listing)}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${
-                        isOwnListing(listing) 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${isOwnListing(listing)
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                           : 'bg-primary-600 text-white hover:bg-primary-700'
-                      }`}
+                        }`}
                       disabled={isOwnListing(listing)}
                     >
-                      {isLoggedIn 
-                        ? isOwnListing(listing) 
-                          ? 'Kendi İlanınız' 
-                          : 'Teklif Ver' 
+                      {isLoggedIn
+                        ? isOwnListing(listing)
+                          ? 'Kendi İlanınız'
+                          : 'Teklif Ver'
                         : 'Giriş Yap'}
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSelectedListing(listing)}
                       className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
                       title="Detayları Görüntüle"
                     >
                       <Eye size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         if (!isLoggedIn) {
                           setAuthModalOpen(true);
@@ -727,17 +726,16 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                         setMessageTarget(listing);
                         setShowMessageModal(true);
                       }}
-                      className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
-                        isOwnListing(listing) 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                      className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(listing)
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                        }`}
                       disabled={isOwnListing(listing)}
                     >
-                      {isLoggedIn 
-                        ? isOwnListing(listing) 
-                          ? 'Kendi İlanınız' 
-                          : 'Mesaj Gönder' 
+                      {isLoggedIn
+                        ? isOwnListing(listing)
+                          ? 'Kendi İlanınız'
+                          : 'Mesaj Gönder'
                         : 'Giriş Yap'}
                     </button>
                   </div>
@@ -764,7 +762,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
               Canlı <span className="text-primary-600">Harita</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Türkiye genelindeki aktif alıcı, satıcı ve nakliyecileri gerçek zamanlı olarak görün. 
+              Türkiye genelindeki aktif alıcı, satıcı ve nakliyecileri gerçek zamanlı olarak görün.
               İhtiyacınıza en yakın kullanıcıları keşfedin.
             </p>
           </div>
@@ -784,7 +782,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                       Alıcılar ({mapUsers.filter(u => u.type === 'buyer').length})
                     </span>
                   </label>
-                  
+
                   <label className="flex items-center cursor-pointer group">
                     <input
                       type="checkbox"
@@ -794,10 +792,10 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     />
                     <div className={`w-5 h-5 rounded-full mr-3 transition-all duration-300 ${mapFilters.sellers ? 'bg-green-500 scale-110' : 'bg-gray-300'}`}></div>
                     <span className={`font-medium transition-colors duration-300 ${mapFilters.sellers ? 'text-green-600' : 'text-gray-500'} group-hover:text-green-600`}>
-                    Satıcılar ({mapUsers.filter(u => u.type === 'seller').length})
+                      Satıcılar ({mapUsers.filter(u => u.type === 'seller').length})
                     </span>
                   </label>
-                  
+
                   <label className="flex items-center cursor-pointer group">
                     <input
                       type="checkbox"
@@ -856,11 +854,10 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 </div>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMapUser.name}</h3>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                selectedMapUser.type === 'buyer' ? 'bg-blue-100 text-blue-800' :
-                selectedMapUser.type === 'seller' ? 'bg-green-100 text-green-800' :
-                'bg-orange-100 text-orange-800'
-              }`}>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedMapUser.type === 'buyer' ? 'bg-blue-100 text-blue-800' :
+                  selectedMapUser.type === 'seller' ? 'bg-green-100 text-green-800' :
+                    'bg-orange-100 text-orange-800'
+                }`}>
                 {getUserTypeLabel(selectedMapUser.type)}
               </span>
             </div>
@@ -999,7 +996,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
               <div className="hidden lg:flex flex-col items-stretch gap-6">
                 {/* Büyük Harita */}
                 <div className="h-80 rounded-lg overflow-hidden border border-gray-200 mb-0">
-                  <LiveMap 
+                  <LiveMap
                     coordinates={[selectedListing.coordinates, selectedListing.destination]}
                     height="320px"
                     showRoute={true}
@@ -1011,18 +1008,17 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price}</div>
                     <div className="text-gray-600 mb-4">{selectedListing.offers} teklif alındı</div>
                     <div className="flex gap-3">
-                      <button 
+                      <button
                         onClick={() => handleShowOffer(selectedListing)}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
-                          isOwnListing(selectedListing) 
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             : 'bg-primary-600 text-white hover:bg-primary-700'
-                        }`}
+                          }`}
                         disabled={isOwnListing(selectedListing)}
                       >
                         {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Teklif Ver'}
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           if (!isLoggedIn) {
                             setAuthModalOpen(true);
@@ -1035,11 +1031,10 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                           setMessageTarget(selectedListing);
                           setShowMessageModal(true);
                         }}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
-                          isOwnListing(selectedListing) 
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                          }`}
                         disabled={isOwnListing(selectedListing)}
                       >
                         {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Mesaj Gönder'}

@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  X, 
-  Ship, 
-  MapPin, 
-  Truck, 
-  FileText, 
+import {
+  X,
+  Ship,
+  MapPin,
+  Truck,
+  FileText,
   Star,
   Eye,
   Phone,
@@ -46,9 +46,9 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
       'completed': { label: 'Tamamlandı', color: 'bg-blue-100 text-blue-800' },
       'suspended': { label: 'Askıya Alındı', color: 'bg-red-100 text-red-800' }
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.inactive;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         {config.label}
@@ -61,9 +61,8 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
-        className={`h-5 w-5 ${
-          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-        }`}
+        className={`h-5 w-5 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+          }`}
       />
     ));
   };
@@ -123,7 +122,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
               <FileText className="h-6 w-6 mr-3" />
               Hizmet Bilgileri
             </h3>
-            
+
             <div className="space-y-4">
               {service.description && (
                 <div className="bg-white rounded-lg p-4 border border-blue-100">
@@ -138,12 +137,12 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                   <div className="text-lg font-semibold text-gray-900 flex items-center">
                     <span className="mr-2">{getTransportModeIcon(service.transport_mode)}</span>
                     {service.transport_mode === 'road' ? 'Karayolu' :
-                     service.transport_mode === 'sea' ? 'Deniz' :
-                     service.transport_mode === 'air' ? 'Hava' :
-                     service.transport_mode === 'rail' ? 'Demiryolu' : service.transport_mode}
+                      service.transport_mode === 'sea' ? 'Deniz' :
+                        service.transport_mode === 'air' ? 'Hava' :
+                          service.transport_mode === 'rail' ? 'Demiryolu' : service.transport_mode}
                   </div>
                 </div>
-                
+
                 {service.company_name && (
                   <div className="bg-white rounded-lg p-4 border border-blue-100">
                     <div className="text-sm font-medium text-blue-700 mb-1">Şirket</div>
@@ -161,7 +160,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 <MapPin className="h-6 w-6 mr-3" />
                 Rota Bilgileri
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {service.origin && (
                   <div className="bg-white rounded-lg p-4 border border-green-100">
@@ -169,7 +168,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                     <div className="text-lg font-semibold text-gray-900">{service.origin}</div>
                   </div>
                 )}
-                
+
                 {service.destination && (
                   <div className="bg-white rounded-lg p-4 border border-green-100">
                     <div className="text-sm font-medium text-green-700 mb-1">Varış</div>
@@ -186,7 +185,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
               <Truck className="h-6 w-6 mr-3" />
               Taşıt Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {service.vehicle_type && (
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
@@ -194,7 +193,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                   <div className="text-gray-900">{translateVehicleType(service.vehicle_type)}</div>
                 </div>
               )}
-              
+
               {service.plate_number && (
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
                   <div className="text-sm font-medium text-purple-700 mb-1">Plaka</div>
@@ -248,7 +247,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 <Calendar className="h-6 w-6 mr-3" />
                 Müsaitlik
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {service.available_from_date && (
                   <div className="bg-white rounded-lg p-4 border border-orange-100">
@@ -256,7 +255,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                     <div className="text-gray-900">{formatDate(service.available_from_date)}</div>
                   </div>
                 )}
-                
+
                 {service.available_until_date && (
                   <div className="bg-white rounded-lg p-4 border border-orange-100">
                     <div className="text-sm font-medium text-orange-700 mb-1">Bitiş Tarihi</div>
@@ -273,7 +272,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
               <Star className="h-6 w-6 mr-3" />
               Değerlendirme ve İstatistikler
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white rounded-lg p-6 border border-yellow-100 text-center">
                 <div className="flex justify-center mb-3">
@@ -284,12 +283,12 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 </div>
                 <div className="text-sm text-gray-600">Ortalama Puan</div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-6 border border-yellow-100 text-center">
                 <div className="text-3xl font-bold text-blue-600 mb-1">{service.rating_count || 0}</div>
                 <div className="text-sm text-gray-600">Değerlendirme Sayısı</div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-6 border border-yellow-100 text-center">
                 <div className="text-3xl font-bold text-green-600 mb-1">{service.view_count || 0}</div>
                 <div className="text-sm text-gray-600">Görüntülenme</div>
@@ -304,7 +303,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 <Phone className="h-6 w-6 mr-3" />
                 İletişim Bilgileri
               </h3>
-              
+
               <div className="bg-white rounded-lg p-4 border border-indigo-100">
                 <div className="text-sm font-medium text-indigo-700 mb-2">İletişim</div>
                 <div className="text-gray-900 whitespace-pre-wrap">{service.contact_info}</div>
@@ -319,7 +318,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 <FileText className="h-6 w-6 mr-3" />
                 Gerekli Belgeler
               </h3>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {service.required_documents.map((doc, index) => (
                   <div key={index} className="bg-white rounded-lg p-3 border border-cyan-100">
@@ -339,7 +338,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
               <Eye className="h-6 w-6 mr-3" />
               Sistem Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-lg p-4 border border-slate-100">
                 <div className="text-sm font-medium text-slate-700 mb-1">Oluşturulma</div>

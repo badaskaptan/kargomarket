@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  Eye, 
-  Edit, 
-  Trash2, 
-  MapPin, 
-  Package, 
-  Calendar, 
+import {
+  Eye,
+  Edit,
+  Trash2,
+  MapPin,
+  Package,
+  Calendar,
   Truck,
   Ship,
   Plane,
@@ -82,9 +82,9 @@ const ListingCard: React.FC<ListingCardProps> = ({
       'expired': { label: 'Süresi Doldu', color: 'bg-red-100 text-red-800' },
       'draft': { label: 'Taslak', color: 'bg-gray-100 text-gray-800' }
     };
-    
+
     const config = statusConfig[listing.status as keyof typeof statusConfig] || statusConfig.draft;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         {config.label}
@@ -99,11 +99,10 @@ const ListingCard: React.FC<ListingCardProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg hover:border-blue-200 transition-all duration-200 ${
-      layout === 'horizontal' ? 'flex items-start gap-6' : 
-      layout === 'compact' ? 'h-full flex flex-col' : ''
-    }`}>
-      
+    <div className={`bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg hover:border-blue-200 transition-all duration-200 ${layout === 'horizontal' ? 'flex items-start gap-6' :
+        layout === 'compact' ? 'h-full flex flex-col' : ''
+      }`}>
+
       {/* Sol Taraf - Ana İçerik */}
       <div className={layout === 'horizontal' ? 'flex-1' : ''}>
         {/* Üst Kısım - Tip, Başlık ve Durum */}
@@ -130,7 +129,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
               {getStatusBadge()}
             </div>
           </div>
-          
+
           {/* Aksiyon Butonları - Sadece vertical layout'ta görünür */}
           {layout === 'vertical' && (
             <div className="flex items-center space-x-1 ml-4">
@@ -169,11 +168,10 @@ const ListingCard: React.FC<ListingCardProps> = ({
         )}
 
         {/* İlan Detayları */}
-        <div className={`${
-          layout === 'horizontal' ? 'grid grid-cols-2 gap-x-6 gap-y-3' : 
-          layout === 'compact' ? 'space-y-2 flex-1' : 
-          'space-y-3'
-        }`}>
+        <div className={`${layout === 'horizontal' ? 'grid grid-cols-2 gap-x-6 gap-y-3' :
+            layout === 'compact' ? 'space-y-2 flex-1' :
+              'space-y-3'
+          }`}>
           {/* Rota */}
           <div className="flex items-center text-gray-700">
             <MapPin className="h-4 w-4 mr-3 text-blue-500 flex-shrink-0" />
@@ -190,13 +188,13 @@ const ListingCard: React.FC<ListingCardProps> = ({
             <Calendar className="h-4 w-4 mr-3 text-purple-500 flex-shrink-0" />
             <div className={layout === 'compact' ? 'text-xs' : 'text-sm'}>
               <span className="text-xs text-gray-500 uppercase tracking-wide font-medium block mb-1">
-                {listing.loading_date ? 'Yükleme Tarihi' : 
-                 listing.available_from_date ? 'Müsait Tarih' : 'Tarih'}
+                {listing.loading_date ? 'Yükleme Tarihi' :
+                  listing.available_from_date ? 'Müsait Tarih' : 'Tarih'}
               </span>
               <span>
-                {listing.loading_date ? formatDate(listing.loading_date) : 
-                 listing.available_from_date ? formatDate(listing.available_from_date) : 
-                 'Belirtilmemiş'}
+                {listing.loading_date ? formatDate(listing.loading_date) :
+                  listing.available_from_date ? formatDate(listing.available_from_date) :
+                    'Belirtilmemiş'}
               </span>
             </div>
           </div>
@@ -204,20 +202,20 @@ const ListingCard: React.FC<ListingCardProps> = ({
           {/* Kargo Tipi/Araç Tipi */}
           {(listing.load_type || listing.transport_mode || (listing.listing_type === 'shipment_request' && listing.vehicle_types)) && (
             <div className="flex items-center text-gray-700">
-              {listing.listing_type === 'shipment_request' && listing.vehicle_types ? 
+              {listing.listing_type === 'shipment_request' && listing.vehicle_types ?
                 <Truck className="h-4 w-4 mr-3 text-blue-500 flex-shrink-0" /> :
                 <Package className="h-4 w-4 mr-3 text-green-500 flex-shrink-0" />
               }
               <div className={layout === 'compact' ? 'text-xs' : 'text-sm'}>
                 <span className="text-xs text-gray-500 uppercase tracking-wide font-medium block mb-1">
                   {listing.listing_type === 'shipment_request' && listing.vehicle_types ? 'İstenen Araç Tipleri' :
-                   listing.load_type ? 'Yük Tipi' : 'Taşıma Modu'}
+                    listing.load_type ? 'Yük Tipi' : 'Taşıma Modu'}
                 </span>
                 <span>
-                  {listing.listing_type === 'shipment_request' && listing.vehicle_types ? 
+                  {listing.listing_type === 'shipment_request' && listing.vehicle_types ?
                     translateVehicleTypes(listing.vehicle_types) :
-                    listing.load_type ? translateLoadType(listing.load_type) : 
-                    translateTransportMode(listing.transport_mode || 'road')}
+                    listing.load_type ? translateLoadType(listing.load_type) :
+                      translateTransportMode(listing.transport_mode || 'road')}
                 </span>
               </div>
             </div>
@@ -332,7 +330,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
                 )}
               </div>
             </div>
-            
+
             {/* Compact Aksiyon Butonları */}
             <div className="flex items-center justify-center space-x-1">
               <button

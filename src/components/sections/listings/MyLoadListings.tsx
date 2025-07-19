@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Package,
   Loader2
 } from 'lucide-react';
@@ -19,7 +19,7 @@ import type { ExtendedListing } from '../../../types/database-types';
 const MyLoadListings: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
-  
+
   // State
   const [listings, setListings] = useState<ExtendedListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,20 +32,20 @@ const MyLoadListings: React.FC = () => {
   // Veri yükleme
   const loadLoadListings = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       setLoading(true);
       const userListings = await ListingService.getUserListings(user.id);
       // Sadece load_listing tipindeki ilanları filtrele
       const loadListings = userListings.filter(listing => listing.listing_type === 'load_listing');
-      
+
       // Debug: İlk yük ilanının load_type'ını kontrol et
       if (loadListings.length > 0) {
         console.log('🔍 DEBUG: İlk yük ilanı:', loadListings[0]);
         console.log('🔍 DEBUG: load_type value:', loadListings[0].load_type);
         console.log('🔍 DEBUG: listing_type:', loadListings[0].listing_type);
       }
-      
+
       setListings(loadListings);
     } catch (error) {
       console.error('Load listings yüklenirken hata:', error);
@@ -70,7 +70,7 @@ const MyLoadListings: React.FC = () => {
   // İlan silme
   const handleDeleteListing = async (listingId: string) => {
     if (!confirm('Bu ilanı silmek istediğinizden emin misiniz?')) return;
-    
+
     try {
       await ListingService.deleteListing(listingId);
       setListings(prev => prev.filter(listing => listing.id !== listingId));
@@ -118,7 +118,7 @@ const MyLoadListings: React.FC = () => {
             <span className="font-medium">{filteredListings.length}</span> ilan bulundu
           </div>
         </div>
-        
+
         <button
           onClick={() => setActiveSection('create-load-listing')}
           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

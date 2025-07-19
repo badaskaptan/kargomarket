@@ -57,14 +57,14 @@ const ListingsPage: React.FC = () => {
 
   const filteredListings = listings.filter(listing => {
     const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         listing.route.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         listing.loadType.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      listing.route.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      listing.loadType.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesCategory = activeCategory === 'all' || listing.category === activeCategory;
-    
-    const matchesTransport = selectedTransport === 'all' || 
-                            listing.transportMode === selectedTransport;
-    
+
+    const matchesTransport = selectedTransport === 'all' ||
+      listing.transportMode === selectedTransport;
+
     return matchesSearch && matchesCategory && matchesTransport;
   });
 
@@ -216,11 +216,10 @@ const ListingsPage: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border-2 ${
-                  activeCategory === category.id
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border-2 ${activeCategory === category.id
                     ? getCategoryColor(category.id).replace('100', '200').replace('700', '800') + ' shadow-lg'
                     : getCategoryColor(category.id) + ' hover:shadow-md'
-                }`}
+                  }`}
               >
                 <span>{category.label}</span>
                 <span className="ml-2 text-sm opacity-75">({category.count})</span>
@@ -286,9 +285,9 @@ const ListingsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tarih Aralığı</label>
-                  <input 
-                    type="date" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" 
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     title="Tarih seçin"
                     placeholder="Tarih seçin"
                   />
@@ -381,7 +380,7 @@ const ListingsPage: React.FC = () => {
 
               {/* Mini Map */}
               <div className="h-32 border-t border-gray-100">
-                <LiveMap 
+                <LiveMap
                   coordinates={[listing.coordinates]}
                   height="128px"
                   onClick={() => setSelectedListing(listing)}
@@ -392,42 +391,40 @@ const ListingsPage: React.FC = () => {
               {/* Actions */}
               <div className="p-6 pt-4 border-t border-gray-100">
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={() => handleShowOffer(listing)}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${
-                      isOwnListing(listing) 
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${isOwnListing(listing)
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-primary-600 text-white hover:bg-primary-700'
-                    }`}
+                      }`}
                     disabled={isOwnListing(listing)}
                   >
-                    {isLoggedIn 
-                      ? isOwnListing(listing) 
-                        ? 'Kendi İlanınız' 
-                        : 'Teklif Ver' 
+                    {isLoggedIn
+                      ? isOwnListing(listing)
+                        ? 'Kendi İlanınız'
+                        : 'Teklif Ver'
                       : 'Giriş Yap'}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSelectedListing(listing)}
                     className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
                     title="Detayları Görüntüle"
                   >
                     <Eye size={16} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleShowMessage(listing)}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
-                      isOwnListing(listing) 
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(listing)
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                      }`}
                     disabled={isOwnListing(listing)}
                     title="Mesaj Gönder"
                   >
-                    {isLoggedIn 
-                      ? isOwnListing(listing) 
-                        ? 'Kendi İlanınız' 
-                        : 'Mesaj Gönder' 
+                    {isLoggedIn
+                      ? isOwnListing(listing)
+                        ? 'Kendi İlanınız'
+                        : 'Mesaj Gönder'
                       : 'Giriş Yap'}
                   </button>
                 </div>
@@ -478,19 +475,19 @@ const ListingsPage: React.FC = () => {
             >
               ×
             </button>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertTriangle className="text-red-600" size={32} />
               </div>
-              
+
               <h3 className="text-2xl font-bold text-gray-900 mb-4">İşlem Yapılamaz</h3>
               <p className="text-gray-600 mb-6">
                 Kendi ilanınıza teklif veremez veya mesaj gönderemezsiniz. Bu bir güvenlik önlemidir.
               </p>
-              
+
               <div className="flex flex-col gap-3">
-                <button 
+                <button
                   onClick={() => setShowSelfOfferWarning(false)}
                   className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105"
                 >
@@ -512,7 +509,7 @@ const ListingsPage: React.FC = () => {
             >
               ×
             </button>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left Column */}
               <div>
@@ -527,7 +524,7 @@ const ListingsPage: React.FC = () => {
                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getListingTypeColor(selectedListing.listingType ?? '')}`}>
                       {selectedListing.listingType}
                     </div>
-                    
+
                     {/* İlan sahibi göstergesi */}
                     {isOwnListing(selectedListing) && (
                       <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -596,7 +593,7 @@ const ListingsPage: React.FC = () => {
                     <p className="text-yellow-700 text-sm mb-4">
                       İletişim bilgilerini görmek ve teklif vermek için giriş yapmanız gerekiyor.
                     </p>
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedListing(null);
                         setAuthModalOpen(true);
@@ -613,7 +610,7 @@ const ListingsPage: React.FC = () => {
               <div>
                 {/* Large Map */}
                 <div className="mb-6 h-80 rounded-lg overflow-hidden border border-gray-200">
-                  <LiveMap 
+                  <LiveMap
                     coordinates={[selectedListing.coordinates, selectedListing.destination]}
                     height="320px"
                     showRoute={true}
@@ -626,34 +623,32 @@ const ListingsPage: React.FC = () => {
                     <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price}</div>
                     <div className="text-gray-600 mb-4">{selectedListing.offers} teklif alındı</div>
                     <div className="flex gap-3">
-                      <button 
+                      <button
                         onClick={() => handleShowOffer(selectedListing)}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
-                          isOwnListing(selectedListing) 
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             : 'bg-primary-600 text-white hover:bg-primary-700'
-                        }`}
+                          }`}
                         disabled={isOwnListing(selectedListing)}
                       >
-                        {isLoggedIn 
-                          ? isOwnListing(selectedListing) 
-                            ? 'Kendi İlanınız' 
-                            : 'Teklif Ver' 
+                        {isLoggedIn
+                          ? isOwnListing(selectedListing)
+                            ? 'Kendi İlanınız'
+                            : 'Teklif Ver'
                           : 'Giriş Yap'}
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleShowMessage(selectedListing)}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${
-                          isOwnListing(selectedListing) 
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                          }`}
                         disabled={isOwnListing(selectedListing)}
                       >
-                        {isLoggedIn 
-                          ? isOwnListing(selectedListing) 
-                            ? 'Kendi İlanınız' 
-                            : 'Mesaj Gönder' 
+                        {isLoggedIn
+                          ? isOwnListing(selectedListing)
+                            ? 'Kendi İlanınız'
+                            : 'Mesaj Gönder'
                           : 'Giriş Yap'}
                       </button>
                     </div>
