@@ -1110,4 +1110,10 @@ export type ExtendedListing = Database['public']['Tables']['listings']['Row'] & 
   owner_total_listings?: number;
   owner_total_completed_transactions?: number;
   owner_rating_count?: number;
+  /** Yüklenen dosyalar ve resimler */
+  uploaded_files?: Array<{
+    url: string;
+    name: string;
+    type?: string;
+  }>;
 };
