@@ -9,6 +9,7 @@ import { useDashboard } from '../../../context/DashboardContext';
 import { useAuth } from '../../../context/SupabaseAuthContext';
 import { ListingService } from '../../../services/listingService';
 import ShipmentRequestDetailModal from '../../modals/ShipmentRequestDetailModal';
+import EditShipmentRequestModal from '../../modals/EditShipmentRequestModal';
 import ListingCard from '../../common/ListingCard';
 import type { ExtendedListing } from '../../../types/database-types';
 
@@ -79,6 +80,20 @@ const MyShipmentRequests: React.FC = () => {
   // Düzenleme aç
   const handleEdit = (listing: ExtendedListing) => {
     setEditListing(listing);
+  };
+
+  // Edit modal'dan gelen güncelleme
+  const handleEditUpdate = (updatedListing: ExtendedListing) => {
+    setListings(prev => prev.map(listing => 
+      listing.id === updatedListing.id ? updatedListing : listing
+    ));
+    
+    // Eğer detail modal açıksa ve güncellenen ilan aynı ilansa, selectedListing'i de güncelle
+    if (selectedListing && selectedListing.id === updatedListing.id) {
+      setSelectedListing(updatedListing);
+    }
+    
+    setEditListing(null);
   };
 
   if (loading) {
@@ -154,20 +169,14 @@ const MyShipmentRequests: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Modal - geçici olarak kapatıldı */}
+      {/* Edit Modal */}
       {editListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Düzenleme</h3>
-            <p className="text-gray-600 mb-4">Edit modal henüz hazır değil</p>
-            <button
-              onClick={() => setEditListing(null)}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Kapat
-            </button>
-          </div>
-        </div>
+        <EditShipmentRequestModal
+          listing={editListing}
+          isOpen={!!editListing}
+          onClose={() => setEditListing(null)}
+          onUpdated={handleEditUpdate}
+        />
       )}
 
       {/* Preview Modal - ShipmentRequestDetailModal kullan */}

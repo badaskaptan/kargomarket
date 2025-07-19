@@ -9,8 +9,10 @@ import { useDashboard } from '../../../context/DashboardContext';
 import { useAuth } from '../../../context/SupabaseAuthContext';
 import { supabase } from '../../../lib/supabase';
 import TransportServiceDetailModal from '../../modals/TransportServiceDetailModal';
+import EditTransportServiceModal from '../../modals/EditTransportServiceModal';
 import ListingCard from '../../common/ListingCard';
 import type { ExtendedListing, TransportService } from '../../../types/database-types';
+import toast from 'react-hot-toast';
 
 // Transport Service API class
 class TransportServiceService {
@@ -90,6 +92,19 @@ const MyTransportServices: React.FC = () => {
   );
 
   // Hizmet güncelleme
+  const handleServiceUpdated = (updated: TransportService) => {
+    setServices(prev => prev.map(service => 
+      service.id === updated.id ? updated : service
+    ));
+    
+    // Eğer detail modal açıksa ve güncellenen hizmet aynı hizmetse, selectedService'i de güncelle
+    if (selectedService && selectedService.id === updated.id) {
+      setSelectedService(updated);
+    }
+    
+    toast.success('Nakliye hizmeti başarıyla güncellendi!');
+  };
+
   // Hizmet silme
   const handleDeleteService = async (serviceId: string) => {
     if (!confirm('Bu nakliye hizmetini silmek istediğinizden emin misiniz?')) return;
@@ -288,20 +303,14 @@ const MyTransportServices: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Modal - geçici olarak kapatıldı */}
+      {/* EditTransportServiceModal */}
       {editService && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Düzenleme</h3>
-            <p className="text-gray-600 mb-4">Edit modal henüz hazır değil</p>
-            <button
-              onClick={() => setEditService(null)}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Kapat
-            </button>
-          </div>
-        </div>
+        <EditTransportServiceModal
+          service={editService}
+          isOpen={!!editService}
+          onClose={() => setEditService(null)}
+          onUpdated={handleServiceUpdated}
+        />
       )}
 
       {/* TransportServiceDetailModal */}

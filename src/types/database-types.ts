@@ -1064,7 +1064,12 @@ export interface Database {
 // Helper types for easier usage
 export type UserProfile = Database['public']['Tables']['profiles']['Row']
 export type Listing = Database['public']['Tables']['listings']['Row']
-export type TransportService = Database['public']['Tables']['transport_services']['Row']
+export type TransportService = Database['public']['Tables']['transport_services']['Row'] & {
+  /** Hizmet ilanına yüklenen resimler */
+  image_urls?: string[];
+  /** Hizmet ilanına yüklenen dökümanlar */
+  document_urls?: string[];
+}
 export type Offer = Database['public']['Tables']['offers']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
 export type Review = Database['public']['Tables']['reviews']['Row']

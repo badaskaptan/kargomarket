@@ -10,10 +10,9 @@ import {
   Phone,
   Calendar
 } from 'lucide-react';
-import type { Database } from '../../types/database-types';
+import type { TransportService } from '../../types/database-types';
 import { translateDocument, translateVehicleType } from '../../utils/translationUtils';
 
-type TransportService = Database['public']['Tables']['transport_services']['Row'];
 
 interface TransportServiceDetailModalProps {
   service: TransportService;
@@ -30,6 +29,31 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
   isOpen,
   onClose
 }) => {
+  // Dosya tipi kontrolü
+  const getFileType = (url: string) => {
+    const extension = url.split('.').pop()?.toLowerCase() || '';
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    const documentExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'rtf'];
+    if (imageExtensions.includes(extension)) return 'image';
+    if (documentExtensions.includes(extension)) return 'document';
+    return 'file';
+  };
+
+  // Dosya adı çıkarma
+  const getFileName = (url: string) => {
+    return url.split('/').pop()?.split('?')[0] || 'Dosya';
+  };
+
+  // Dosya indirme
+  const handleDownload = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   if (!isOpen) return null;
 
   // Tarih formatlama
@@ -187,20 +211,13 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Ortak Alanlar */}
               {service.vehicle_type && (
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
                   <div className="text-sm font-medium text-purple-700 mb-1">Araç Tipi</div>
                   <div className="text-gray-900">{translateVehicleType(service.vehicle_type)}</div>
                 </div>
               )}
-
-              {service.plate_number && (
-                <div className="bg-white rounded-lg p-4 border border-purple-100">
-                  <div className="text-sm font-medium text-purple-700 mb-1">Plaka</div>
-                  <div className="text-gray-900 font-mono">{service.plate_number}</div>
-                </div>
-              )}
-
               {service.capacity_value && (
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
                   <div className="text-sm font-medium text-purple-700 mb-1">Kapasite</div>
@@ -210,32 +227,162 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 </div>
               )}
 
-              {service.ship_name && (
+              {/* Karayolu */}
+              {service.transport_mode === 'road' && service.plate_number && (
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
-                  <div className="text-sm font-medium text-purple-700 mb-1">Gemi Adı</div>
-                  <div className="text-gray-900">{service.ship_name}</div>
+                  <div className="text-sm font-medium text-purple-700 mb-1">Plaka</div>
+                  <div className="text-gray-900 font-mono">{service.plate_number}</div>
                 </div>
               )}
 
-              {service.imo_number && (
-                <div className="bg-white rounded-lg p-4 border border-purple-100">
-                  <div className="text-sm font-medium text-purple-700 mb-1">IMO Numarası</div>
-                  <div className="text-gray-900 font-mono">{service.imo_number}</div>
-                </div>
+              {/* Denizyolu */}
+              {service.transport_mode === 'sea' && (
+                <>
+                  {service.ship_name && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Gemi Adı</div>
+                      <div className="text-gray-900">{service.ship_name}</div>
+                    </div>
+                  )}
+                  {service.imo_number && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">IMO Numarası</div>
+                      <div className="text-gray-900 font-mono">{service.imo_number}</div>
+                    </div>
+                  )}
+                  {service.mmsi_number && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">MMSI Numarası</div>
+                      <div className="text-gray-900 font-mono">{service.mmsi_number}</div>
+                    </div>
+                  )}
+                  {service.dwt && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">DWT (Deadweight Tonnage)</div>
+                      <div className="text-gray-900">{service.dwt}</div>
+                    </div>
+                  )}
+                  {service.gross_tonnage && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Gross Tonnage (GT)</div>
+                      <div className="text-gray-900">{service.gross_tonnage}</div>
+                    </div>
+                  )}
+                  {service.net_tonnage && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Net Tonnage (NT)</div>
+                      <div className="text-gray-900">{service.net_tonnage}</div>
+                    </div>
+                  )}
+                  {service.ship_dimensions && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Gemi Boyutları</div>
+                      <div className="text-gray-900">{service.ship_dimensions}</div>
+                    </div>
+                  )}
+                  {service.freight_type && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Yük Tipi</div>
+                      <div className="text-gray-900">{service.freight_type}</div>
+                    </div>
+                  )}
+                  {service.charterer_info && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Charterer Bilgisi</div>
+                      <div className="text-gray-900">{service.charterer_info}</div>
+                    </div>
+                  )}
+                  {service.ship_flag && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Bayrak Devleti</div>
+                      <div className="text-gray-900">{service.ship_flag}</div>
+                    </div>
+                  )}
+                  {service.home_port && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Ana Liman</div>
+                      <div className="text-gray-900">{service.home_port}</div>
+                    </div>
+                  )}
+                  {service.year_built && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">İnşa Yılı</div>
+                      <div className="text-gray-900">{service.year_built}</div>
+                    </div>
+                  )}
+                  {service.speed_knots && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Hız (knot)</div>
+                      <div className="text-gray-900">{service.speed_knots}</div>
+                    </div>
+                  )}
+                  {service.fuel_consumption && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Yakıt Tüketimi</div>
+                      <div className="text-gray-900">{service.fuel_consumption}</div>
+                    </div>
+                  )}
+                  {service.ballast_capacity && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Balast Kapasitesi</div>
+                      <div className="text-gray-900">{service.ballast_capacity}</div>
+                    </div>
+                  )}
+                </>
               )}
 
-              {service.flight_number && (
-                <div className="bg-white rounded-lg p-4 border border-purple-100">
-                  <div className="text-sm font-medium text-purple-700 mb-1">Uçuş Numarası</div>
-                  <div className="text-gray-900 font-mono">{service.flight_number}</div>
-                </div>
+              {/* Havayolu */}
+              {service.transport_mode === 'air' && (
+                <>
+                  {service.flight_number && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Uçuş Numarası</div>
+                      <div className="text-gray-900 font-mono">{service.flight_number}</div>
+                    </div>
+                  )}
+                  {service.aircraft_type && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Uçak Tipi</div>
+                      <div className="text-gray-900">{service.aircraft_type}</div>
+                    </div>
+                  )}
+                  {service.max_payload && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Maksimum Payload (kg)</div>
+                      <div className="text-gray-900">{service.max_payload}</div>
+                    </div>
+                  )}
+                  {service.cargo_volume && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Kargo Hacmi (m³)</div>
+                      <div className="text-gray-900">{service.cargo_volume}</div>
+                    </div>
+                  )}
+                </>
               )}
 
-              {service.train_number && (
-                <div className="bg-white rounded-lg p-4 border border-purple-100">
-                  <div className="text-sm font-medium text-purple-700 mb-1">Tren Numarası</div>
-                  <div className="text-gray-900 font-mono">{service.train_number}</div>
-                </div>
+              {/* Demiryolu */}
+              {service.transport_mode === 'rail' && (
+                <>
+                  {service.train_number && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Tren Numarası</div>
+                      <div className="text-gray-900 font-mono">{service.train_number}</div>
+                    </div>
+                  )}
+                  {service.wagon_count && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Vagon Sayısı</div>
+                      <div className="text-gray-900">{service.wagon_count}</div>
+                    </div>
+                  )}
+                  {service.wagon_types && (
+                    <div className="bg-white rounded-lg p-4 border border-purple-100">
+                      <div className="text-sm font-medium text-purple-700 mb-1">Vagon Tipleri</div>
+                      <div className="text-gray-900">{Array.isArray(service.wagon_types) ? service.wagon_types.join(', ') : service.wagon_types}</div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </section>
@@ -312,6 +459,8 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
           )}
 
           {/* Belgeler */}
+
+          {/* Belgeler */}
           {service.required_documents && service.required_documents.length > 0 && (
             <section className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl p-6 border border-cyan-200">
               <h3 className="text-xl font-semibold text-cyan-900 mb-4 flex items-center">
@@ -329,6 +478,119 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* Yüklenen Dosyalar ve Resimler */}
+          {((service.document_urls && service.document_urls.length > 0) || (service.image_urls && service.image_urls.length > 0)) && (
+            <section className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-xl font-semibold text-purple-900 mb-4 flex items-center">
+                <FileText className="h-6 w-6 mr-3" />
+                Yüklenen Dosyalar ve Resimler
+              </h3>
+              {/* Resimler */}
+              {service.image_urls && service.image_urls.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+                    <Eye className="h-5 w-5 mr-2" />
+                    Resimler ({service.image_urls.length})
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {service.image_urls.map((imageUrl: string, index: number) => (
+                      <div key={index} className="bg-white rounded-lg p-3 border border-purple-100 group hover:shadow-md transition-shadow">
+                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                          <img
+                            src={imageUrl}
+                            alt={`Hizmet resmi ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            onClick={() => window.open(imageUrl, '_blank')}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0EyIDIgMCAwIDAgMTkgNUg1QTIgMiAwIDAgMCAzIDdWMTdBMiAyIDAgMCAwIDUgMTlIMTVNMjEgMTVMMTggMTJMMTUgMTVNMjEgMTlMMTggMTZMMTUgMTkiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                            }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-gray-600 truncate flex-1">
+                            {getFileName(imageUrl)}
+                          </p>
+                          <div className="flex space-x-1 ml-2">
+                            <button
+                              onClick={() => window.open(imageUrl, '_blank')}
+                              className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                              title="Büyük boyutta görüntüle"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleDownload(imageUrl, getFileName(imageUrl))}
+                              className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                              title="İndir"
+                            >
+                              <FileText className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Dökümanlar */}
+              {service.document_urls && service.document_urls.length > 0 && (
+                <div>
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Dökümanlar ({service.document_urls.length})
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {service.document_urls.map((docUrl: string, index: number) => {
+                      const fileName = getFileName(docUrl);
+                      const fileType = getFileType(docUrl);
+                      return (
+                        <div key={index} className="bg-white rounded-lg p-4 border border-purple-100 group hover:shadow-md transition-shadow">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 mr-3">
+                              {fileType === 'document' ? (
+                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                  <FileText className="h-5 w-5 text-red-600" />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                  <FileText className="h-5 w-5 text-gray-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {fileName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {fileType === 'document' ? 'Döküman' : 'Dosya'}
+                              </p>
+                            </div>
+                            <div className="flex space-x-2 ml-3">
+                              <button
+                                onClick={() => window.open(docUrl, '_blank')}
+                                className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                title="Görüntüle"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDownload(docUrl, fileName)}
+                                className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                title="İndir"
+                              >
+                                <FileText className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </section>
           )}
 

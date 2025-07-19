@@ -1,66 +1,62 @@
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Star, 
-  Phone, 
-  Mail, 
-  ExternalLink, 
-  Play, 
-  Eye, 
+import { useState } from 'react';
+import {
+  Search,
+  Star,
+  Phone,
+  Mail,
+  ExternalLink,
+  Play,
+  Eye,
   MessageCircle,
   Heart,
   Share2
 } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
+// Update the import path if AuthModal is located elsewhere, for example:
 import AuthModal from '../auth/AuthModal';
-
-// Frontend Ad interface (for mock data - will be replaced with real Supabase data later)
-interface AdDisplay {
-  id: number | string;
-  companyName: string;
-  title: string;
-  description: string;
-  rating: number;
-  reviewCount: number;
-  category: string;
-  type: 'premium' | 'standard';
-  hasVideo?: boolean;
-  videoThumbnail?: string;
-  logo: string;
-  specialOffer?: string;
-  contact: {
-    phone: string;
-    email: string;
-    website: string;
-  };
-  location?: string;
-  established?: string;
-  services?: string[];
-  images?: string[];
-  stats?: {
-    deliveryTime: string;
-    coverage: string;
-    satisfaction: string;
-  };
-  features: string[];
-  views: number;
-  clicks: number;
-}
-
+// Or, if the file does not exist, create 'AuthModal.tsx' in the '../' directory.
 // AdsPage component - no props needed since we use context
 
-const AdsPage: React.FC = () => {
-  const { isLoggedIn, login, register, googleLogin } = useAuth();
+function AdsPage() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  const categories = [
-    { id: 'all', label: 'Tüm Reklamlar', count: 24 },
-    { id: 'transport', label: 'Nakliye Hizmetleri', count: 12 },
-    { id: 'logistics', label: 'Lojistik Çözümleri', count: 8 },
-    { id: 'insurance', label: 'Sigorta Hizmetleri', count: 4 }
-  ];
+  const { login, register, googleLogin, isLoggedIn } = useAuth();
+
+  // (Move this block below the ads array)
+
+  interface AdDisplay {
+    id: number | string;
+    companyName: string;
+    title: string;
+    description: string;
+    rating: number;
+    reviewCount: number;
+    category: string;
+    type: 'premium' | 'standard';
+    hasVideo?: boolean;
+    videoThumbnail?: string;
+    logo: string;
+    specialOffer?: string;
+    contact: {
+      phone: string;
+      email: string;
+      website: string;
+    };
+    location?: string;
+    established?: string;
+    services?: string[];
+    images?: string[];
+    stats?: {
+      deliveryTime: string;
+      coverage: string;
+      satisfaction: string;
+    };
+    features: string[];
+    views: number;
+    clicks: number;
+  }
 
   const ads: AdDisplay[] = [
     {
@@ -194,7 +190,13 @@ const AdsPage: React.FC = () => {
     }
   ];
 
-  // Auth handlers
+  // Move categories array here, after ads is declared
+  const categories = [
+    { id: 'all', label: 'Tümü', count: ads.length },
+    { id: 'transport', label: 'Kargo', count: ads.filter(ad => ad.category === 'transport').length },
+    { id: 'insurance', label: 'Sigorta', count: ads.filter(ad => ad.category === 'insurance').length },
+    { id: 'logistics', label: 'Lojistik', count: ads.filter(ad => ad.category === 'logistics').length }
+  ];
   const handleLogin = async (email: string, password: string) => {
     try {
       await login(email, password);
@@ -244,8 +246,8 @@ const AdsPage: React.FC = () => {
   };
 
   const getTypeStyle = (type: string) => {
-    return type === 'premium' 
-      ? 'border-2 border-yellow-300 shadow-xl bg-gradient-to-br from-yellow-50 to-orange-50' 
+    return type === 'premium'
+      ? 'border-2 border-yellow-300 shadow-xl bg-gradient-to-br from-yellow-50 to-orange-50'
       : 'border border-gray-200 shadow-lg bg-white';
   };
 
@@ -262,11 +264,11 @@ const AdsPage: React.FC = () => {
 
   const filteredAds = ads.filter(ad => {
     const matchesSearch = ad.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ad.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         ad.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      ad.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ad.description.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesCategory = categoryFilter === 'all' || ad.category === categoryFilter;
-    
+
     return matchesSearch && matchesCategory;
   });
 
@@ -290,11 +292,10 @@ const AdsPage: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setCategoryFilter(category.id)}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border-2 ${
-                  categoryFilter === category.id
+                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border-2 ${categoryFilter === category.id
                     ? 'bg-primary-600 text-white border-primary-600 shadow-lg'
                     : 'bg-white text-gray-700 border-gray-200 hover:border-primary-300 hover:text-primary-600 hover:shadow-md'
-                }`}
+                  }`}
               >
                 <span>{category.label}</span>
                 <span className="ml-2 text-sm opacity-75">({category.count})</span>
@@ -322,12 +323,11 @@ const AdsPage: React.FC = () => {
           {filteredAds.map((ad) => (
             <div key={ad.id} className={`rounded-2xl overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl relative ${getTypeStyle(ad.type)}`}>
               {getTypeBadge(ad.type)}
-              
               {/* Video/Image Section */}
               {ad.hasVideo ? (
                 <div className="relative h-48 bg-gray-900 overflow-hidden group cursor-pointer">
-                  <img 
-                    src={ad.videoThumbnail} 
+                  <img
+                    src={ad.videoThumbnail}
                     alt={ad.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -359,10 +359,10 @@ const AdsPage: React.FC = () => {
                       <div className="flex items-center">
                         <div className="flex items-center mr-2">
                           {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              size={14} 
-                              className={`${i < Math.floor(ad.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                            <Star
+                              key={i}
+                              size={14}
+                              className={`${i < Math.floor(ad.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                             />
                           ))}
                         </div>
@@ -372,13 +372,13 @@ const AdsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <button 
+                    <button
                       className="p-2 text-gray-400 hover:text-red-500 transition-colors"
                       title="Favorilere Ekle"
                     >
                       <Heart size={18} />
                     </button>
-                    <button 
+                    <button
                       className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
                       title="Paylaş"
                     >

@@ -10,6 +10,7 @@ import { useAuth } from '../../../context/SupabaseAuthContext';
 import { ListingService } from '../../../services/listingService';
 import LoadListingDetailModal from '../../modals/LoadListingDetailModal';
 import ListingCard from '../../common/ListingCard';
+import EditLoadListingModal from '../../modals/EditLoadListingModal';
 import type { ExtendedListing } from '../../../types/database-types';
 
 /**
@@ -90,6 +91,18 @@ const MyLoadListings: React.FC = () => {
     setEditListing(listing);
   };
 
+  // Güncelleme sonrası state'i güncelle
+  const handleUpdated = (updated: ExtendedListing) => {
+    setListings(prev => prev.map(l => l.id === updated.id ? updated : l));
+    
+    // Eğer detail modal açıksa ve güncellenen ilan aynı ilansa, selectedListing'i de güncelle
+    if (selectedListing && selectedListing.id === updated.id) {
+      setSelectedListing(updated);
+    }
+    
+    setEditListing(null);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -163,20 +176,14 @@ const MyLoadListings: React.FC = () => {
         </div>
       )}
 
-      {/* Edit Modal - geçici olarak kapatıldı */}
+      {/* Edit Modal */}
       {editListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Düzenleme</h3>
-            <p className="text-gray-600 mb-4">Edit modal henüz hazır değil</p>
-            <button
-              onClick={() => setEditListing(null)}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Kapat
-            </button>
-          </div>
-        </div>
+        <EditLoadListingModal
+          listing={editListing}
+          isOpen={!!editListing}
+          onClose={() => setEditListing(null)}
+          onUpdated={handleUpdated}
+        />
       )}
 
       {/* Preview Modal - LoadListingDetailModal kullan */}
