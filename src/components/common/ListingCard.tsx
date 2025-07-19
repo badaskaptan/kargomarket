@@ -14,6 +14,7 @@ import {
   Clock
 } from 'lucide-react';
 import type { ExtendedListing } from '../../types/database-types';
+import { translateLoadType, translateVehicleTypes, translateVehicleType, translateTransportMode } from '../../utils/translationUtils';
 
 interface ListingCardProps {
   listing: ExtendedListing;
@@ -214,14 +215,9 @@ const ListingCard: React.FC<ListingCardProps> = ({
                 </span>
                 <span>
                   {listing.listing_type === 'shipment_request' && listing.vehicle_types ? 
-                    (listing.vehicle_types.length > 3 ? 
-                      `${listing.vehicle_types.slice(0, 3).join(', ')} +${listing.vehicle_types.length - 3} diğer` :
-                      listing.vehicle_types.join(', ')) :
-                    listing.load_type || 
-                    (listing.transport_mode === 'road' ? 'Karayolu' :
-                     listing.transport_mode === 'sea' ? 'Denizyolu' :
-                     listing.transport_mode === 'air' ? 'Havayolu' :
-                     listing.transport_mode === 'rail' ? 'Demiryolu' : 'Genel')}
+                    translateVehicleTypes(listing.vehicle_types) :
+                    listing.load_type ? translateLoadType(listing.load_type) : 
+                    translateTransportMode(listing.transport_mode || 'road')}
                 </span>
               </div>
             </div>
@@ -255,7 +251,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
                   <Truck className="h-4 w-4 mr-3 text-indigo-500 flex-shrink-0" />
                   <div className="text-sm">
                     <span className="text-xs text-gray-500 uppercase tracking-wide font-medium block mb-1">Araç Tipi</span>
-                    <span>{listing.transport_details.vehicle_type}</span>
+                    <span>{translateVehicleType(listing.transport_details.vehicle_type)}</span>
                   </div>
                 </div>
               )}

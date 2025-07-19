@@ -6,6 +6,7 @@ import { ListingService } from '../../services/listingService';
 import { storage } from '../../lib/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Database } from '../../types/database-types';
+import { translateLoadType } from '../../utils/translationUtils';
 
 // Database'den gelen listing tipi
 type LoadListing = Database['public']['Tables']['listings']['Row'];
@@ -681,7 +682,7 @@ const CreateShipmentRequestSection: React.FC = () => {
                       <p><strong>İlan No:</strong> {listing.listing_number}</p>
                       <p><strong>Başlık:</strong> {listing.title}</p>
                       <p><strong>Güzergah:</strong> {listing.origin} → {listing.destination}</p>
-                      <p><strong>Yük Tipi:</strong> {listing.load_type || 'Belirtilmemiş'}</p>
+                      <p><strong>Yük Tipi:</strong> {listing.load_type ? translateLoadType(listing.load_type) : 'Belirtilmemiş'}</p>
                       {listing.weight_value && (
                         <p><strong>Ağırlık:</strong> {listing.weight_value} {listing.weight_unit}</p>
                       )}

@@ -38,6 +38,14 @@ const MyLoadListings: React.FC = () => {
       const userListings = await ListingService.getUserListings(user.id);
       // Sadece load_listing tipindeki ilanları filtrele
       const loadListings = userListings.filter(listing => listing.listing_type === 'load_listing');
+      
+      // Debug: İlk yük ilanının load_type'ını kontrol et
+      if (loadListings.length > 0) {
+        console.log('🔍 DEBUG: İlk yük ilanı:', loadListings[0]);
+        console.log('🔍 DEBUG: load_type value:', loadListings[0].load_type);
+        console.log('🔍 DEBUG: listing_type:', loadListings[0].listing_type);
+      }
+      
       setListings(loadListings);
     } catch (error) {
       console.error('Load listings yüklenirken hata:', error);

@@ -4,6 +4,7 @@ import LiveMap from '../common/LiveMap';
 import { listings, type Listing as MockListing } from '../../data/listings';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
+import { translateLoadType } from '../../utils/translationUtils';
 
 // For now we use the mock listing type since we're using mock data
 type Listing = MockListing;
@@ -547,7 +548,7 @@ const ListingsPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Yük Tipi:</span>
-                      <div className="font-medium">{selectedListing.loadType}</div>
+                      <div className="font-medium">{translateLoadType(selectedListing.loadType)}</div>
                     </div>
                     <div>
                       <span className="text-gray-500">Ağırlık:</span>

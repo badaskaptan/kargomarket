@@ -6,6 +6,7 @@ import { useAuth } from '../../context/SupabaseAuthContext';
 import { supabase } from '../../lib/supabase';
 import toast from 'react-hot-toast';
 import type { Database } from '../../types/database-types';
+import { translateVehicleType } from '../../utils/translationUtils';
 
 type TransportService = Database['public']['Tables']['transport_services']['Row'];
 type TransportServiceInsert = Database['public']['Tables']['transport_services']['Insert'];
@@ -764,7 +765,7 @@ const CreateTransportServiceSection: React.FC = () => {
               <div><strong>Servis No:</strong> {lastCreatedService.service_number}</div>
               <div><strong>Başlık:</strong> {lastCreatedService.title}</div>
               <div><strong>Taşıma Modu:</strong> {lastCreatedService.transport_mode}</div>
-              <div><strong>Araç Tipi:</strong> {lastCreatedService.vehicle_type}</div>
+              <div><strong>Araç Tipi:</strong> {translateVehicleType(lastCreatedService.vehicle_type || '')}</div>
               <div><strong>Kalkış:</strong> {lastCreatedService.origin}</div>
               <div><strong>Varış:</strong> {lastCreatedService.destination}</div>
               {lastCreatedService.transport_mode === 'sea' && (

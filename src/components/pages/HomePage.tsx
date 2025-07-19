@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap';
 import { listings, type Listing } from '../../data/listings';
+import { translateLoadType } from '../../utils/translationUtils';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
 import './HomePage.pins.css';
@@ -649,7 +650,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Package size={14} className="mr-2 text-primary-500" />
-                      <span className="text-sm">{listing.loadType} • {listing.weight}</span>
+                      <span className="text-sm">{translateLoadType(listing.loadType)} • {listing.weight}</span>
                     </div>
                   </div>
 
@@ -930,7 +931,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                       </div>
                     )}
                     <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      {selectedListing.loadType}
+                      {translateLoadType(selectedListing.loadType)}
                     </div>
                     {isOwnListing(selectedListing) && (
                       <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -949,7 +950,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-500">Yük Tipi:</span>
-                      <div className="font-medium">{selectedListing.loadType}</div>
+                      <div className="font-medium">{translateLoadType(selectedListing.loadType)}</div>
                     </div>
                     <div>
                       <span className="text-gray-500">Ağırlık:</span>

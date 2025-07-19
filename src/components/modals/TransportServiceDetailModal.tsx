@@ -11,6 +11,7 @@ import {
   Calendar
 } from 'lucide-react';
 import type { Database } from '../../types/database-types';
+import { translateDocument, translateVehicleType } from '../../utils/translationUtils';
 
 type TransportService = Database['public']['Tables']['transport_services']['Row'];
 
@@ -190,7 +191,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
               {service.vehicle_type && (
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
                   <div className="text-sm font-medium text-purple-700 mb-1">Araç Tipi</div>
-                  <div className="text-gray-900">{service.vehicle_type}</div>
+                  <div className="text-gray-900">{translateVehicleType(service.vehicle_type)}</div>
                 </div>
               )}
               
@@ -324,7 +325,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                   <div key={index} className="bg-white rounded-lg p-3 border border-cyan-100">
                     <div className="text-center">
                       <div className="text-2xl mb-2">📄</div>
-                      <div className="text-sm font-medium text-gray-900">{doc}</div>
+                      <div className="text-sm font-medium text-gray-900">{translateDocument(doc)}</div>
                     </div>
                   </div>
                 ))}

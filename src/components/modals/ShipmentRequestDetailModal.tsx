@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { ExtendedListing } from '../../types/database-types';
 import { ListingService } from '../../services/listingService';
+import { translateLoadType, translateDocument, translateVehicleType } from '../../utils/translationUtils';
 
 interface ShipmentRequestDetailModalProps {
   listing: ExtendedListing;
@@ -253,7 +254,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {listing.vehicle_types.map((vehicleType, index) => (
                     <span key={index} className="bg-purple-100 text-purple-800 px-3 py-2 rounded-lg text-sm font-medium">
-                      {vehicleType}
+                      {translateVehicleType(vehicleType)}
                     </span>
                   ))}
                 </div>
@@ -282,7 +283,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                 {listing.load_type && (
                   <div className="bg-white rounded-lg p-4 border border-orange-100">
                     <div className="text-sm font-medium text-orange-700 mb-1">Yük Tipi</div>
-                    <div className="text-lg font-semibold text-gray-900">{listing.load_type}</div>
+                    <div className="text-lg font-semibold text-gray-900">{translateLoadType(listing.load_type)}</div>
                     {listing.load_category && (
                       <div className="text-sm text-gray-600 mt-1">{listing.load_category}</div>
                     )}
@@ -595,7 +596,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                   {listing.required_documents.map((doc, index) => (
                     <div key={index} className="flex items-center text-sm text-gray-700">
                       <FileText className="h-4 w-4 text-cyan-500 mr-2" />
-                      {doc}
+                      {translateDocument(doc)}
                     </div>
                   ))}
                 </div>
