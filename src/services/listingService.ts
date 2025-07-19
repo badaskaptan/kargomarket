@@ -251,26 +251,145 @@ export class ListingService {
     return listingsWithOwner;
   }
 
-  // Tüm aktif ilanları getir
-  static async getActiveListings(limit?: number): Promise<Listing[]> {
-    let query = supabase
-      .from('listings')
-      .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
+  // Tüm aktif ilanları getir (listings + transport_services)
+  static async getActiveListings(limit?: number): Promise<ExtendedListing[]> {
+    try {
+      // 1. Listings tablosundan yük ilanları ve nakliye taleplerini çek
+      let listingsQuery = supabase
+        .from('listings')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
 
-    if (limit) {
-      query = query.limit(limit);
+      if (limit) {
+        listingsQuery = listingsQuery.limit(Math.ceil(limit / 2)); // Yarısını listings'ten al
+      }
+
+      const { data: listingsData, error: listingsError } = await listingsQuery;
+
+      if (listingsError) {
+        console.error('Error fetching listings:', listingsError);
+        throw new Error(`Listings getirilemedi: ${listingsError.message}`);
+      }
+
+      // 2. Transport_services tablosundan nakliye hizmetlerini çek
+      let servicesQuery = supabase
+        .from('transport_services')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (limit) {
+        servicesQuery = servicesQuery.limit(Math.ceil(limit / 2)); // Yarısını transport_services'ten al
+      }
+
+      const { data: servicesData, error: servicesError } = await servicesQuery;
+
+      if (servicesError) {
+        console.error('Error fetching transport services:', servicesError);
+        console.warn('Transport services fetch failed, continuing with listings only:', servicesError.message);
+      }
+
+      // 3. Transport services verilerini ExtendedListing formatına çevir
+      const convertedServices: ExtendedListing[] = (servicesData || []).map(service => ({
+        id: service.id,
+        listing_number: service.service_number || service.id,
+        user_id: service.user_id,
+        listing_type: 'transport_service' as const,
+        role_type: 'seller' as const,
+        title: service.title || 'Nakliye Hizmeti',
+        description: service.description,
+        category: service.vehicle_type || 'nakliye',
+        subcategory: null,
+        origin: service.origin || '',
+        destination: service.destination || '',
+        origin_coordinates: null,
+        destination_coordinates: null,
+        origin_details: null,
+        destination_details: null,
+        route_waypoints: null,
+        load_type: null,
+        load_category: null,
+        weight_value: service.capacity_value,
+        weight_unit: service.capacity_unit,
+        volume_value: null,
+        volume_unit: null,
+        dimensions: null,
+        quantity: null,
+        packaging_type: null,
+        special_handling_requirements: null,
+        loading_date: null,
+        loading_time: null,
+        delivery_date: null,
+        delivery_time: null,
+        available_from_date: service.available_from_date,
+        available_until_date: service.available_until_date,
+        flexible_dates: null,
+        transport_mode: service.transport_mode || 'road',
+        vehicle_types: service.vehicle_type ? [service.vehicle_type] : null,
+        transport_responsible: null,
+        special_requirements: null,
+        temperature_controlled: null,
+        temperature_range: null,
+        humidity_controlled: null,
+        hazardous_materials: null,
+        fragile_cargo: null,
+        offer_type: null,
+        price_amount: null,
+        price_currency: 'TRY',
+        price_per: null,
+        budget_min: null,
+        budget_max: null,
+        required_documents: null,
+        insurance_required: false,
+        insurance_value: null,
+        customs_clearance_required: null,
+        related_load_listing_id: null,
+        status: service.status === 'active' ? 'active' : 'paused',
+        is_urgent: null,
+        priority_level: null,
+        visibility: 'public' as const,
+        view_count: service.view_count || 0,
+        offer_count: null,
+        favorite_count: 0,
+        search_tags: null,
+        seo_keywords: null,
+        document_urls: null,
+        image_urls: null,
+        created_at: service.created_at,
+        updated_at: service.updated_at,
+        published_at: service.created_at,
+        expires_at: null,
+        metadata: null,
+        transport_details: {
+          ship_name: service.ship_name,
+          imo_number: service.imo_number,
+          vehicle_type: service.vehicle_type,
+          company_name: service.company_name
+        },
+        contact_info: service.contact_info ? { info: service.contact_info } : null,
+        cargo_details: null
+      }));
+
+      // 4. Her iki veri setini birleştir
+      const allListings = [
+        ...(listingsData || []),
+        ...convertedServices
+      ];
+
+      // 5. Tarihe göre sırala ve limit uygula
+      const sortedListings = allListings.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      const finalListings = limit ? sortedListings.slice(0, limit) : sortedListings;
+
+      return finalListings;
+
+    } catch (error) {
+      console.error('Error in getActiveListings:', error);
+      throw error;
     }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching active listings:', error);
-      throw new Error(`Aktif ilanlar getirilemedi: ${error.message}`);
-    }
-
-    return data || [];
   }
 
   // Belirli bir ilanı getir

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Truck,
   Loader2
 } from 'lucide-react';
@@ -29,9 +29,7 @@ class TransportServiceService {
     }
 
     return data || [];
-  }
-
-  static async deleteTransportService(id: string): Promise<boolean> {
+  }  static async deleteTransportService(id: string): Promise<boolean> {
     const { error } = await supabase
       .from('transport_services')
       .delete()
@@ -53,7 +51,7 @@ class TransportServiceService {
 const MyTransportServices: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { user } = useAuth();
-  
+
   // State
   const [services, setServices] = useState<TransportService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,51 +62,57 @@ const MyTransportServices: React.FC = () => {
 
   // Veri yükleme
   const loadTransportServices = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
       const userServices = await TransportServiceService.getTransportServices(user.id);
       setServices(userServices);
     } catch (error) {
-      console.error('Transport services yüklenirken hata:', error);
+      console.error('❌ Transport services yüklenirken hata:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
+      toast.error(`Nakliye hizmetleri yüklenemedi: ${errorMessage}`);
       setServices([]);
     } finally {
       setLoading(false);
     }
-  }, [user]);
-
-  useEffect(() => {
+  }, [user]);  useEffect(() => {
     loadTransportServices();
   }, [loadTransportServices]);
 
   // Arama filtreleme
-  const filteredServices = services.filter(service =>
-    service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (service.origin && service.origin.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (service.destination && service.destination.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (service.company_name && service.company_name.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredServices = services.filter(service => {
+    const matchesSearch = 
+      service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (service.origin && service.origin.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (service.destination && service.destination.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (service.description && service.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (service.company_name && service.company_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesSearch;
+  });
 
   // Hizmet güncelleme
   const handleServiceUpdated = (updated: TransportService) => {
-    setServices(prev => prev.map(service => 
+    setServices(prev => prev.map(service =>
       service.id === updated.id ? updated : service
     ));
-    
+
     // Eğer detail modal açıksa ve güncellenen hizmet aynı hizmetse, selectedService'i de güncelle
     if (selectedService && selectedService.id === updated.id) {
       setSelectedService(updated);
     }
-    
+
     toast.success('Nakliye hizmeti başarıyla güncellendi!');
   };
 
   // Hizmet silme
   const handleDeleteService = async (serviceId: string) => {
     if (!confirm('Bu nakliye hizmetini silmek istediğinizden emin misiniz?')) return;
-    
+
     try {
       await TransportServiceService.deleteTransportService(serviceId);
       setServices(prev => prev.filter(service => service.id !== serviceId));
@@ -259,7 +263,7 @@ const MyTransportServices: React.FC = () => {
             <span className="font-medium">{filteredServices.length}</span> hizmet bulundu
           </div>
         </div>
-        
+
         <button
           onClick={() => setActiveSection('create-transport-service')}
           className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
