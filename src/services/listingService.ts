@@ -84,7 +84,7 @@ export class ListingService {
   static async createListing(listingData: FormListingData): Promise<Listing> {
     try {
       console.log('Creating listing with real schema...');
-      
+
       // Gerçek şemaya uygun data mapping - sadece var olan alanları kullan
       const realData: ListingInsert = {
         user_id: listingData.user_id,
@@ -119,9 +119,9 @@ export class ListingService {
       };
 
       console.log('Attempting to create listing with real schema:', realData);
-      console.log('🚗 Vehicle Types Check:', { 
-        input: listingData.vehicle_types, 
-        mapped: realData.vehicle_types 
+      console.log('🚗 Vehicle Types Check:', {
+        input: listingData.vehicle_types,
+        mapped: realData.vehicle_types
       });
 
       // Debug: Test data yapısını kontrol et
@@ -144,7 +144,7 @@ export class ListingService {
 
       console.log('✅ Listing created successfully:', data);
       return data;
-      
+
     } catch (error) {
       console.error('Error creating listing:', error);
       throw new Error(`İlan oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
@@ -177,7 +177,7 @@ export class ListingService {
     const listingsWithOwner = await Promise.all(
       data.map(async (listing) => {
         console.log('🔍 Debug: Fetching profile for user_id:', listing.user_id);
-        
+
         // Profil bilgilerini ayrı çekelim
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -423,7 +423,7 @@ export class ListingService {
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    
+
     return `NK${year}${month}${day}${random}`;
   }
 
@@ -431,7 +431,7 @@ export class ListingService {
   static async cleanAllListingsMetadata(): Promise<void> {
     try {
       console.log('🧹 Starting metadata cleanup for all listings...');
-      
+
       // Tüm ilanları çek
       const { data: listings, error: fetchError } = await supabase
         .from('listings')
@@ -453,11 +453,11 @@ export class ListingService {
       // Her ilan için metadata'yı temizle
       for (const listing of listings) {
         const cleanedMetadata = this.cleanMetadata(listing.metadata);
-        
+
         // Eğer metadata değiştiyse güncelle
         if (JSON.stringify(cleanedMetadata) !== JSON.stringify(listing.metadata)) {
           console.log(`🧹 Cleaning metadata for listing: ${listing.id}`);
-          
+
           const { error: updateError } = await supabase
             .from('listings')
             .update({ metadata: cleanedMetadata })

@@ -22,7 +22,7 @@ interface PublicLayoutProps {
 }
 
 const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard }) => {
-  const [activePage, setActivePage] = useState('home');
+  const [activePage, setActivePage] = useState('listings'); // Start with listings for testing
 
   const renderPage = () => {
     switch (activePage) {

@@ -405,7 +405,7 @@ const EditShipmentRequestModal: React.FC<EditShipmentRequestModalProps> = ({ lis
         description: formData.requestDescription,
         origin: formData.requestOrigin,
         destination: formData.requestDestination,
-        transport_mode: transportMode,
+        transport_mode: transportMode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal',
         vehicle_types: vehicleType ? [vehicleType] : null,
         load_type: formData.requestLoadType || null,
         weight_value: weightValue,

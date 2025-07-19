@@ -1,11 +1,12 @@
 import React from 'react';
 import { useDashboard } from '../context/DashboardContext';
+import { useAuth } from '../context/SupabaseAuthContext';
 import OverviewSection from './sections/OverviewSection';
 import MyListingsSection from './sections/MyListingsSection';
 import CreateLoadListingSection from './sections/CreateLoadListingSection';
 import CreateShipmentRequestSection from './sections/CreateShipmentRequestSection';
 import CreateTransportServiceSection from './sections/CreateTransportServiceSection';
-import MyOffersSection from './sections/MyOffersSection';
+import MyOffersSectionComponent from './sections/MyOffersSection';
 import MessagesSection from './sections/MessagesSection';
 import MyAdsSection from './sections/MyAdsSection';
 import CreateAdSection from './sections/CreateAdSection';
@@ -15,6 +16,7 @@ import SettingsSection from './sections/SettingsSection';
 
 const MainContent: React.FC = () => {
   const { activeSection } = useDashboard();
+  const { user } = useAuth();
 
   const renderSection = () => {
     switch (activeSection) {
@@ -29,7 +31,7 @@ const MainContent: React.FC = () => {
       case 'create-transport-service':
         return <CreateTransportServiceSection />;
       case 'my-offers':
-        return <MyOffersSection />;
+        return user?.id ? <MyOffersSectionComponent currentUserId={user.id} /> : null;
       case 'messages':
         return <MessagesSection />;
       case 'my-ads':

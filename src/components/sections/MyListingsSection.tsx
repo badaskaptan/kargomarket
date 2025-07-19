@@ -23,7 +23,7 @@ const MyListingsSection: React.FC = () => {
       id: 'shipment-requests' as const,
       label: 'Nakliye Talepleri',
       icon: Truck,
-      color: 'green', 
+      color: 'green',
       component: MyShipmentRequests
     },
     {
@@ -62,7 +62,7 @@ const MyListingsSection: React.FC = () => {
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-              
+
               return (
                 <button
                   key={tab.id}
@@ -79,7 +79,7 @@ const MyListingsSection: React.FC = () => {
                     <Icon className={`h-5 w-5 ${isActive ? `text-${tab.color}-600` : 'text-gray-400'}`} />
                     <span>{tab.label}</span>
                   </div>
-                  
+
                   {/* Active indicator */}
                   {isActive && (
                     <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-${tab.color}-500 rounded-full`} />

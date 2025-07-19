@@ -36,6 +36,7 @@ export const translateLoadType = (loadType: string): string => {
         'electronics': 'Elektronik',
         'construction': 'İnşaat Malzemesi',
         'agricultural': 'Tarım Ürünleri',
+        'ecommerce_cargo': 'E-Ticaret Kargos',
 
         // Türkçe değerler de çevirisiz geçsin (eğer database'de Türkçe kaydedilmişse)
         'tekstil': 'Tekstil',

@@ -1,99 +1,42 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Package, Clock, Eye, Star, LogIn, AlertTriangle } from 'lucide-react';
-import LiveMap from '../common/LiveMap';
-import { listings, type Listing as MockListing } from '../../data/listings';
+import { Search, Filter, MapPin, Package, Clock } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
-import { translateLoadType } from '../../utils/translationUtils';
-
-// For now we use the mock listing type since we're using mock data
-type Listing = MockListing;
-
-// ListingsPage component - no props needed since we use context
+import CreateOfferModal from '../modals/CreateOfferModal';
+import { useListings } from '../../hooks/useListings';
+import { translateLoadType, translateTransportMode } from '../../utils/translationUtils';
+import type { ExtendedListing } from '../../types/database-types';
 
 const ListingsPage: React.FC = () => {
-  const { isLoggedIn, login, register, googleLogin } = useAuth();
+  const { isLoggedIn, login, register, googleLogin, user } = useAuth();
+  const { listings, loading, error } = useListings(50);
+  
+  // State
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedTransport, setSelectedTransport] = useState('all');
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedOfferListing, setSelectedOfferListing] = useState<ExtendedListing | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showSelfOfferWarning, setShowSelfOfferWarning] = useState(false);
 
-  // Teklif Ver Modalı için state
-  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
-  const [newOfferForm, setNewOfferForm] = useState({
-    listingId: '',
-    price: '',
-    description: '',
-    transportResponsible: '',
-    origin: '',
-    destination: '',
-    files: [] as File[]
-  });
-  // Mesaj modalı için state
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [messageText, setMessageText] = useState('');
-  const [messageTarget, setMessageTarget] = useState<Listing | null>(null);
+  const currentUserId = user?.id || '';
 
-  // Simulated current user ID - gerçek uygulamada authentication context'ten gelecek
-  const currentUserId = 'user_123'; // Bu değer gerçek uygulamada auth context'ten gelecek
-
+  // Categories
   const categories = [
-    { id: 'all', label: 'Tüm İlanlar', count: 156 },
-    { id: 'cargo-trade', label: 'Yük Alım Satım', count: 89 },
-    { id: 'transport-request', label: 'Nakliye Talebi', count: 34 },
-    { id: 'transport-service', label: 'Nakliye İlanları', count: 33 }
+    { id: 'all', label: 'Tüm İlanlar', count: listings.length },
+    { id: 'load_listing', label: 'Yük İlanları', count: listings.filter(l => l.listing_type === 'load_listing').length },
+    { id: 'shipment_request', label: 'Nakliye Talebi', count: listings.filter(l => l.listing_type === 'shipment_request').length },
+    { id: 'transport_service', label: 'Nakliye Hizmeti', count: listings.filter(l => l.listing_type === 'transport_service').length }
   ];
 
   const transportModes = [
-    { id: 'all', label: 'Tüm Taşıma' },
+    { id: 'all', label: 'Tümü' },
     { id: 'road', label: 'Karayolu' },
-    { id: 'sea', label: 'Denizyolu' },
-    { id: 'air', label: 'Havayolu' },
-    { id: 'rail', label: 'Demiryolu' }
+    { id: 'rail', label: 'Demiryolu' },
+    { id: 'sea', label: 'Deniz' },
+    { id: 'air', label: 'Hava' }
   ];
-
-  const filteredListings = listings.filter(listing => {
-    const matchesSearch = listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.route.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.loadType.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesCategory = activeCategory === 'all' || listing.category === activeCategory;
-
-    const matchesTransport = selectedTransport === 'all' ||
-      listing.transportMode === selectedTransport;
-
-    return matchesSearch && matchesCategory && matchesTransport;
-  });
-
-  const stats = [
-    { label: 'Toplam İlan', value: '1,247', color: 'text-blue-600' },
-    { label: 'Bugün Yeni', value: '89', color: 'text-green-600' },
-    { label: 'Aktif Nakliyeci', value: '3,456', color: 'text-purple-600' },
-    { label: 'Tamamlanan', value: '12,890', color: 'text-orange-600' }
-  ];
-
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      'all': 'bg-gray-100 text-gray-700 border-gray-200',
-      'cargo-trade': 'bg-blue-100 text-blue-700 border-blue-200',
-      'transport-request': 'bg-green-100 text-green-700 border-green-200',
-      'transport-service': 'bg-purple-100 text-purple-700 border-purple-200'
-    };
-    return colors[category as keyof typeof colors] || colors.all;
-  };
-
-  const getListingTypeColor = (type: string) => {
-    const colors = {
-      'Satış İlanı': 'bg-blue-100 text-blue-800',
-      'Alım İlanı': 'bg-green-100 text-green-800',
-      'Nakliye Talebi': 'bg-orange-100 text-orange-800',
-      'Nakliye Hizmeti': 'bg-purple-100 text-purple-800'
-    };
-    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
 
   // Auth handlers
   const handleLogin = async (email: string, password: string) => {
@@ -123,720 +66,282 @@ const ListingsPage: React.FC = () => {
     }
   };
 
-  const isOwnListing = (listing: Listing) => {
-    return isLoggedIn && listing.ownerId === currentUserId;
+  // Utility functions
+  const isOwnListing = (listing: ExtendedListing) => {
+    return listing.user_id === currentUserId;
   };
 
-  // Teklif Ver butonu işlevi
-  const handleShowOffer = (listing: Listing) => {
-    if (!isLoggedIn) {
-      setAuthModalOpen(true);
-      return;
-    }
-    if (listing.ownerId === currentUserId) {
-      setShowSelfOfferWarning(true);
-      return;
-    }
-    setNewOfferForm({
-      listingId: listing.ilanNo || '', // Sadece ilanNo kullanılacak
-      price: '',
-      description: '',
-      transportResponsible: '',
-      origin: '',
-      destination: '',
-      files: []
-    });
-    setShowNewOfferModal(true);
+  const getTypeLabel = (type: string) => {
+    const labels = {
+      'load_listing': 'Yük İlanı',
+      'shipment_request': 'Nakliye Talebi', 
+      'transport_service': 'Nakliye Hizmeti'
+    };
+    return labels[type as keyof typeof labels] || type;
   };
-  // Mesaj Gönder butonu işlevi
-  const handleShowMessage = (listing: Listing) => {
-    if (!isLoggedIn) {
-      setAuthModalOpen(true);
-      return;
-    }
-    if (listing.ownerId === currentUserId) {
-      setShowSelfOfferWarning(true);
-      return;
-    }
-    setMessageTarget(listing);
-    setShowMessageModal(true);
+
+  const getTypeColor = (type: string) => {
+    const colors = {
+      'load_listing': 'bg-blue-100 text-blue-800',
+      'shipment_request': 'bg-green-100 text-green-800',
+      'transport_service': 'bg-purple-100 text-purple-800'
+    };
+    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
-  // Dosya yükleme
-  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
-    }
-  };
-  // Teklif formu submit
-  const handleNewOfferSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newOfferForm.price || !newOfferForm.transportResponsible || !newOfferForm.origin || !newOfferForm.destination) {
-      alert('Lütfen tüm alanları doldurun!');
-      return;
-    }
-    alert('Teklif gönderildi!');
-    setShowNewOfferModal(false);
-  };
-  // Mesaj gönderme
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!messageText.trim()) return;
-    alert('Mesaj gönderildi!');
-    setShowMessageModal(false);
-    setMessageText('');
-  };
+
+  // Filter listings
+  const filteredListings = listings.filter(listing => {
+    const matchesSearch = listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         listing.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         listing.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         listing.destination?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = activeCategory === 'all' || listing.listing_type === activeCategory;
+    const matchesTransport = selectedTransport === 'all' || listing.transport_mode === selectedTransport;
+    
+    return matchesSearch && matchesCategory && matchesTransport;
+  });
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">İlanlar yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Güncel <span className="text-primary-600">Yük ve Nakliye İlanları</span>
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Binlerce aktif ilan arasından size en uygun olanını bulun
-          </p>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-lg transform hover:scale-105 transition-all duration-300">
-                <div className={`text-3xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
-                <div className="text-gray-600 font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Category Buttons */}
-        <div className="mb-8">
-          <div className="flex flex-wrap justify-center gap-4">
-            {categories.map(category => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border-2 ${activeCategory === category.id
-                    ? getCategoryColor(category.id).replace('100', '200').replace('700', '800') + ' shadow-lg'
-                    : getCategoryColor(category.id) + ' hover:shadow-md'
-                  }`}
-              >
-                <span>{category.label}</span>
-                <span className="ml-2 text-sm opacity-75">({category.count})</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="İlan, şehir veya yük tipi ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-3 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-4 lg:mb-0">
+              <h1 className="text-3xl font-bold text-gray-900">İlanlar</h1>
+              <p className="text-gray-600">Aktif yük ve nakliye ilanları</p>
             </div>
-
-            {/* Transport Mode Filter */}
-            <select
-              value={selectedTransport}
-              onChange={(e) => setSelectedTransport(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              title="Taşıma modu seçin"
-            >
-              {transportModes.map(mode => (
-                <option key={mode.id} value={mode.id}>{mode.label}</option>
-              ))}
-            </select>
-
-            {/* Advanced Filters Button */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center transform hover:scale-105"
-            >
-              <Filter size={20} className="mr-2" />
-              Filtreler
-            </button>
+            
+            {/* Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="İlan ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full sm:w-80"
+                />
+              </div>
+              
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <Filter size={20} />
+                Filtreler
+              </button>
+            </div>
           </div>
 
-          {/* Advanced Filters */}
+          {/* Filters Panel */}
           {showFilters && (
-            <div className="mt-6 pt-6 border-t border-gray-200 animate-fade-in">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ağırlık Aralığı</label>
-                  <div className="flex gap-2">
-                    <input type="number" placeholder="Min (ton)" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
-                    <input type="number" placeholder="Max (ton)" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                  <select
+                    value={activeCategory}
+                    onChange={(e) => setActiveCategory(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    title="Kategori Seçimi"
+                  >
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.label} ({cat.count})
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat Aralığı</label>
-                  <div className="flex gap-2">
-                    <input type="number" placeholder="Min (₺)" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
-                    <input type="number" placeholder="Max (₺)" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tarih Aralığı</label>
-                  <input
-                    type="date"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    title="Tarih seçin"
-                    placeholder="Tarih seçin"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Taşıma Modu</label>
+                  <select
+                    value={selectedTransport}
+                    onChange={(e) => setSelectedTransport(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    title="Taşıma Modu Seçimi"
+                  >
+                    {transportModes.map(mode => (
+                      <option key={mode.id} value={mode.id}>
+                        {mode.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
           )}
-        </div>
 
-        {/* Listings Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-          {filteredListings.map((listing) => (
-            <div key={listing.id} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-              {/* Header */}
-              <div className="p-6 pb-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-semibold" title="İlan No">
-                        {listing.ilanNo}
-                      </span>
-                      {listing.urgent && (
-                        <div className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">
-                          <Clock size={12} className="mr-1" />
-                          Acil
-                        </div>
-                      )}
-                      {/* İlan sahibi göstergesi */}
-                      {isOwnListing(listing) && (
-                        <div className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
-                          Sizin İlanınız
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-primary-600 transition-colors cursor-pointer">
-                      {listing.title}
-                    </h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary-600">{listing.price}</div>
-                    <div className="text-xs text-gray-500">{listing.offers} teklif</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center text-gray-600">
-                    <MapPin size={14} className="mr-2 text-primary-500" />
-                    <span className="text-sm">{listing.route}</span>
-                  </div>
-                  <div className="flex items-center text-gray-600">
-                    <Package size={14} className="mr-2 text-primary-500" />
-                    <span className="text-sm">{listing.loadType} • {listing.weight} • {listing.volume}</span>
-                  </div>
-                  <div className="flex items-center text-gray-600">
-                    <Clock size={14} className="mr-2 text-primary-500" />
-                    <span className="text-sm">{listing.publishDate}</span>
-                  </div>
-                </div>
-
-                {/* Contact Info - Sadece giriş yapan kullanıcılar için */}
-                {isLoggedIn ? (
-                  <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3">
-                        <span className="text-white text-xs font-medium">
-                          {listing.contact.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">{listing.contact.name}</div>
-                        <div className="text-xs text-gray-500">{listing.contact.company}</div>
-                        <div className="text-xs text-gray-500">{listing.contact.phone}</div>
-                        <div className="text-xs text-gray-500">{listing.contact.email}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <Star className="text-yellow-400 fill-current" size={14} />
-                      <span className="text-sm font-medium text-gray-700 ml-1">{listing.contact.rating}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="flex items-center text-yellow-800">
-                      <LogIn size={16} className="mr-2" />
-                      <span className="text-sm font-medium">İletişim bilgilerini görmek için giriş yapın</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Mini Map */}
-              <div className="h-32 border-t border-gray-100">
-                <LiveMap
-                  coordinates={[listing.coordinates]}
-                  height="128px"
-                  onClick={() => setSelectedListing(listing)}
-                  className="cursor-pointer hover:opacity-80 transition-opacity"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="p-6 pt-4 border-t border-gray-100">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleShowOffer(listing)}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${isOwnListing(listing)
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-primary-600 text-white hover:bg-primary-700'
-                      }`}
-                    disabled={isOwnListing(listing)}
-                  >
-                    {isLoggedIn
-                      ? isOwnListing(listing)
-                        ? 'Kendi İlanınız'
-                        : 'Teklif Ver'
-                      : 'Giriş Yap'}
-                  </button>
-                  <button
-                    onClick={() => setSelectedListing(listing)}
-                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
-                    title="Detayları Görüntüle"
-                  >
-                    <Eye size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleShowMessage(listing)}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(listing)
-                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    disabled={isOwnListing(listing)}
-                    title="Mesaj Gönder"
-                  >
-                    {isLoggedIn
-                      ? isOwnListing(listing)
-                        ? 'Kendi İlanınız'
-                        : 'Mesaj Gönder'
-                      : 'Giriş Yap'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <button className="bg-primary-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 shadow-lg hover:shadow-xl">
-            Daha Fazla İlan Yükle
-          </button>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-20 bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sıkça Sorulan Sorular</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">İlan nasıl verebilirim?</h3>
-              <p className="text-gray-600 text-sm">Üye olduktan sonra "Yeni İlan" butonuna tıklayarak kolayca ilan verebilirsiniz.</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Teklif verme ücreti var mı?</h3>
-              <p className="text-gray-600 text-sm">Hayır, teklif vermek tamamen ücretsizdir. Sadece anlaştığınızda komisyon alınır.</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Güvenlik nasıl sağlanıyor?</h3>
-              <p className="text-gray-600 text-sm">Tüm üyelerimiz doğrulanır ve işlemler sigorta güvencesi altındadır.</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Ödeme nasıl yapılır?</h3>
-              <p className="text-gray-600 text-sm">Güvenli ödeme sistemi ile kredi kartı, havale veya çek ile ödeme yapabilirsiniz.</p>
-            </div>
+          {/* Category Tabs */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {categories.map(category => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeCategory === category.id
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {category.label} ({category.count})
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Login Modal */}
-      {/* Self Offer Warning Modal */}
-      {showSelfOfferWarning && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-8 max-w-md w-full">
-            <button
-              onClick={() => setShowSelfOfferWarning(false)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-            >
-              ×
-            </button>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle className="text-red-600" size={32} />
-              </div>
-
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">İşlem Yapılamaz</h3>
-              <p className="text-gray-600 mb-6">
-                Kendi ilanınıza teklif veremez veya mesaj gönderemezsiniz. Bu bir güvenlik önlemidir.
-              </p>
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => setShowSelfOfferWarning(false)}
-                  className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105"
-                >
-                  Anladım
-                </button>
-              </div>
-            </div>
+      {/* Listings Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {filteredListings.length === 0 ? (
+          <div className="text-center py-12">
+            <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">İlan bulunamadı</h3>
+            <p className="text-gray-600">Arama kriterlerinizi değiştirmeyi deneyin.</p>
           </div>
-        </div>
-      )}
-
-      {/* Listing Detail Modal */}
-      {selectedListing && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setSelectedListing(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-            >
-              ×
-            </button>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left Column */}
-              <div>
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    {selectedListing.urgent && (
-                      <div className="inline-flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        <Clock size={16} className="mr-1" />
-                        Acil İlan
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredListings.map((listing) => (
+              <div key={listing.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border">
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(listing.listing_type)}`}>
+                          {getTypeLabel(listing.listing_type)}
+                        </span>
+                        {listing.transport_mode && (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
+                            {translateTransportMode(listing.transport_mode)}
+                          </span>
+                        )}
                       </div>
-                    )}
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getListingTypeColor(selectedListing.listingType ?? '')}`}>
-                      {selectedListing.listingType}
-                    </div>
-
-                    {/* İlan sahibi göstergesi */}
-                    {isOwnListing(selectedListing) && (
-                      <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        Sizin İlanınız
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{listing.title}</h3>
+                      
+                      {/* Route */}
+                      <div className="flex items-center text-gray-600 mb-3">
+                        <MapPin size={16} className="mr-1 text-primary-500" />
+                        <span className="text-sm">{listing.origin} → {listing.destination}</span>
                       </div>
-                    )}
-                  </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">{selectedListing.title}</h3>
-                  <div className="flex items-center text-gray-600 mb-2">
-                    <MapPin size={18} className="mr-2 text-primary-500" />
-                    <span className="text-lg">{selectedListing.route}</span>
-                  </div>
-                  <div className="text-sm text-gray-500">{selectedListing.publishDate} yayınlandı</div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-4">Yük Detayları</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Yük Tipi:</span>
-                      <div className="font-medium">{translateLoadType(selectedListing.loadType)}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Ağırlık:</span>
-                      <div className="font-medium">{selectedListing.weight}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Hacim:</span>
-                      <div className="font-medium">{selectedListing.volume}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Taşıma Modu:</span>
-                      <div className="font-medium capitalize">{selectedListing.transportMode === 'road' ? 'Karayolu' : selectedListing.transportMode}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Açıklama</h4>
-                  <p className="text-gray-700">{selectedListing.description}</p>
-                </div>
-
-                {/* İletişim Bilgileri - Sadece giriş yapan kullanıcılar için */}
-                {isLoggedIn ? (
-                  <div className="bg-primary-50 rounded-lg p-6 border border-primary-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-semibold text-gray-900">İletişim Bilgileri</h4>
-                      <div className="flex items-center">
-                        <Star className="text-yellow-400 fill-current" size={16} />
-                        <span className="text-sm font-medium text-gray-700 ml-1">{selectedListing.contact.rating}</span>
+                      
+                      {/* Details */}
+                      <div className="space-y-1 text-sm text-gray-600">
+                        {listing.load_type && (
+                          <div>Yük Tipi: <span className="font-medium">{translateLoadType(listing.load_type)}</span></div>
+                        )}
+                        {listing.weight_value && (
+                          <div>Ağırlık: <span className="font-medium">{listing.weight_value} {listing.weight_unit}</span></div>
+                        )}
                       </div>
                     </div>
-                    <div className="space-y-2 text-sm">
-                      <div><strong>İsim:</strong> {selectedListing.contact.name}</div>
-                      <div><strong>Firma:</strong> {selectedListing.contact.company}</div>
-                      <div><strong>Telefon:</strong> {selectedListing.contact.phone}</div>
-                      <div><strong>E-posta:</strong> {selectedListing.contact.email}</div>
-                    </div>
                   </div>
-                ) : (
-                  <div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
-                    <div className="flex items-center text-yellow-800 mb-3">
-                      <LogIn size={20} className="mr-2" />
-                      <h4 className="font-semibold">İletişim Bilgileri</h4>
+
+                  {/* Description */}
+                  {listing.description && (
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{listing.description}</p>
+                  )}
+
+                  {/* Price */}
+                  {listing.price_amount && (
+                    <div className="mb-4">
+                      <div className="text-lg font-bold text-primary-600">
+                        {listing.price_amount} {listing.price_currency}
+                        {listing.price_per && <span className="text-sm text-gray-500">/{listing.price_per}</span>}
+                      </div>
                     </div>
-                    <p className="text-yellow-700 text-sm mb-4">
-                      İletişim bilgilerini görmek ve teklif vermek için giriş yapmanız gerekiyor.
-                    </p>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
                     <button
                       onClick={() => {
-                        setSelectedListing(null);
-                        setAuthModalOpen(true);
+                        if (!isLoggedIn) {
+                          setAuthModalOpen(true);
+                          return;
+                        }
+                        if (isOwnListing(listing)) {
+                          setShowSelfOfferWarning(true);
+                          return;
+                        }
+                        setSelectedOfferListing(listing);
                       }}
-                      className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                        isOwnListing(listing)
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                      }`}
+                      disabled={isOwnListing(listing)}
                     >
-                      Giriş Yap
+                      {isLoggedIn
+                        ? isOwnListing(listing)
+                          ? 'Kendi İlanınız'
+                          : 'Teklif Ver'
+                        : 'Giriş Yap'}
                     </button>
                   </div>
-                )}
-              </div>
 
-              {/* Right Column */}
-              <div>
-                {/* Large Map */}
-                <div className="mb-6 h-80 rounded-lg overflow-hidden border border-gray-200">
-                  <LiveMap
-                    coordinates={[selectedListing.coordinates, selectedListing.destination]}
-                    height="320px"
-                    showRoute={true}
-                  />
-                </div>
-
-                {/* Price and Offers */}
-                <div className="bg-white border-2 border-primary-200 rounded-lg p-6 mb-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price}</div>
-                    <div className="text-gray-600 mb-4">{selectedListing.offers} teklif alındı</div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleShowOffer(selectedListing)}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : 'bg-primary-600 text-white hover:bg-primary-700'
-                          }`}
-                        disabled={isOwnListing(selectedListing)}
-                      >
-                        {isLoggedIn
-                          ? isOwnListing(selectedListing)
-                            ? 'Kendi İlanınız'
-                            : 'Teklif Ver'
-                          : 'Giriş Yap'}
-                      </button>
-                      <button
-                        onClick={() => handleShowMessage(selectedListing)}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        disabled={isOwnListing(selectedListing)}
-                      >
-                        {isLoggedIn
-                          ? isOwnListing(selectedListing)
-                            ? 'Kendi İlanınız'
-                            : 'Mesaj Gönder'
-                          : 'Giriş Yap'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Info */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Güvenlik Bilgileri</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      Doğrulanmış üye
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      Sigorta güvencesi
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      Güvenli ödeme sistemi
-                    </div>
+                  {/* Timestamp */}
+                  <div className="mt-3 flex items-center text-xs text-gray-500">
+                    <Clock size={14} className="mr-1" />
+                    <span>{listing.created_at ? new Date(listing.created_at).toLocaleDateString('tr-TR') : 'Tarih bilinmiyor'}</span>
                   </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Teklif Ver Modalı */}
-      {showNewOfferModal && (
+      {/* Self Offer Warning Modal */}
+      {showSelfOfferWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
-            <button onClick={() => setShowNewOfferModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
-              ×
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Uyarı</h3>
+            <p className="text-gray-600 mb-6">Kendi ilanınıza teklif veremezsiniz.</p>
+            <button
+              onClick={() => setShowSelfOfferWarning(false)}
+              className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700"
+            >
+              Tamam
             </button>
-            <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
-            <form onSubmit={handleNewOfferSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-1">İlan Numarası</label>
-                <input
-                  className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
-                  value={newOfferForm.listingId}
-                  disabled
-                  readOnly
-                  title="İlan Numarası"
-                  aria-label="İlan Numarası"
-                  placeholder="İlan Numarası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.transportResponsible}
-                  onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
-                  required
-                  title="Nakliye Kime Ait"
-                  aria-label="Nakliye Kime Ait"
-                >
-                  <option value="">Seçiniz</option>
-                  <option value="Alıcı">Alıcı</option>
-                  <option value="Satıcı">Satıcı</option>
-                  <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.origin}
-                  onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
-                  required
-                  title="Kalkış Noktası"
-                  placeholder="Kalkış Noktası"
-                  aria-label="Kalkış Noktası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Varış Noktası</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.destination}
-                  onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
-                  required
-                  title="Varış Noktası"
-                  placeholder="Varış Noktası"
-                  aria-label="Varış Noktası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
-                <input
-                  type="number"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.price}
-                  onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
-                  required
-                  min="0"
-                  title="Teklif Tutarı"
-                  placeholder="Teklif Tutarı"
-                  aria-label="Teklif Tutarı"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Açıklama</label>
-                <textarea
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.description}
-                  onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
-                  rows={3}
-                  title="Açıklama"
-                  placeholder="Açıklama"
-                  aria-label="Açıklama"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
-                <input
-                  type="file"
-                  className="w-full border rounded-lg px-3 py-2"
-                  multiple
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                  onChange={handleNewOfferFileChange}
-                  title="Evrak ve Resim Yükle"
-                  aria-label="Evrak ve Resim Yükle"
-                />
-                {newOfferForm.files && newOfferForm.files.length > 0 && (
-                  <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
-                    {newOfferForm.files.map((file, idx) => (
-                      <li key={idx}>{file.name}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
-                Teklif Ver
-              </button>
-            </form>
           </div>
         </div>
       )}
 
-      {/* Mesaj Gönder Modalı */}
-      {showMessageModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm relative">
-            <button onClick={() => setShowMessageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
-              ×
-            </button>
-            <h3 className="text-lg font-bold mb-4">Mesaj Gönder</h3>
-            <form onSubmit={handleSendMessage} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Alıcı</label>
-                <input
-                  className="w-full border rounded-lg px-3 py-2 bg-gray-100"
-                  value={messageTarget?.contact?.name || ''}
-                  disabled
-                  readOnly
-                  title="Alıcı"
-                  aria-label="Alıcı"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Mesajınız</label>
-                <textarea
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={messageText}
-                  onChange={e => setMessageText(e.target.value)}
-                  rows={3}
-                  required
-                  title="Mesajınız"
-                  placeholder="Mesajınızı yazın..."
-                  aria-label="Mesajınız"
-                />
-              </div>
-              <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
-                Gönder
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* AuthModal */}
+      {/* Auth Modal */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -844,6 +349,17 @@ const ListingsPage: React.FC = () => {
         onRegister={handleRegister}
         onGoogleLogin={handleGoogleLogin}
       />
+
+      {/* Create Offer Modal */}
+      {selectedOfferListing && (
+        <CreateOfferModal 
+          listing={selectedOfferListing}
+          isOpen={true}
+          onClose={() => setSelectedOfferListing(null)}
+          onSubmit={async () => {}}
+          currentUserId={currentUserId}
+        />
+      )}
     </div>
   );
 };

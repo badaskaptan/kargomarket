@@ -631,49 +631,88 @@ export interface Database {
           id: string
           created_at: string
           updated_at: string
-          listing_id: string
-          carrier_id: string
-          price: number
-          currency: string
-          estimated_delivery_time: string | null
-          status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
-          message: string | null
+          listing_id: string | null
+          user_id: string | null
+          offer_type: string
+          parent_offer_id: string | null
+          price_amount: number
+          price_currency: string | null
+          price_per: string | null
+          price_breakdown: Record<string, unknown> | null
+          payment_terms: string | null
+          payment_method: string | null
+          service_description: string | null
+          proposed_dates: Record<string, unknown> | null
+          validity_period: number | null
           expires_at: string | null
-          terms_conditions: Record<string, unknown>
-          additional_services: Record<string, unknown>
-          metadata: GenericMetadata
+          additional_services: Record<string, unknown> | null
+          special_conditions: string | null
+          status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered' | null
+          rejection_reason: string | null
+          message: string | null
+          attachments: Record<string, unknown> | null
+          responded_at: string | null
+          valid_until: string | null
+          additional_terms: Record<string, unknown> | null
+          counter_offer_to: string | null
         }
         Insert: {
           id?: string
           created_at?: string
           updated_at?: string
-          listing_id: string
-          carrier_id: string
-          price: number
-          currency?: string
-          estimated_delivery_time?: string | null
-          status?: 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
-          message?: string | null
+          listing_id?: string | null
+          user_id?: string | null
+          offer_type: string
+          parent_offer_id?: string | null
+          price_amount: number
+          price_currency?: string | null
+          price_per?: string | null
+          price_breakdown?: Record<string, unknown> | null
+          payment_terms?: string | null
+          payment_method?: string | null
+          service_description?: string | null
+          proposed_dates?: Record<string, unknown> | null
+          validity_period?: number | null
           expires_at?: string | null
-          terms_conditions?: Record<string, unknown>
-          additional_services?: Record<string, unknown>
-          metadata?: GenericMetadata
+          additional_services?: Record<string, unknown> | null
+          special_conditions?: string | null
+          status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered' | null
+          rejection_reason?: string | null
+          message?: string | null
+          attachments?: Record<string, unknown> | null
+          responded_at?: string | null
+          valid_until?: string | null
+          additional_terms?: Record<string, unknown> | null
+          counter_offer_to?: string | null
         }
         Update: {
           id?: string
           created_at?: string
           updated_at?: string
-          listing_id?: string
-          carrier_id?: string
-          price?: number
-          currency?: string
-          estimated_delivery_time?: string | null
-          status?: 'pending' | 'accepted' | 'rejected' | 'expired' | 'withdrawn'
-          message?: string | null
+          listing_id?: string | null
+          user_id?: string | null
+          offer_type?: string
+          parent_offer_id?: string | null
+          price_amount?: number
+          price_currency?: string | null
+          price_per?: string | null
+          price_breakdown?: Record<string, unknown> | null
+          payment_terms?: string | null
+          payment_method?: string | null
+          service_description?: string | null
+          proposed_dates?: Record<string, unknown> | null
+          validity_period?: number | null
           expires_at?: string | null
-          terms_conditions?: Record<string, unknown>
-          additional_services?: Record<string, unknown>
-          metadata?: GenericMetadata
+          additional_services?: Record<string, unknown> | null
+          special_conditions?: string | null
+          status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered' | null
+          rejection_reason?: string | null
+          message?: string | null
+          attachments?: Record<string, unknown> | null
+          responded_at?: string | null
+          valid_until?: string | null
+          additional_terms?: Record<string, unknown> | null
+          counter_offer_to?: string | null
         }
       }
       messages: {
