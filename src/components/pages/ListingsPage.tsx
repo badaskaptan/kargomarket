@@ -1,42 +1,37 @@
 import React, { useState } from 'react';
-import { Search, Filter, MapPin, Package, Clock } from 'lucide-react';
+import { Search, Clock, MapPin, Package, Eye, X, LogIn } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
-import CreateOfferModal from '../modals/CreateOfferModal';
+import LoadListingDetailModal from '../modals/LoadListingDetailModal';
+import ShipmentRequestDetailModal from '../modals/ShipmentRequestDetailModal';
+import TransportServiceDetailModal from '../modals/TransportServiceDetailModal';
 import { useListings } from '../../hooks/useListings';
-import { translateLoadType, translateTransportMode } from '../../utils/translationUtils';
-import type { ExtendedListing } from '../../types/database-types';
+import type { ExtendedListing, TransportService } from '../../types/database-types';
+import { translateLoadType } from '../../utils/translationUtils';
 
 const ListingsPage: React.FC = () => {
-  const { isLoggedIn, login, register, googleLogin, user } = useAuth();
-  const { listings, loading, error } = useListings(50);
-  
-  // State
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const { user, login, register, googleLogin } = useAuth();
+  const { listings, loading, error } = useListings();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedTransport, setSelectedTransport] = useState('all');
-  const [selectedOfferListing, setSelectedOfferListing] = useState<ExtendedListing | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showSelfOfferWarning, setShowSelfOfferWarning] = useState(false);
-
-  const currentUserId = user?.id || '';
-
-  // Categories
-  const categories = [
-    { id: 'all', label: 'Tüm İlanlar', count: listings.length },
-    { id: 'load_listing', label: 'Yük İlanları', count: listings.filter(l => l.listing_type === 'load_listing').length },
-    { id: 'shipment_request', label: 'Nakliye Talebi', count: listings.filter(l => l.listing_type === 'shipment_request').length },
-    { id: 'transport_service', label: 'Nakliye Hizmeti', count: listings.filter(l => l.listing_type === 'transport_service').length }
-  ];
-
-  const transportModes = [
-    { id: 'all', label: 'Tümü' },
-    { id: 'road', label: 'Karayolu' },
-    { id: 'rail', label: 'Demiryolu' },
-    { id: 'sea', label: 'Deniz' },
-    { id: 'air', label: 'Hava' }
-  ];
+  const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
+  const [newOfferForm, setNewOfferForm] = useState({
+    listingId: '',
+    price: '',
+    description: '',
+    transportResponsible: '',
+    origin: '',
+    destination: '',
+    files: [] as File[]
+  });
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [messageTarget, setMessageTarget] = useState<ExtendedListing | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'load_listing' | 'shipment_request' | 'transport_service'>('all');
+  const isLoggedIn = !!user;
+  const currentUserName = user?.email || '';
 
   // Auth handlers
   const handleLogin = async (email: string, password: string) => {
@@ -66,41 +61,191 @@ const ListingsPage: React.FC = () => {
     }
   };
 
-  // Utility functions
-  const isOwnListing = (listing: ExtendedListing) => {
-    return listing.user_id === currentUserId;
-  };
-
-  const getTypeLabel = (type: string) => {
-    const labels = {
-      'load_listing': 'Yük İlanı',
-      'shipment_request': 'Nakliye Talebi', 
-      'transport_service': 'Nakliye Hizmeti'
-    };
-    return labels[type as keyof typeof labels] || type;
-  };
-
-  const getTypeColor = (type: string) => {
-    const colors = {
-      'load_listing': 'bg-blue-100 text-blue-800',
-      'shipment_request': 'bg-green-100 text-green-800',
-      'transport_service': 'bg-purple-100 text-purple-800'
-    };
-    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  // Filter listings
-  const filteredListings = listings.filter(listing => {
+  const filteredListings = listings.filter((listing: ExtendedListing) => {
     const matchesSearch = listing.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         listing.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         listing.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         listing.destination?.toLowerCase().includes(searchTerm.toLowerCase());
+      listing.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      listing.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      listing.destination?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = activeCategory === 'all' || listing.listing_type === activeCategory;
-    const matchesTransport = selectedTransport === 'all' || listing.transport_mode === selectedTransport;
+    const matchesTab = activeTab === 'all' || listing.listing_type === activeTab;
     
-    return matchesSearch && matchesCategory && matchesTransport;
+    return matchesSearch && matchesTab;
   });
+
+  // Tab counts for display
+  const tabCounts = {
+    all: listings.length,
+    load_listing: listings.filter(l => l.listing_type === 'load_listing').length,
+    shipment_request: listings.filter(l => l.listing_type === 'shipment_request').length,
+    transport_service: listings.filter(l => l.listing_type === 'transport_service').length
+  };
+
+  // Tab helper functions
+  const getTabInfo = () => {
+    switch (activeTab) {
+      case 'load_listing':
+        return {
+          title: 'Yük İlanları',
+          description: 'Taşınmak istenen yükler',
+          emptyMessage: 'Henüz yük ilanı bulunmuyor.',
+          icon: Package
+        };
+      case 'shipment_request':
+        return {
+          title: 'Nakliye Talepleri',
+          description: 'Nakliye hizmeti arayanlar',
+          emptyMessage: 'Henüz nakliye talebi bulunmuyor.',
+          icon: Clock
+        };
+      case 'transport_service':
+        return {
+          title: 'Nakliye Hizmetleri',
+          description: 'Nakliye hizmeti verenler',
+          emptyMessage: 'Henüz nakliye hizmeti ilanı bulunmuyor.',
+          icon: MapPin
+        };
+      default:
+        return {
+          title: 'Tüm İlanlar',
+          description: 'Aktif yük ve nakliye ilanları',
+          emptyMessage: 'Henüz ilan bulunmuyor.',
+          icon: Search
+        };
+    }
+  };
+
+  const isOwnListing = (listing: ExtendedListing) => {
+    if (!listing || !listing.owner_name) return false;
+    return listing.owner_name === currentUserName;
+  };
+
+  // Helper functions to map database fields to HomePage interface
+  const getListingDisplayData = (listing: ExtendedListing) => ({
+    ilanNo: listing.listing_number,
+    title: listing.title,
+    route: `${listing.origin} → ${listing.destination}`,
+    loadType: listing.load_type || '',
+    weight: listing.weight_value ? `${listing.weight_value} ${listing.weight_unit || 'kg'}` : 'Belirtilmemiş',
+    price: listing.price_amount ? `₺${listing.price_amount.toLocaleString()}` : 'Fiyat belirtilmemiş',
+    offers: listing.offer_count || 0,
+    urgent: listing.is_urgent || false,
+    contact: {
+      name: listing.owner_name || 'Bilinmiyor',
+      company: listing.owner_company || '',
+      phone: listing.owner_phone || '',
+      email: listing.owner_email || ''
+    }
+  });
+
+  // Get listing type badge info
+  const getListingTypeBadge = (listingType: string) => {
+    switch (listingType) {
+      case 'load_listing':
+        return {
+          label: 'Yük İlanı',
+          className: 'bg-blue-100 text-blue-800'
+        };
+      case 'shipment_request':
+        return {
+          label: 'Nakliye Talebi',
+          className: 'bg-green-100 text-green-800'
+        };
+      case 'transport_service':
+        return {
+          label: 'Nakliye Hizmeti',
+          className: 'bg-orange-100 text-orange-800'
+        };
+      default:
+        return {
+          label: 'İlan',
+          className: 'bg-gray-100 text-gray-800'
+        };
+    }
+  };
+
+  const handleShowDetails = (listing: ExtendedListing) => {
+    setSelectedListing(listing);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedListing(null);
+  };
+
+  // Convert ExtendedListing to TransportService for transport service modal
+  const convertToTransportService = (listing: ExtendedListing): TransportService => {
+    // Sadece gerekli alanları mapping yapıyoruz, diğerleri varsayılan değerler
+    return {
+      ...listing,
+      service_number: listing.listing_number,
+      vehicle_type: listing.vehicle_types?.[0] || 'truck',
+      capacity_value: listing.weight_value || 0,
+      capacity_unit: listing.weight_unit || 'ton',
+      service_type: 'freight_transport',
+      coverage_area: listing.origin || '',
+      origin_city: listing.origin || '',
+      destination_city: listing.destination || '',
+      price_per_km: listing.price_amount || 0,
+      company_name: listing.owner_company || '',
+      contact_person: listing.owner_name || '',
+      contact_phone: listing.owner_phone || '',
+      contact_email: listing.owner_email || '',
+      // contact_info'yu string olarak set ediyoruz
+      contact_info: listing.owner_phone ? `Tel: ${listing.owner_phone}${listing.owner_email ? `\nE-posta: ${listing.owner_email}` : ''}${listing.owner_company ? `\nŞirket: ${listing.owner_company}` : ''}` : null,
+      transport_mode: 'road',
+      status: 'active',
+      rating: 0,
+      rating_count: 0,
+      view_count: 0,
+      is_featured: listing.is_urgent || false,
+    } as unknown as TransportService;
+  };
+
+  const handleShowOffer = (listing: ExtendedListing) => {
+    if (!isLoggedIn) {
+      setAuthModalOpen(true);
+      return;
+    }
+    if (isOwnListing(listing)) {
+      alert('Kendi ilanınıza teklif veremezsiniz!');
+      return;
+    }
+    setNewOfferForm({
+      listingId: getListingDisplayData(listing).ilanNo,
+      price: '',
+      description: '',
+      transportResponsible: '',
+      origin: '',
+      destination: '',
+      files: []
+    });
+    setShowNewOfferModal(true);
+  };
+
+  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
+    }
+  };
+
+  const handleNewOfferSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newOfferForm.price || !newOfferForm.transportResponsible || !newOfferForm.origin || !newOfferForm.destination) {
+      alert('Lütfen tüm alanları doldurun!');
+      return;
+    }
+    alert('Teklif gönderildi!');
+    setShowNewOfferModal(false);
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageText.trim()) return;
+    alert('Mesaj gönderildi!');
+    setShowMessageModal(false);
+    setMessageText('');
+  };
 
   // Loading state
   if (loading) {
@@ -138,11 +283,9 @@ const ListingsPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="mb-4 lg:mb-0">
-              <h1 className="text-3xl font-bold text-gray-900">İlanlar</h1>
-              <p className="text-gray-600">Aktif yük ve nakliye ilanları</p>
+              <h1 className="text-3xl font-bold text-gray-900">{getTabInfo().title}</h1>
+              <p className="text-gray-600">{getTabInfo().description}</p>
             </div>
-            
-            {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -154,194 +297,572 @@ const ListingsPage: React.FC = () => {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent w-full sm:w-80"
                 />
               </div>
-              
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <Filter size={20} />
-                Filtreler
-              </button>
             </div>
           </div>
-
-          {/* Filters Panel */}
-          {showFilters && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                  <select
-                    value={activeCategory}
-                    onChange={(e) => setActiveCategory(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    title="Kategori Seçimi"
-                  >
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.label} ({cat.count})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Taşıma Modu</label>
-                  <select
-                    value={selectedTransport}
-                    onChange={(e) => setSelectedTransport(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    title="Taşıma Modu Seçimi"
-                  >
-                    {transportModes.map(mode => (
-                      <option key={mode.id} value={mode.id}>
-                        {mode.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Category Tabs */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            {categories.map(category => (
+        </div>
+        {/* Tabs Section */}
+        <div className="border-t border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav className="flex space-x-8" aria-label="Tabs">
               <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeCategory === category.id
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                onClick={() => setActiveTab('all')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
+                  activeTab === 'all'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                {category.label} ({category.count})
+                Tüm İlanlar
+                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'all'
+                    ? 'bg-primary-100 text-primary-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {tabCounts.all}
+                </span>
               </button>
-            ))}
+              <button
+                onClick={() => setActiveTab('load_listing')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
+                  activeTab === 'load_listing'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Yük İlanları
+                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'load_listing'
+                    ? 'bg-primary-100 text-primary-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {tabCounts.load_listing}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab('shipment_request')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
+                  activeTab === 'shipment_request'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Nakliye Talebi
+                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'shipment_request'
+                    ? 'bg-primary-100 text-primary-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {tabCounts.shipment_request}
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab('transport_service')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
+                  activeTab === 'transport_service'
+                    ? 'border-primary-500 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Nakliye Hizmeti
+                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${
+                  activeTab === 'transport_service'
+                    ? 'bg-primary-100 text-primary-600'
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {tabCounts.transport_service}
+                </span>
+              </button>
+            </nav>
           </div>
         </div>
       </div>
-
-      {/* Listings Grid */}
+      {/* Listings Grid - HomePage style */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {filteredListings.length === 0 ? (
           <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">İlan bulunamadı</h3>
-            <p className="text-gray-600">Arama kriterlerinizi değiştirmeyi deneyin.</p>
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+              {React.createElement(getTabInfo().icon, { className: "h-6 w-6 text-gray-400" })}
+            </div>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">{getTabInfo().emptyMessage}</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm ? 'Arama kriterinize uygun ilan bulunamadı.' : 'Yeni ilanlar eklendiğinde burada görünecek.'}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => (
-              <div key={listing.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border">
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(listing.listing_type)}`}>
-                          {getTypeLabel(listing.listing_type)}
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {filteredListings.map((listing) => {
+                const displayData = getListingDisplayData(listing);
+                return (
+                <div 
+                  key={listing.id} 
+                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+                >
+              <div className="p-6 pb-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-semibold" title="İlan No">
+                        {displayData.ilanNo}
+                      </span>
+                      {activeTab === 'all' && (
+                        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${getListingTypeBadge(listing.listing_type).className}`}>
+                          {getListingTypeBadge(listing.listing_type).label}
+                        </div>
+                      )}
+                      {displayData.urgent && (
+                        <div className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">
+                          <Clock size={12} className="mr-1" />
+                          Acil
+                        </div>
+                      )}
+                      {isOwnListing(listing) && (
+                        <div className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
+                          Sizin İlanınız
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-primary-600 transition-colors cursor-pointer">
+                      {displayData.title}
+                    </h3>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary-600">{displayData.price}</div>
+                    <div className="text-xs text-gray-500">{displayData.offers} teklif</div>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-gray-600">
+                    <MapPin size={14} className="mr-2 text-primary-500" />
+                    <span className="text-sm">{displayData.route}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <Package size={14} className="mr-2 text-primary-500" />
+                    <span className="text-sm">{translateLoadType(displayData.loadType)} • {displayData.weight}</span>
+                  </div>
+                </div>
+                {isLoggedIn ? (
+                  <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3">
+                        <span className="text-white text-xs font-medium">
+                          {displayData.contact.name.split(' ').map((n: string) => n[0]).join('')}
                         </span>
-                        {listing.transport_mode && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs">
-                            {translateTransportMode(listing.transport_mode)}
-                          </span>
-                        )}
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{listing.title}</h3>
-                      
-                      {/* Route */}
-                      <div className="flex items-center text-gray-600 mb-3">
-                        <MapPin size={16} className="mr-1 text-primary-500" />
-                        <span className="text-sm">{listing.origin} → {listing.destination}</span>
-                      </div>
-                      
-                      {/* Details */}
-                      <div className="space-y-1 text-sm text-gray-600">
-                        {listing.load_type && (
-                          <div>Yük Tipi: <span className="font-medium">{translateLoadType(listing.load_type)}</span></div>
-                        )}
-                        {listing.weight_value && (
-                          <div>Ağırlık: <span className="font-medium">{listing.weight_value} {listing.weight_unit}</span></div>
-                        )}
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm">{displayData.contact.name}</div>
+                        <div className="text-xs text-gray-500">{displayData.contact.company}</div>
+                        <div className="text-xs text-gray-500">{displayData.contact.phone}</div>
                       </div>
                     </div>
                   </div>
-
-                  {/* Description */}
-                  {listing.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{listing.description}</p>
-                  )}
-
-                  {/* Price */}
-                  {listing.price_amount && (
-                    <div className="mb-4">
-                      <div className="text-lg font-bold text-primary-600">
-                        {listing.price_amount} {listing.price_currency}
-                        {listing.price_per && <span className="text-sm text-gray-500">/{listing.price_per}</span>}
-                      </div>
+                ) : (
+                  <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <div className="flex items-center text-yellow-800">
+                      <span className="text-sm font-medium">İletişim bilgilerini görmek için giriş yapın</span>
                     </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        if (!isLoggedIn) {
-                          setAuthModalOpen(true);
-                          return;
-                        }
-                        if (isOwnListing(listing)) {
-                          setShowSelfOfferWarning(true);
-                          return;
-                        }
-                        setSelectedOfferListing(listing);
-                      }}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
-                        isOwnListing(listing)
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                  </div>
+                )}
+              </div>
+              {/* Actions */}
+              <div className="p-6 pt-4 border-t border-gray-100">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleShowOffer(listing)}
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${isOwnListing(listing)
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
                       }`}
-                      disabled={isOwnListing(listing)}
-                    >
-                      {isLoggedIn
-                        ? isOwnListing(listing)
-                          ? 'Kendi İlanınız'
-                          : 'Teklif Ver'
-                        : 'Giriş Yap'}
-                    </button>
-                  </div>
+                    disabled={isOwnListing(listing)}
+                  >
+                    {isLoggedIn
+                      ? isOwnListing(listing)
+                        ? 'Kendi İlanınız'
+                        : 'Teklif Ver'
+                      : 'Giriş Yap'}
+                  </button>
+                  <button
+                    onClick={() => handleShowDetails(listing)}
+                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
+                    title="Detayları Görüntüle"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!isLoggedIn) {
+                        setAuthModalOpen(true);
+                        return;
+                      }
+                      if (isOwnListing(listing)) {
+                        alert('Kendi ilanınıza mesaj gönderemezsiniz!');
+                        return;
+                      }
+                      setMessageTarget(listing);
+                      setShowMessageModal(true);
+                    }}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(listing)
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    disabled={isOwnListing(listing)}
+                  >
+                    {isLoggedIn
+                      ? isOwnListing(listing)
+                        ? 'Kendi İlanınız'
+                        : 'Mesaj Gönder'
+                      : 'Giriş Yap'}
+                  </button>
+                </div>
+              </div>
+            </div>
+            );
+          })}
+        </div>
+        <div className="text-center mt-12">
+          <button className="bg-primary-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 shadow-lg hover:shadow-xl">
+            Daha Fazla İlan Yükle
+          </button>
+        </div>
+          </>
+        )}
+      </div>
+      {/* Detail Modals */}
+      {selectedListing && showDetailModal && selectedListing.listing_type === 'load_listing' && (
+        <LoadListingDetailModal
+          listing={selectedListing}
+          isOpen={showDetailModal}
+          onClose={handleCloseDetailModal}
+        />
+      )}
 
-                  {/* Timestamp */}
-                  <div className="mt-3 flex items-center text-xs text-gray-500">
-                    <Clock size={14} className="mr-1" />
-                    <span>{listing.created_at ? new Date(listing.created_at).toLocaleDateString('tr-TR') : 'Tarih bilinmiyor'}</span>
+      {selectedListing && showDetailModal && selectedListing.listing_type === 'shipment_request' && (
+        <ShipmentRequestDetailModal
+          listing={selectedListing}
+          isOpen={showDetailModal}
+          onClose={handleCloseDetailModal}
+        />
+      )}
+
+      {selectedListing && showDetailModal && selectedListing.listing_type === 'transport_service' && (
+        <TransportServiceDetailModal
+          service={convertToTransportService(selectedListing)}
+          isOpen={showDetailModal}
+          onClose={handleCloseDetailModal}
+        />
+      )}
+
+      {/* Listing Detail Modal */}
+      {selectedListing && !showDetailModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedListing(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
+              title="Kapat"
+              aria-label="Kapat"
+            >
+              <X size={24} />
+            </button>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    {getListingDisplayData(selectedListing).urgent && (
+                      <div className="inline-flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        <Clock size={16} className="mr-1" />
+                        Acil İlan
+                      </div>
+                    )}
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getListingTypeBadge(selectedListing.listing_type).className}`}>
+                      {getListingTypeBadge(selectedListing.listing_type).label}
+                    </div>
+                    <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      {translateLoadType(getListingDisplayData(selectedListing).loadType)}
+                    </div>
+                    {isOwnListing(selectedListing) && (
+                      <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
+                        Sizin İlanınız
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-3">{getListingDisplayData(selectedListing).title}</h3>
+                  <div className="flex items-center text-gray-600 mb-2">
+                    <MapPin size={18} className="mr-2 text-primary-500" />
+                    <span className="text-lg">{getListingDisplayData(selectedListing).route}</span>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-4">Yük Detayları</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Yük Tipi:</span>
+                      <div className="font-medium">{translateLoadType(getListingDisplayData(selectedListing).loadType)}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Ağırlık:</span>
+                      <div className="font-medium">{getListingDisplayData(selectedListing).weight}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Fiyat:</span>
+                      <div className="font-medium">{getListingDisplayData(selectedListing).price}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Teklif:</span>
+                      <div className="font-medium">{getListingDisplayData(selectedListing).offers} teklif</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Açıklama</h4>
+                  <p className="text-gray-700">{selectedListing.description || 'Açıklama bulunamadı.'}</p>
+                </div>
+                {isLoggedIn ? (
+                  <div className="bg-primary-50 rounded-lg p-6 border border-primary-200">
+                    <div className="flex items-center mb-4">
+                      <h4 className="font-semibold text-gray-900">İletişim Bilgileri</h4>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div><strong>İsim:</strong> {getListingDisplayData(selectedListing).contact.name}</div>
+                      <div><strong>Firma:</strong> {getListingDisplayData(selectedListing).contact.company}</div>
+                      <div><strong>Telefon:</strong> {getListingDisplayData(selectedListing).contact.phone}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
+                    <div className="flex items-center text-yellow-800 mb-3">
+                      <LogIn size={20} className="mr-2" />
+                      <h4 className="font-semibold">İletişim Bilgileri</h4>
+                    </div>
+                    <p className="text-yellow-700 text-sm mb-4">
+                      İletişim bilgilerini görmek ve teklif vermek için giriş yapmanız gerekiyor.
+                    </p>
+                  </div>
+                )}
+              </div>
+              {/* Sağ Kolon - Fiyat ve Teklifler */}
+              <div className="hidden lg:flex flex-col items-stretch gap-6">
+                <div className="bg-white border-2 border-primary-200 rounded-lg p-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-primary-600 mb-2">{getListingDisplayData(selectedListing).price}</div>
+                    <div className="text-gray-600 mb-4">{getListingDisplayData(selectedListing).offers} teklif alındı</div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleShowOffer(selectedListing)}
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-primary-600 text-white hover:bg-primary-700'
+                          }`}
+                        disabled={isOwnListing(selectedListing)}
+                      >
+                        {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Teklif Ver'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!isLoggedIn) {
+                            setAuthModalOpen(true);
+                            return;
+                          }
+                          if (isOwnListing(selectedListing)) {
+                            alert('Kendi ilanınıza mesaj gönderemezsiniz!');
+                            return;
+                          }
+                          setMessageTarget(selectedListing);
+                          setShowMessageModal(true);
+                        }}
+                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        disabled={isOwnListing(selectedListing)}
+                      >
+                        {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Mesaj Gönder'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {/* Güvenlik Bilgileri */}
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="font-semibold text-gray-900 mb-3">Güvenlik Bilgileri</h4>
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Doğrulanmış üye
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Sigorta güvencesi
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Güvenli ödeme sistemi
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Self Offer Warning Modal */}
-      {showSelfOfferWarning && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Uyarı</h3>
-            <p className="text-gray-600 mb-6">Kendi ilanınıza teklif veremezsiniz.</p>
-            <button
-              onClick={() => setShowSelfOfferWarning(false)}
-              className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700"
-            >
-              Tamam
-            </button>
+            </div>
           </div>
         </div>
       )}
-
-      {/* Auth Modal */}
+      {/* Teklif Ver Modalı */}
+      {showNewOfferModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
+            <button onClick={() => setShowNewOfferModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+              <X size={24} />
+            </button>
+            <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
+            <form onSubmit={handleNewOfferSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-1">İlan Numarası</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+                  value={newOfferForm.listingId}
+                  disabled
+                  readOnly
+                  title="İlan Numarası"
+                  placeholder="İlan Numarası"
+                  aria-label="İlan Numarası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
+                <select
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.transportResponsible}
+                  onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
+                  required
+                  title="Nakliye Kime Ait"
+                  aria-label="Nakliye Kime Ait"
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="Alıcı">Alıcı</option>
+                  <option value="Satıcı">Satıcı</option>
+                  <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.origin}
+                  onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
+                  required
+                  title="Kalkış Noktası"
+                  placeholder="Kalkış Noktası"
+                  aria-label="Kalkış Noktası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Varış Noktası</label>
+                <input
+                  type="text"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.destination}
+                  onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
+                  required
+                  title="Varış Noktası"
+                  placeholder="Varış Noktası"
+                  aria-label="Varış Noktası"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
+                <input
+                  type="number"
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.price}
+                  onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
+                  required
+                  min="0"
+                  title="Teklif Tutarı"
+                  placeholder="Teklif Tutarı"
+                  aria-label="Teklif Tutarı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Açıklama</label>
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={newOfferForm.description}
+                  onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
+                  rows={3}
+                  title="Açıklama"
+                  placeholder="Açıklama"
+                  aria-label="Açıklama"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
+                <input
+                  type="file"
+                  className="w-full border rounded-lg px-3 py-2"
+                  multiple
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                  onChange={handleNewOfferFileChange}
+                  title="Evrak ve Resim Yükle"
+                  aria-label="Evrak ve Resim Yükle"
+                />
+                {newOfferForm.files && newOfferForm.files.length > 0 && (
+                  <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
+                    {newOfferForm.files.map((file, idx) => (
+                      <li key={idx}>{file.name}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
+                Teklif Ver
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Mesaj Gönder Modalı */}
+      {showMessageModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm relative">
+            <button onClick={() => setShowMessageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
+              <X size={24} />
+            </button>
+            <h3 className="text-lg font-bold mb-4">Mesaj Gönder</h3>
+            <div className="mb-2 text-sm font-semibold uppercase text-gray-500">
+              Alıcı: <span className="text-primary-600 font-bold underline cursor-pointer">{messageTarget ? getListingDisplayData(messageTarget).contact.name : ''}</span>
+            </div>
+            <form onSubmit={handleSendMessage} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Alıcı</label>
+                <input
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
+                  value={messageTarget ? getListingDisplayData(messageTarget).contact.name : ''}
+                  disabled
+                  readOnly
+                  title="Alıcı"
+                  aria-label="Alıcı"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Mesajınız</label>
+                <textarea
+                  className="w-full border rounded-lg px-3 py-2"
+                  value={messageText}
+                  onChange={e => setMessageText(e.target.value)}
+                  rows={3}
+                  required
+                  title="Mesajınız"
+                  placeholder="Mesajınızı yazın..."
+                  aria-label="Mesajınız"
+                />
+              </div>
+              <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
+                Gönder
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* AuthModal */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -349,17 +870,6 @@ const ListingsPage: React.FC = () => {
         onRegister={handleRegister}
         onGoogleLogin={handleGoogleLogin}
       />
-
-      {/* Create Offer Modal */}
-      {selectedOfferListing && (
-        <CreateOfferModal 
-          listing={selectedOfferListing}
-          isOpen={true}
-          onClose={() => setSelectedOfferListing(null)}
-          onSubmit={async () => {}}
-          currentUserId={currentUserId}
-        />
-      )}
     </div>
   );
 };

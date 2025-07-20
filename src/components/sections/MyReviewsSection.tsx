@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Star, 
-  Eye, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Star,
+  Eye,
   Building,
   MessageCircle,
   ThumbsUp,
@@ -81,14 +81,36 @@ const MyReviewsSection: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedReview, setSelectedReview] = useState<any>(null);
+  interface Review {
+    id: number;
+    companyId: number;
+    companyName: string;
+    companyLogo: string;
+    rating: number;
+    comment: string;
+    date: string;
+    status: string;
+    statusLabel: string;
+    helpful: number;
+    views: number;
+    isPublic: boolean;
+    visibleOn: string[];
+  }
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [newReviewModalOpen, setNewReviewModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     rating: 5,
     comment: '',
     isPublic: true
   });
-  const [newReviewFormData, setNewReviewFormData] = useState({
+  const [newReviewFormData, setNewReviewFormData] = useState<{
+    companyId: number | null,
+    companyName: string,
+    companyLogo: string,
+    rating: number,
+    comment: string,
+    isPublic: boolean
+  }>({
     companyId: null,
     companyName: '',
     companyLogo: '',
@@ -98,7 +120,7 @@ const MyReviewsSection: React.FC = () => {
   });
   const [myReviewsState, setMyReviewsState] = useState(myReviews);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [reviewToDelete, setReviewToDelete] = useState<any>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null);
 
   // Kullanıcının işlem yaptığı firmalar (sadece bunlara yorum verebilir)
   const eligibleCompanies = [
@@ -116,7 +138,7 @@ const MyReviewsSection: React.FC = () => {
       draft: 'bg-gray-100 text-gray-800',
       rejected: 'bg-red-100 text-red-800'
     };
-    
+
     return (
       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses]}`}>
         {label}
@@ -124,7 +146,7 @@ const MyReviewsSection: React.FC = () => {
     );
   };
 
-  const handleEdit = (review: any) => {
+  const handleEdit = (review: Review) => {
     setSelectedReview(review);
     setEditFormData({
       rating: review.rating,
@@ -148,7 +170,13 @@ const MyReviewsSection: React.FC = () => {
     }));
   };
 
-  const handleNewReview = (company?: any) => {
+  interface Company {
+    id: number;
+    name: string;
+    logo: string;
+    lastTransaction: string;
+  }
+  const handleNewReview = (company?: Company) => {
     if (company) {
       setNewReviewFormData({
         companyId: company.id,
@@ -172,7 +200,7 @@ const MyReviewsSection: React.FC = () => {
     }));
   };
 
-  const handleSelectCompanyForReview = (company: any) => {
+  const handleSelectCompanyForReview = (company: Company) => {
     setNewReviewFormData({
       companyId: company.id,
       companyName: company.name,
@@ -205,13 +233,15 @@ const MyReviewsSection: React.FC = () => {
     setNewReviewModalOpen(false);
   };
 
-  const handleDeleteClick = (review: any) => {
+  const handleDeleteClick = (review: Review) => {
     setReviewToDelete(review);
     setDeleteConfirmOpen(true);
   };
 
   const handleConfirmDelete = () => {
-    setMyReviewsState(prev => prev.filter(r => r.id !== reviewToDelete.id));
+    if (reviewToDelete) {
+      setMyReviewsState(prev => prev.filter(r => r.id !== reviewToDelete.id));
+    }
     setDeleteConfirmOpen(false);
     setReviewToDelete(null);
   };
@@ -235,7 +265,7 @@ const MyReviewsSection: React.FC = () => {
           >
             <X size={24} />
           </button>
-          
+
           <div className="mb-6">
             <h3 className="text-2xl font-bold text-gray-900 mb-2">Yorumu Düzenle</h3>
             <div className="flex items-center">
@@ -260,9 +290,9 @@ const MyReviewsSection: React.FC = () => {
                     title={`${star} yıldız ver`}
                     aria-label={`${star} yıldız ver`}
                   >
-                    <Star 
-                      size={32} 
-                      className={`${star <= editFormData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`} 
+                    <Star
+                      size={32}
+                      className={`${star <= editFormData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`}
                     />
                     <span className="sr-only">{star} yıldız</span>
                   </button>
@@ -366,7 +396,7 @@ const MyReviewsSection: React.FC = () => {
                             <p className="text-sm text-gray-500">Son işlem: {company.lastTransaction}</p>
                           </div>
                         </div>
-                        <button 
+                        <button
                           className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
                           title={`'${company.name}' için yorum yap`}
                           aria-label={`'${company.name}' için yorum yap`}
@@ -402,9 +432,9 @@ const MyReviewsSection: React.FC = () => {
                       title={`${star} yıldız ver`}
                       aria-label={`${star} yıldız ver`}
                     >
-                      <Star 
-                        size={32} 
-                        className={`${star <= newReviewFormData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`} 
+                      <Star
+                        size={32}
+                        className={`${star <= newReviewFormData.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'} hover:text-yellow-400 transition-colors`}
                       />
                       <span className="sr-only">{star} yıldız</span>
                     </button>
@@ -472,12 +502,12 @@ const MyReviewsSection: React.FC = () => {
     );
   };
 
-  const filteredReviews = myReviewsState.filter((review: any) => {
+  const filteredReviews = myReviewsState.filter((review: Review) => {
     const matchesSearch = review.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.comment.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      review.comment.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = statusFilter === '' || review.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -487,8 +517,8 @@ const MyReviewsSection: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 md:mb-0">Yorumlarım & Puanlarım</h2>
-          <button 
-            onClick={handleNewReview}
+          <button
+            onClick={() => handleNewReview()}
             className="bg-primary-600 text-white py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
             title="Yeni Yorum Ekle"
             aria-label="Yeni Yorum Ekle"
@@ -578,10 +608,10 @@ const MyReviewsSection: React.FC = () => {
                     <div className="flex items-center mt-1">
                       <div className="flex items-center mr-3">
                         {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i} 
-                            size={16} 
-                            className={`${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                          <Star
+                            key={i}
+                            size={16}
+                            className={`${i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                           />
                         ))}
                       </div>
@@ -592,7 +622,7 @@ const MyReviewsSection: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   {getStatusBadge(review.status, review.statusLabel)}
                   <div className="flex space-x-1">
-                    <button 
+                    <button
                       onClick={() => handleEdit(review)}
                       className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
                       title="Düzenle"
@@ -600,7 +630,7 @@ const MyReviewsSection: React.FC = () => {
                     >
                       <Edit size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteClick(review)}
                       className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
                       title="Sil"
@@ -630,12 +660,13 @@ const MyReviewsSection: React.FC = () => {
                     <span>{review.isPublic ? 'Herkese açık' : 'Özel'}</span>
                   </div>
                 </div>
-                
+
                 {review.visibleOn.length > 0 && (
                   <div className="text-xs text-gray-500">
                     <span className="font-medium">Görünür:</span> {review.visibleOn.join(', ')}
                   </div>
                 )}
+                {/* End of review stats and visibleOn */}
               </div>
             </div>
           ))}
@@ -646,8 +677,8 @@ const MyReviewsSection: React.FC = () => {
             <MessageCircle size={48} className="text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz yorum yapmamışsınız</h3>
             <p className="text-gray-600 mb-6">İşlem yaptığınız firmalar hakkında yorum yaparak diğer kullanıcılara yardımcı olun.</p>
-            <button 
-              onClick={handleNewReview}
+            <button
+              onClick={() => handleNewReview()}
               className="bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors"
             >
               İlk Yorumunuzu Yapın

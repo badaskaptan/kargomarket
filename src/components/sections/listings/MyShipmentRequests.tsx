@@ -164,6 +164,7 @@ const MyShipmentRequests: React.FC = () => {
               onPreview={handlePreview}
               onEdit={handleEdit}
               onDelete={handleDeleteListing}
+              onMessage={() => {}} // Boş fonksiyon - MyListings sayfasında mesaj gönderme gerekmiyor
             />
           ))}
         </div>

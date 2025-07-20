@@ -228,6 +228,7 @@ const SettingsSection: React.FC = () => {
               id="legalAcceptance"
               className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
               defaultChecked
+              aria-label="Yasal koşulları okudum ve kabul ediyorum"
             />
             <label htmlFor="legalAcceptance" className="ml-2 text-sm text-yellow-800">
               Yasal koşulları okudum ve kabul ediyorum
@@ -384,6 +385,7 @@ const SettingsSection: React.FC = () => {
                       checked={formData.twoFactor}
                       onChange={handleInputChange}
                       className="sr-only peer"
+                      title="İki Faktörlü Doğrulama"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
@@ -417,7 +419,7 @@ const SettingsSection: React.FC = () => {
                     <p className="text-sm text-gray-500">Yeni teklifler ve mesajlar için e-posta bildirimleri alın</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked className="sr-only peer" />
+                    <input type="checkbox" defaultChecked className="sr-only peer" aria-label="E-posta Bildirimleri" />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
@@ -429,7 +431,7 @@ const SettingsSection: React.FC = () => {
                     <p className="text-sm text-gray-500">Acil durumlar için SMS bildirimleri alın</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
+                    <input type="checkbox" className="sr-only peer" aria-label="SMS Bildirimleri" />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>

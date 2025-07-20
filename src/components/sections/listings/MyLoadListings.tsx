@@ -171,6 +171,7 @@ const MyLoadListings: React.FC = () => {
               onPreview={handlePreview}
               onEdit={handleEdit}
               onDelete={handleDeleteListing}
+              onMessage={() => {}}
             />
           ))}
         </div>

@@ -21,7 +21,10 @@ interface ListingCardProps {
   onPreview: (listing: ExtendedListing) => void;
   onEdit: (listing: ExtendedListing) => void;
   onDelete: (id: string) => void;
+  onMessage: (listing: ExtendedListing) => void;
+  onSendMessage?: (listing: ExtendedListing) => void;
   layout?: 'horizontal' | 'vertical' | 'compact'; // compact layout eklendi
+  isPublicPage?: boolean;
 }
 
 /**
@@ -33,7 +36,10 @@ const ListingCard: React.FC<ListingCardProps> = ({
   onPreview,
   onEdit,
   onDelete,
-  layout = 'vertical'
+  onMessage,
+  onSendMessage,
+  layout = 'vertical',
+  isPublicPage = false
 }) => {
   // İlan tipine göre ikon
   const getTypeIcon = () => {
@@ -140,20 +146,54 @@ const ListingCard: React.FC<ListingCardProps> = ({
               >
                 <Eye className="h-4 w-4" />
               </button>
-              <button
-                onClick={() => onEdit(listing)}
-                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                title="Düzenle"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => onDelete(listing.id)}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Sil"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              {isPublicPage ? (
+                <>
+                  <button
+                    onClick={() => onMessage(listing)}
+                    className="p-2 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors font-semibold"
+                    title="Teklif Ver"
+                  >
+                    Teklif Ver
+                  </button>
+                  <button
+                    onClick={() => onSendMessage && onSendMessage(listing)}
+                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    title="Mesaj Gönder"
+                  >
+                    {/* Mesaj ikonu */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => onMessage(listing)}
+                    className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    title="Mesaj Gönder"
+                  >
+                    {/* Mesaj ikonu */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  </button>
+                  {!isPublicPage && (
+                    <>
+                      <button
+                        onClick={() => onEdit(listing)}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Düzenle"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(listing.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Sil"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>
@@ -340,20 +380,43 @@ const ListingCard: React.FC<ListingCardProps> = ({
               >
                 <Eye className="h-4 w-4 mx-auto" />
               </button>
-              <button
-                onClick={() => onEdit(listing)}
-                className="flex-1 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors text-center"
-                title="Düzenle"
-              >
-                <Edit className="h-4 w-4 mx-auto" />
-              </button>
-              <button
-                onClick={() => onDelete(listing.id)}
-                className="flex-1 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-center"
-                title="Sil"
-              >
-                <Trash2 className="h-4 w-4 mx-auto" />
-              </button>
+              {isPublicPage ? (
+                <button
+                  onClick={() => onMessage(listing)}
+                  className="flex-1 p-2 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors text-center font-semibold"
+                  title="Teklif Ver"
+                >
+                  Teklif Ver
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => onMessage(listing)}
+                    className="flex-1 p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors text-center"
+                    title="Mesaj Gönder"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                  </button>
+                  {!isPublicPage && (
+                    <>
+                      <button
+                        onClick={() => onEdit(listing)}
+                        className="flex-1 p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors text-center"
+                        title="Düzenle"
+                      >
+                        <Edit className="h-4 w-4 mx-auto" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(listing.id)}
+                        className="flex-1 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-center"
+                        title="Sil"
+                      >
+                        <Trash2 className="h-4 w-4 mx-auto" />
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -393,20 +456,43 @@ const ListingCard: React.FC<ListingCardProps> = ({
             >
               <Eye className="h-5 w-5" />
             </button>
-            <button
-              onClick={() => onEdit(listing)}
-              className="p-3 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-              title="Düzenle"
-            >
-              <Edit className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => onDelete(listing.id)}
-              className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Sil"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
+            {isPublicPage ? (
+              <button
+                onClick={() => onMessage(listing)}
+                className="p-3 text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors font-semibold"
+                title="Teklif Ver"
+              >
+                Teklif Ver
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => onMessage(listing)}
+                  className="p-3 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  title="Mesaj Gönder"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8l-4 1 1-4A8.96 8.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                </button>
+                {!isPublicPage && (
+                  <>
+                    <button
+                      onClick={() => onEdit(listing)}
+                      className="p-3 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title="Düzenle"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(listing.id)}
+                      className="p-3 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Sil"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

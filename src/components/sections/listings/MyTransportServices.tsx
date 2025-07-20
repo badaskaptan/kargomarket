@@ -302,6 +302,7 @@ const MyTransportServices: React.FC = () => {
               onPreview={handleCardPreview}
               onEdit={handleCardEdit}
               onDelete={handleCardDelete}
+              onMessage={() => {}} // Boş fonksiyon - MyListings sayfasında mesaj gönderme gerekmiyor
             />
           ))}
         </div>
