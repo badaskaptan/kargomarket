@@ -149,6 +149,25 @@ export class OfferService {
   static async createOffer(offerData: OfferInsert): Promise<Offer> {
     console.log('📝 Creating new offer:', offerData);
 
+    // Listing'in var olup olmadığını kontrol et
+    if (offerData.listing_id) {
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .select('id, listing_type')
+        .eq('id', offerData.listing_id)
+        .single();
+
+      if (listingError || !listing) {
+        console.error('❌ Listing not found:', offerData.listing_id);
+        throw new Error('İlan bulunamadı. Lütfen geçerli bir ilan seçin.');
+      }
+
+      // Transport service'ler için offers tablosunu kullanma
+      if (listing.listing_type === 'transport_service') {
+        throw new Error('Nakliye hizmetleri için service_offers tablosunu kullanın.');
+      }
+    }
+
     const { data, error } = await supabase
       .from('offers')
       .insert({

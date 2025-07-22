@@ -5,9 +5,13 @@ import AuthModal from '../auth/AuthModal';
 import LoadListingDetailModal from '../modals/LoadListingDetailModal';
 import ShipmentRequestDetailModal from '../modals/ShipmentRequestDetailModal';
 import TransportServiceDetailModal from '../modals/TransportServiceDetailModal';
+import CreateOfferModal from '../modals/CreateOfferModal';
+import CreateServiceOfferModal from '../modals/CreateServiceOfferModal';
 import { useListings } from '../../hooks/useListings';
-import type { ExtendedListing, TransportService } from '../../types/database-types';
+import { OfferService } from '../../services/offerService';
+import type { ExtendedListing, TransportService, Database } from '../../types/database-types';
 import { translateLoadType } from '../../utils/translationUtils';
+import toast from 'react-hot-toast';
 
 const ListingsPage: React.FC = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -16,22 +20,16 @@ const ListingsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
-  const [newOfferForm, setNewOfferForm] = useState({
-    listingId: '',
-    price: '',
-    description: '',
-    transportResponsible: '',
-    origin: '',
-    destination: '',
-    files: [] as File[]
-  });
+  
+  // Dual Modal System States
+  const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
+  const [showCreateServiceOfferModal, setShowCreateServiceOfferModal] = useState(false);
+  
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [messageTarget, setMessageTarget] = useState<ExtendedListing | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'load_listing' | 'shipment_request' | 'transport_service'>('all');
   const isLoggedIn = !!user;
-  const currentUserName = user?.email || '';
 
   // Auth handlers
   const handleLogin = async (email: string, password: string) => {
@@ -115,8 +113,8 @@ const ListingsPage: React.FC = () => {
   };
 
   const isOwnListing = (listing: ExtendedListing) => {
-    if (!listing || !listing.owner_name) return false;
-    return listing.owner_name === currentUserName;
+    if (!listing || !user?.id) return false;
+    return listing.user_id === user.id;
   };
 
   // Helper functions to map database fields to HomePage interface
@@ -243,41 +241,83 @@ const ListingsPage: React.FC = () => {
     } as unknown as TransportService;
   };
 
+  // Dual Modal Handlers
   const handleShowOffer = (listing: ExtendedListing) => {
     if (!isLoggedIn) {
       setAuthModalOpen(true);
       return;
     }
+    
     if (isOwnListing(listing)) {
-      alert('Kendi ilanınıza teklif veremezsiniz!');
+      toast.error('Kendi ilanınıza teklif veremezsiniz!');
       return;
     }
-    setNewOfferForm({
-      listingId: getListingDisplayData(listing).ilanNo,
-      price: '',
-      description: '',
-      transportResponsible: '',
-      origin: '',
-      destination: '',
-      files: []
-    });
-    setShowNewOfferModal(true);
-  };
 
-  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
+    // Transport service için ayrı modal
+    if (listing.listing_type === 'transport_service') {
+      setSelectedListing(listing);
+      setShowCreateServiceOfferModal(true);
+    } else {
+      // Load listing ve shipment request için normal offer modal
+      setSelectedListing(listing);
+      setShowCreateOfferModal(true);
     }
   };
 
-  const handleNewOfferSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newOfferForm.price || !newOfferForm.transportResponsible || !newOfferForm.origin || !newOfferForm.destination) {
-      alert('Lütfen tüm alanları doldurun!');
+  // Detail modal içinden teklif verme handler'ı - modal karışıklığını önler
+  const handleShowOfferFromDetail = (listing: ExtendedListing) => {
+    if (!isLoggedIn) {
+      setAuthModalOpen(true);
       return;
     }
-    alert('Teklif gönderildi!');
-    setShowNewOfferModal(false);
+    
+    if (isOwnListing(listing)) {
+      toast.error('Kendi ilanınıza teklif veremezsiniz!');
+      return;
+    }
+
+    // Önce detail modal'ı kapat
+    setShowDetailModal(false);
+    
+    // Kısa bir delay ile offer modal'ı aç (smooth transition için)
+    setTimeout(() => {
+      if (listing.listing_type === 'transport_service') {
+        setShowCreateServiceOfferModal(true);
+      } else {
+        setShowCreateOfferModal(true);
+      }
+    }, 100);
+  };
+
+  // CreateOfferModal için submit handler (load_listing ve shipment_request için)
+  const handleOfferSubmit = async (offerData: Omit<Database['public']['Tables']['offers']['Insert'], 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      await OfferService.createOffer(offerData);
+      toast.success('Teklif başarıyla gönderildi!');
+      setShowCreateOfferModal(false);
+      setSelectedListing(null);
+    } catch (error) {
+      console.error('Teklif gönderme hatası:', error);
+      toast.error('Teklif gönderilirken hata oluştu!');
+    }
+  };
+
+  // CreateServiceOfferModal için success handler (transport_service için)
+  const handleServiceOfferSuccess = () => {
+    toast.success('Hizmete teklif başarıyla gönderildi!');
+    setShowCreateServiceOfferModal(false);
+    setSelectedListing(null);
+  };
+
+  // Modal close handlers
+  const handleCloseOfferModal = () => {
+    setShowCreateOfferModal(false);
+    setSelectedListing(null);
+  };
+
+  const handleCloseServiceOfferModal = () => {
+    setShowCreateServiceOfferModal(false);
+    setSelectedListing(null);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -710,7 +750,7 @@ const ListingsPage: React.FC = () => {
                     <div className="text-gray-600 mb-4">{getListingDisplayData(selectedListing).offers} teklif alındı</div>
                     <div className="flex gap-3">
                       <button
-                        onClick={() => handleShowOffer(selectedListing)}
+                        onClick={() => handleShowOfferFromDetail(selectedListing)}
                         className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             : 'bg-primary-600 text-white hover:bg-primary-700'
@@ -766,121 +806,28 @@ const ListingsPage: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Teklif Ver Modalı */}
-      {showNewOfferModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
-            <button onClick={() => setShowNewOfferModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
-              <X size={24} />
-            </button>
-            <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
-            <form onSubmit={handleNewOfferSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-1">İlan Numarası</label>
-                <input
-                  className="w-full border rounded-lg px-3 py-2 bg-gray-100"
-                  value={newOfferForm.listingId}
-                  disabled
-                  readOnly
-                  title="İlan Numarası"
-                  placeholder="İlan Numarası"
-                  aria-label="İlan Numarası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.transportResponsible}
-                  onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
-                  required
-                  title="Nakliye Kime Ait"
-                  aria-label="Nakliye Kime Ait"
-                >
-                  <option value="">Seçiniz</option>
-                  <option value="Alıcı">Alıcı</option>
-                  <option value="Satıcı">Satıcı</option>
-                  <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.origin}
-                  onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
-                  required
-                  title="Kalkış Noktası"
-                  placeholder="Kalkış Noktası"
-                  aria-label="Kalkış Noktası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Varış Noktası</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.destination}
-                  onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
-                  required
-                  title="Varış Noktası"
-                  placeholder="Varış Noktası"
-                  aria-label="Varış Noktası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
-                <input
-                  type="number"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.price}
-                  onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
-                  required
-                  min="0"
-                  title="Teklif Tutarı"
-                  placeholder="Teklif Tutarı"
-                  aria-label="Teklif Tutarı"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Açıklama</label>
-                <textarea
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.description}
-                  onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
-                  rows={3}
-                  title="Açıklama"
-                  placeholder="Açıklama"
-                  aria-label="Açıklama"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
-                <input
-                  type="file"
-                  className="w-full border rounded-lg px-3 py-2"
-                  multiple
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                  onChange={handleNewOfferFileChange}
-                  title="Evrak ve Resim Yükle"
-                  aria-label="Evrak ve Resim Yükle"
-                />
-                {newOfferForm.files && newOfferForm.files.length > 0 && (
-                  <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
-                    {newOfferForm.files.map((file, idx) => (
-                      <li key={idx}>{file.name}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
-                Teklif Ver
-              </button>
-            </form>
-          </div>
-        </div>
+      
+      {/* CreateOfferModal - Load Listing ve Shipment Request için */}
+      {selectedListing && showCreateOfferModal && (
+        <CreateOfferModal
+          listing={selectedListing}
+          isOpen={showCreateOfferModal}
+          onClose={handleCloseOfferModal}
+          onSubmit={handleOfferSubmit}
+          currentUserId={user?.id || ''}
+        />
       )}
+      
+      {/* CreateServiceOfferModal - Transport Service için */}
+      {selectedListing && showCreateServiceOfferModal && (
+        <CreateServiceOfferModal
+          transportService={selectedListing}
+          isOpen={showCreateServiceOfferModal}
+          onClose={handleCloseServiceOfferModal}
+          onSuccess={handleServiceOfferSuccess}
+        />
+      )}
+      
       {/* Mesaj Gönder Modalı */}
       {showMessageModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

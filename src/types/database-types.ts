@@ -655,6 +655,23 @@ export interface Database {
           valid_until: string | null
           additional_terms: Record<string, unknown> | null
           counter_offer_to: string | null
+          // Yeni alanlar - Supabase'deki gerçek tablo
+          transport_mode: string | null
+          cargo_type: string | null
+          service_scope: string | null
+          pickup_date_preferred: string | null
+          delivery_date_preferred: string | null
+          transit_time_estimate: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          customs_handling_included: boolean | null
+          documentation_handling_included: boolean | null
+          loading_unloading_included: boolean | null
+          tracking_system_provided: boolean | null
+          express_service: boolean | null
+          weekend_service: boolean | null
+          fuel_surcharge_included: boolean | null
+          toll_fees_included: boolean | null
         }
         Insert: {
           id?: string
@@ -684,6 +701,23 @@ export interface Database {
           valid_until?: string | null
           additional_terms?: Record<string, unknown> | null
           counter_offer_to?: string | null
+          // Yeni alanlar - Supabase'deki gerçek tablo
+          transport_mode?: string | null
+          cargo_type?: string | null
+          service_scope?: string | null
+          pickup_date_preferred?: string | null
+          delivery_date_preferred?: string | null
+          transit_time_estimate?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          customs_handling_included?: boolean | null
+          documentation_handling_included?: boolean | null
+          loading_unloading_included?: boolean | null
+          tracking_system_provided?: boolean | null
+          express_service?: boolean | null
+          weekend_service?: boolean | null
+          fuel_surcharge_included?: boolean | null
+          toll_fees_included?: boolean | null
         }
         Update: {
           id?: string
@@ -713,6 +747,149 @@ export interface Database {
           valid_until?: string | null
           additional_terms?: Record<string, unknown> | null
           counter_offer_to?: string | null
+        }
+      }
+      service_offers: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          transport_service_id: string
+          price_amount: number | null
+          price_currency: string
+          message: string | null
+          status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered'
+          // Zenginleştirilmiş alanlar - offers tablosu ile aynı
+          offer_type: string
+          parent_offer_id: string | null
+          price_per: string | null
+          price_breakdown: Record<string, unknown> | null
+          payment_terms: string | null
+          payment_method: string | null
+          service_description: string | null
+          proposed_dates: Record<string, unknown> | null
+          validity_period: number | null
+          expires_at: string | null
+          additional_services: Record<string, unknown> | null
+          special_conditions: string | null
+          rejection_reason: string | null
+          attachments: Record<string, unknown> | null
+          responded_at: string | null
+          valid_until: string | null
+          additional_terms: Record<string, unknown> | null
+          counter_offer_to: string | null
+          // Transport Service özel alanlar
+          transport_mode: string | null
+          cargo_type: string | null
+          service_scope: string | null
+          pickup_date_preferred: string | null
+          delivery_date_preferred: string | null
+          transit_time_estimate: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          customs_handling_included: boolean | null
+          documentation_handling_included: boolean | null
+          loading_unloading_included: boolean | null
+          tracking_system_provided: boolean | null
+          express_service: boolean | null
+          weekend_service: boolean | null
+          fuel_surcharge_included: boolean | null
+          toll_fees_included: boolean | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          transport_service_id: string
+          price_amount?: number | null
+          price_currency?: string
+          message?: string | null
+          status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered'
+          // Zenginleştirilmiş alanlar
+          offer_type?: string
+          parent_offer_id?: string | null
+          price_per?: string | null
+          price_breakdown?: Record<string, unknown> | null
+          payment_terms?: string | null
+          payment_method?: string | null
+          service_description?: string | null
+          proposed_dates?: Record<string, unknown> | null
+          validity_period?: number | null
+          expires_at?: string | null
+          additional_services?: Record<string, unknown> | null
+          special_conditions?: string | null
+          rejection_reason?: string | null
+          attachments?: Record<string, unknown> | null
+          responded_at?: string | null
+          valid_until?: string | null
+          additional_terms?: Record<string, unknown> | null
+          counter_offer_to?: string | null
+          // Transport Service özel alanlar
+          transport_mode?: string | null
+          cargo_type?: string | null
+          service_scope?: string | null
+          pickup_date_preferred?: string | null
+          delivery_date_preferred?: string | null
+          transit_time_estimate?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          customs_handling_included?: boolean | null
+          documentation_handling_included?: boolean | null
+          loading_unloading_included?: boolean | null
+          tracking_system_provided?: boolean | null
+          express_service?: boolean | null
+          weekend_service?: boolean | null
+          fuel_surcharge_included?: boolean | null
+          toll_fees_included?: boolean | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          transport_service_id?: string
+          price_amount?: number | null
+          price_currency?: string
+          message?: string | null
+          status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered'
+          // Zenginleştirilmiş alanlar
+          offer_type?: string
+          parent_offer_id?: string | null
+          price_per?: string | null
+          price_breakdown?: Record<string, unknown> | null
+          payment_terms?: string | null
+          payment_method?: string | null
+          service_description?: string | null
+          proposed_dates?: Record<string, unknown> | null
+          validity_period?: number | null
+          expires_at?: string | null
+          additional_services?: Record<string, unknown> | null
+          special_conditions?: string | null
+          rejection_reason?: string | null
+          attachments?: Record<string, unknown> | null
+          responded_at?: string | null
+          valid_until?: string | null
+          additional_terms?: Record<string, unknown> | null
+          counter_offer_to?: string | null
+          // Transport Service özel alanlar
+          transport_mode?: string | null
+          cargo_type?: string | null
+          service_scope?: string | null
+          pickup_date_preferred?: string | null
+          delivery_date_preferred?: string | null
+          transit_time_estimate?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          customs_handling_included?: boolean | null
+          documentation_handling_included?: boolean | null
+          loading_unloading_included?: boolean | null
+          tracking_system_provided?: boolean | null
+          express_service?: boolean | null
+          weekend_service?: boolean | null
+          fuel_surcharge_included?: boolean | null
+          toll_fees_included?: boolean | null
         }
       }
       messages: {

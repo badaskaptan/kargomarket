@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import PublicLayout from './components/layout/PublicLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import { DashboardProvider } from './context/DashboardContext';
@@ -53,6 +54,7 @@ function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <Toaster position="top-right" />
     </AuthProvider>
   );
 }

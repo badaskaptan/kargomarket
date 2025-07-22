@@ -113,7 +113,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
       const offerData: Omit<OfferInsert, 'id' | 'created_at' | 'updated_at'> = {
         listing_id: listing.id,
         user_id: currentUserId,
-        offer_type: 'standard',
+        offer_type: 'bid', // service_offers'da çalışan değerlerden birini dene
         price_amount: parseFloat(formData.price),
         price_currency: formData.currency,
         message: formData.message.trim(),
