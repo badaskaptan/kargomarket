@@ -218,20 +218,37 @@ const EditTransportServiceModal: React.FC<EditTransportServiceModalProps> = ({ s
       'Diğer (Belirtiniz): __________'
     ],
     sea: [
-      'Konşimento (B/L)',
-      'P&I Sigorta Sertifikası',
-      'IMO Deklarasyonu (Tehlikeli Yük İçin)',
-      'Gemici Belgeleri',
-      'Gemi Uygunluk Sertifikası',
-      'Son 3 kargo',
-      'Yükleme Planı',
-      'Tank/Ambar Temizlik sertifikası',
-      'Sörvey Raporu',
-      'Yükleme Manifestosu',
-      'SOPEP (Petrol Kirliliği Önleme Planı – Tankerler için)',
-      'SIRE Raporu (Tankerler için)',
-      'DWT / Draft Survey Raporu',
-      'CDI Raporu'
+      // GEMİ OPERASYONEL & UYGUNLUK BELGELERİ (Vetting/Yeterlilik)
+      'Q88 Formu (Tanker teknik bilgi formu)',
+      'SIRE Inspection Report (Son, temiz)',
+      'CDI Certificate (Kimyasal taşımada)',
+      'PSC Inspection Records (Son liman devleti kontrolü)',
+      'Vetting Approval Record / Broker Questionnaire',
+      'DOC/SMC/ISPS Sertifikaları',
+      'Class Certificate / Class Status Report',
+      'P&I Insurance Certificate (Sorumluluk sigortası)',
+      'Hull & Machinery Insurance (Gövde/Makina Sigortası)',
+      'Last Drydock/Special Survey Report',
+      'Vessel Particulars / Registration Certificate',
+      
+      // STANDART DENİZYOLU TAŞIMA BELGELERİ
+      'Bill of Lading (B/L) – Konşimento / Sea Waybill',
+      'Charter Party / Fixture Note (Varsa, kiralama)',
+      'Yükleme Listesi / Manifesto',
+      'Loading Certificate / Yükleme Sertifikası',
+      'Yükleme Planı (Loading Plan)',
+      'Mate\'s Receipt',
+      'Surveyor Raporları (Ullage, Draft, SGS, Intertek)',
+      'IMO Deklarasyonu (Tehlikeli yük için)',
+      'Arrival Notice / Delivery Order',
+      'Liman Belgeleri (Tally Sheet, EIR)',
+      'Tank/Ambar Temizlik Sertifikası',
+      'Fumigasyon Sertifikası (gerekiyorsa)',
+      'Crew List / Personel Sertifikaları',
+      'ISM/ISPS Belgeleri',
+      'Gemi Fotoğrafları',
+      'Son 3 Yük (Last 3 Cargo)',
+      'Diğer (Belirtiniz): __________'
     ],
     air: [
       'Air Waybill (AWB)',
@@ -861,6 +878,144 @@ const EditTransportServiceModal: React.FC<EditTransportServiceModalProps> = ({ s
                 </div>
 
                 <div>
+                  <label htmlFor="netTonnage" className="block text-sm font-medium text-gray-700 mb-2">
+                    Net Tonnage
+                  </label>
+                  <input
+                    type="number"
+                    id="netTonnage"
+                    name="netTonnage"
+                    value={formData.netTonnage}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 25000"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="shipDimensions" className="block text-sm font-medium text-gray-700 mb-2">
+                    Gemi Boyutları (LOA x Beam x Draft)
+                  </label>
+                  <input
+                    type="text"
+                    id="shipDimensions"
+                    name="shipDimensions"
+                    value={formData.shipDimensions}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 225m x 32m x 14.5m"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="freightType" className="block text-sm font-medium text-gray-700 mb-2">
+                    Navlun Tipi
+                  </label>
+                  <input
+                    type="text"
+                    id="freightType"
+                    name="freightType"
+                    value={formData.freightType}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: Dry Bulk, Container, Tanker"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="chartererInfo" className="block text-sm font-medium text-gray-700 mb-2">
+                    Kiralayan Bilgisi
+                  </label>
+                  <input
+                    type="text"
+                    id="chartererInfo"
+                    name="chartererInfo"
+                    value={formData.chartererInfo}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Kiralayan şirket bilgisi"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="homePort" className="block text-sm font-medium text-gray-700 mb-2">
+                    Ana Liman
+                  </label>
+                  <input
+                    type="text"
+                    id="homePort"
+                    name="homePort"
+                    value={formData.homePort}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: Istanbul"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="yearBuilt" className="block text-sm font-medium text-gray-700 mb-2">
+                    İnşa Yılı
+                  </label>
+                  <input
+                    type="number"
+                    id="yearBuilt"
+                    name="yearBuilt"
+                    value={formData.yearBuilt}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 2010"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="speedKnots" className="block text-sm font-medium text-gray-700 mb-2">
+                    Hız (Knot)
+                  </label>
+                  <input
+                    type="number"
+                    id="speedKnots"
+                    name="speedKnots"
+                    value={formData.speedKnots}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 14.5"
+                    step="0.1"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="fuelConsumption" className="block text-sm font-medium text-gray-700 mb-2">
+                    Yakıt Tüketimi
+                  </label>
+                  <input
+                    type="text"
+                    id="fuelConsumption"
+                    name="fuelConsumption"
+                    value={formData.fuelConsumption}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 35 MT/day at sea"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="ballastCapacity" className="block text-sm font-medium text-gray-700 mb-2">
+                    Balast Kapasitesi (MT)
+                  </label>
+                  <input
+                    type="number"
+                    id="ballastCapacity"
+                    name="ballastCapacity"
+                    value={formData.ballastCapacity}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 45000"
+                  />
+                </div>
+
+                <div>
                   <label htmlFor="shipFlag" className="block text-sm font-medium text-gray-700 mb-2">
                     Gemi Bayrağı
                   </label>
@@ -909,6 +1064,37 @@ const EditTransportServiceModal: React.FC<EditTransportServiceModalProps> = ({ s
                     placeholder="Örn: Boeing 777F"
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="maxPayload" className="block text-sm font-medium text-gray-700 mb-2">
+                    Maksimum Payload (kg)
+                  </label>
+                  <input
+                    type="number"
+                    id="maxPayload"
+                    name="maxPayload"
+                    value={formData.maxPayload}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 103000"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="cargoVolume" className="block text-sm font-medium text-gray-700 mb-2">
+                    Kargo Hacmi (m³)
+                  </label>
+                  <input
+                    type="number"
+                    id="cargoVolume"
+                    name="cargoVolume"
+                    value={formData.cargoVolume}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: 858"
+                    step="0.1"
+                  />
+                </div>
               </>
             )}
 
@@ -942,6 +1128,21 @@ const EditTransportServiceModal: React.FC<EditTransportServiceModalProps> = ({ s
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
                     placeholder="Örn: 20"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="wagonTypes" className="block text-sm font-medium text-gray-700 mb-2">
+                    Vagon Tipleri
+                  </label>
+                  <input
+                    type="text"
+                    id="wagonTypes"
+                    name="wagonTypes"
+                    value={formData.wagonTypes}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                    placeholder="Örn: Tank Vagonu, Konteyner Vagonu"
                   />
                 </div>
               </>

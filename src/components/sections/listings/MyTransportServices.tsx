@@ -14,12 +14,35 @@ import ListingCard from '../../common/ListingCard';
 import type { ExtendedListing, TransportService } from '../../../types/database-types';
 import toast from 'react-hot-toast';
 
+// Profile bilgilerini içeren transport service tipi
+interface TransportServiceWithProfile extends TransportService {
+  profiles?: {
+    full_name?: string;
+    email?: string;
+    phone?: string;
+    company_name?: string;
+    city?: string;
+    avatar_url?: string;
+  };
+}
+
 // Transport Service API class
 class TransportServiceService {
-  static async getTransportServices(userId: string): Promise<TransportService[]> {
+  static async getTransportServices(userId: string): Promise<TransportServiceWithProfile[]> {
+    // Profiles join ile transport services çekelim
     const { data, error } = await supabase
       .from('transport_services')
-      .select('*')
+      .select(`
+        *,
+        profiles!inner(
+          full_name,
+          email,
+          phone,
+          company_name,
+          city,
+          avatar_url
+        )
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -53,7 +76,7 @@ const MyTransportServices: React.FC = () => {
   const { user } = useAuth();
 
   // State
-  const [services, setServices] = useState<TransportService[]>([]);
+  const [services, setServices] = useState<TransportServiceWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedService, setSelectedService] = useState<TransportService | null>(null);
@@ -135,7 +158,7 @@ const MyTransportServices: React.FC = () => {
   // ListingCard bileşeni için wrapper fonksiyonlar
   const handleCardPreview = (listing: ExtendedListing) => {
     // ExtendedListing'den TransportService'e dönüşüm için orijinal service'i bul
-    const originalService = services.find((s: TransportService) => s.id === listing.id);
+    const originalService = services.find((s: TransportServiceWithProfile) => s.id === listing.id);
     if (originalService) {
       handlePreview(originalService);
     }
@@ -143,7 +166,7 @@ const MyTransportServices: React.FC = () => {
 
   const handleCardEdit = (listing: ExtendedListing) => {
     // ExtendedListing'den TransportService'e dönüşüm için orijinal service'i bul
-    const originalService = services.find((s: TransportService) => s.id === listing.id);
+    const originalService = services.find((s: TransportServiceWithProfile) => s.id === listing.id);
     if (originalService) {
       handleEdit(originalService);
     }
@@ -154,7 +177,7 @@ const MyTransportServices: React.FC = () => {
   };
 
   // TransportService'i ExtendedListing formatına dönüştür
-  const convertToExtendedListing = (service: TransportService): ExtendedListing => {
+  const convertToExtendedListing = (service: TransportServiceWithProfile): ExtendedListing => {
     return {
       id: service.id,
       listing_number: service.service_number || service.id,
@@ -228,10 +251,54 @@ const MyTransportServices: React.FC = () => {
       transport_details: {
         ship_name: service.ship_name,
         imo_number: service.imo_number,
-        vehicle_type: service.vehicle_type
+        vehicle_type: service.vehicle_type,
+        // Tüm transport service detaylarını ekle
+        company_name: service.company_name,
+        plate_number: service.plate_number,
+        mmsi_number: service.mmsi_number,
+        dwt: service.dwt,
+        gross_tonnage: service.gross_tonnage,
+        net_tonnage: service.net_tonnage,
+        ship_dimensions: service.ship_dimensions,
+        freight_type: service.freight_type,
+        charterer_info: service.charterer_info,
+        ship_flag: service.ship_flag,
+        home_port: service.home_port,
+        year_built: service.year_built,
+        speed_knots: service.speed_knots,
+        fuel_consumption: service.fuel_consumption,
+        ballast_capacity: service.ballast_capacity,
+        flight_number: service.flight_number,
+        aircraft_type: service.aircraft_type,
+        max_payload: service.max_payload,
+        cargo_volume: service.cargo_volume,
+        train_number: service.train_number,
+        wagon_count: service.wagon_count,
+        wagon_types: service.wagon_types,
+        required_documents: service.required_documents,
+        document_urls: service.document_urls,
+        rating: service.rating,
+        rating_count: service.rating_count,
+        is_featured: service.is_featured,
+        featured_until: service.featured_until
       },
-      contact_info: null,
-      cargo_details: null
+      contact_info: service.contact_info ? { info: service.contact_info } : null,
+      cargo_details: null,
+      // Owner bilgilerini profiles'den al
+      owner_name: service.profiles?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Siz',
+      owner_email: service.profiles?.email || user?.email || '',
+      owner_phone: service.profiles?.phone || user?.user_metadata?.phone || '',
+      owner_company: service.company_name || service.profiles?.company_name || user?.user_metadata?.company_name || '',
+      owner_city: service.profiles?.city || user?.user_metadata?.city || '',
+      owner_rating: 0,
+      owner_address: user?.user_metadata?.address || '',
+      owner_tax_office: user?.user_metadata?.tax_office || '',
+      owner_tax_number: user?.user_metadata?.tax_number || '',
+      owner_avatar_url: service.profiles?.avatar_url || user?.user_metadata?.avatar_url || '',
+      owner_user_type: user?.user_metadata?.user_role || '',
+      owner_total_listings: 0,
+      owner_total_completed_transactions: 0,
+      owner_rating_count: 0
     };
   };
 
@@ -303,6 +370,7 @@ const MyTransportServices: React.FC = () => {
               onEdit={handleCardEdit}
               onDelete={handleCardDelete}
               onMessage={() => {}} // Boş fonksiyon - MyListings sayfasında mesaj gönderme gerekmiyor
+              isLoggedIn={true} // Dashboard'da kullanıcı zaten giriş yapmış
             />
           ))}
         </div>

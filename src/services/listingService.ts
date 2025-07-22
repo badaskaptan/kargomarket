@@ -254,10 +254,18 @@ export class ListingService {
   // Tüm aktif ilanları getir (listings + transport_services)
   static async getActiveListings(limit?: number): Promise<ExtendedListing[]> {
     try {
-      // 1. Listings tablosundan yük ilanları ve nakliye taleplerini çek
+      // 1. Listings tablosundan yük ilanları ve nakliye taleplerini profiles ile join yaparak çek
       let listingsQuery = supabase
         .from('listings')
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(
+            full_name,
+            email,
+            phone,
+            company_name
+          )
+        `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
@@ -272,10 +280,18 @@ export class ListingService {
         throw new Error(`Listings getirilemedi: ${listingsError.message}`);
       }
 
-      // 2. Transport_services tablosundan nakliye hizmetlerini çek
+      // 2. Transport_services tablosundan nakliye hizmetlerini profiles ile join yaparak çek
       let servicesQuery = supabase
         .from('transport_services')
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(
+            full_name,
+            email,
+            phone,
+            company_name
+          )
+        `)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
@@ -362,25 +378,79 @@ export class ListingService {
         expires_at: null,
         metadata: null,
         transport_details: {
+          // Tüm transport modes için özel alanlar
+          vehicle_type: service.vehicle_type,
+          company_name: service.company_name,
+          
+          // Karayolu
+          plate_number: service.plate_number,
+          
+          // Denizyolu
           ship_name: service.ship_name,
           imo_number: service.imo_number,
-          vehicle_type: service.vehicle_type,
-          company_name: service.company_name
+          mmsi_number: service.mmsi_number,
+          dwt: service.dwt,
+          gross_tonnage: service.gross_tonnage,
+          net_tonnage: service.net_tonnage,
+          ship_dimensions: service.ship_dimensions,
+          freight_type: service.freight_type,
+          charterer_info: service.charterer_info,
+          ship_flag: service.ship_flag,
+          home_port: service.home_port,
+          year_built: service.year_built,
+          speed_knots: service.speed_knots,
+          fuel_consumption: service.fuel_consumption,
+          ballast_capacity: service.ballast_capacity,
+          
+          // Havayolu
+          flight_number: service.flight_number,
+          aircraft_type: service.aircraft_type,
+          max_payload: service.max_payload,
+          cargo_volume: service.cargo_volume,
+          
+          // Demiryolu
+          train_number: service.train_number,
+          wagon_count: service.wagon_count,
+          wagon_types: service.wagon_types,
+          
+          // Ortak alanlar
+          required_documents: service.required_documents,
+          document_urls: service.document_urls,
+          rating: service.rating,
+          rating_count: service.rating_count,
+          is_featured: service.is_featured,
+          featured_until: service.featured_until
         },
         contact_info: service.contact_info ? { info: service.contact_info } : null,
-        cargo_details: null
+        cargo_details: null,
+        // Ilan sahibi bilgilerini ekle
+        owner_name: service.profiles?.full_name || 'Bilinmiyor',
+        owner_email: service.profiles?.email || '',
+        owner_phone: service.profiles?.phone || '',
+        owner_company: service.profiles?.company_name || service.company_name || ''
       }));
 
-      // 4. Her iki veri setini birleştir
+      // 4. Listings verilerini de ilan sahibi bilgileriyle genişlet
+      const extendedListings: ExtendedListing[] = (listingsData || []).map(listing => ({
+        ...listing,
+        owner_name: listing.profiles?.full_name || 'Bilinmiyor',
+        owner_email: listing.profiles?.email || '',
+        owner_phone: listing.profiles?.phone || '',
+        owner_company: listing.profiles?.company_name || ''
+      }));
+
+      // 5. Her iki veri setini birleştir
       const allListings = [
-        ...(listingsData || []),
+        ...extendedListings,
         ...convertedServices
       ];
 
-      // 5. Tarihe göre sırala ve limit uygula
-      const sortedListings = allListings.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      // 6. Tarihe göre sırala ve limit uygula
+      const sortedListings = allListings.sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return dateB - dateA;
+      });
 
       const finalListings = limit ? sortedListings.slice(0, limit) : sortedListings;
 

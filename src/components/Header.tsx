@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
         >
           <Menu size={24} />
         </button>
-        <h1 
+        <h1
           className="font-pacifico text-primary-600 text-2xl font-bold cursor-pointer hover:text-primary-700 transition-all duration-300 transform hover:scale-110"
           onClick={() => onBackToPublic?.()}
         >
@@ -42,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
           Dashboard
         </span>
       </div>
-      
+
       <div className="flex items-center space-x-4">
         <div className="relative">
           <button className="flex items-center text-gray-700 hover:text-primary-600 transition-all duration-300 transform hover:scale-110">
@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
             )}
           </button>
         </div>
-        
+
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3 shadow-lg hover:scale-110 transition-all duration-300">
             <User size={20} className="text-white" />

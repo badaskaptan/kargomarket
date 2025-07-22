@@ -13,6 +13,8 @@ Bu klasörde bulunan SQL dosyalarının açıklamaları ve kullanım sırası:
   - Eksik kolonları ekler (rating, sayaçlar vb.)
   - RLS politikaları ve indexler
   - Utility fonksiyonları
+   - **Güncel transport_services alanları:**
+     - id, created_at, updated_at, user_id, service_number, title, description, status, transport_mode, vehicle_type, origin, destination, available_from_date, available_until_date, capacity_value, capacity_unit, contact_info, company_name, plate_number, ship_name, imo_number, mmsi_number, dwt, gross_tonnage, net_tonnage, ship_dimensions, freight_type, charterer_info, ship_flag, home_port, year_built, speed_knots, fuel_consumption, ballast_capacity, flight_number, aircraft_type, max_payload, cargo_volume, train_number, wagon_count, wagon_types[], required_documents[], document_urls[], rating, rating_count, view_count, last_updated_by, is_featured, featured_until, created_by_user_type, last_activity_at
 
 ### 2. `supabase-fix-compatibility.sql` (İKİNCİ)
 - **Amaç:** Mevcut schema ile kod arasındaki uyumsuzlukları giderir

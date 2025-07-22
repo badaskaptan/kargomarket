@@ -25,6 +25,7 @@ interface ListingCardProps {
   onSendMessage?: (listing: ExtendedListing) => void;
   layout?: 'horizontal' | 'vertical' | 'compact'; // compact layout eklendi
   isPublicPage?: boolean;
+  isLoggedIn?: boolean; // Giriş durumu kontrolü için
 }
 
 /**
@@ -39,7 +40,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
   onMessage,
   onSendMessage,
   layout = 'vertical',
-  isPublicPage = false
+  isPublicPage = false,
+  isLoggedIn = false
 }) => {
   // İlan tipine göre ikon
   const getTypeIcon = () => {
@@ -139,13 +141,15 @@ const ListingCard: React.FC<ListingCardProps> = ({
           {/* Aksiyon Butonları - Sadece vertical layout'ta görünür */}
           {layout === 'vertical' && (
             <div className="flex items-center space-x-1 ml-4">
-              <button
-                onClick={() => onPreview(listing)}
-                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                title="Önizle"
-              >
-                <Eye className="h-4 w-4" />
-              </button>
+              {isLoggedIn && (
+                <button
+                  onClick={() => onPreview(listing)}
+                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  title="Önizle"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+              )}
               {isPublicPage ? (
                 <>
                   <button
@@ -319,6 +323,48 @@ const ListingCard: React.FC<ListingCardProps> = ({
           )}
         </div>
 
+        {/* İlan Sahibi Bilgileri */}
+        <div className={`${layout === 'compact' ? 'mt-3 mb-2' : 'mt-4 mb-4'} p-3 bg-gray-50 rounded-lg border`}>
+          <div className="flex items-center">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3 flex-shrink-0">
+              <span className="text-white text-sm font-semibold">
+                {listing.owner_name && listing.owner_name !== 'Bilinmiyor' 
+                  ? listing.owner_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+                  : 'U'
+                }
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className={`font-semibold text-gray-900 ${layout === 'compact' ? 'text-sm' : 'text-base'} truncate`}>
+                {listing.owner_name && listing.owner_name !== 'Bilinmiyor' ? listing.owner_name : 'İlan Sahibi'}
+              </div>
+              {listing.owner_company && (
+                <div className={`text-gray-600 ${layout === 'compact' ? 'text-xs' : 'text-sm'} truncate`}>
+                  {listing.owner_company}
+                </div>
+              )}
+              <div className={`flex items-center space-x-2 ${layout === 'compact' ? 'text-xs' : 'text-sm'} text-gray-500 mt-1`}>
+                {listing.owner_phone && (
+                  <span className="flex items-center">
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    {listing.owner_phone}
+                  </span>
+                )}
+                {listing.owner_email && (
+                  <span className="flex items-center">
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {listing.owner_email}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Alt Kısım - Fiyat - Sadece vertical layout'ta */}
         {layout === 'vertical' && (
           <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
@@ -449,13 +495,15 @@ const ListingCard: React.FC<ListingCardProps> = ({
 
           {/* Aksiyon Butonları */}
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => onPreview(listing)}
-              className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              title="Önizle"
-            >
-              <Eye className="h-5 w-5" />
-            </button>
+            {isLoggedIn && (
+              <button
+                onClick={() => onPreview(listing)}
+                className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Önizle"
+              >
+                <Eye className="h-5 w-5" />
+              </button>
+            )}
             {isPublicPage ? (
               <button
                 onClick={() => onMessage(listing)}
