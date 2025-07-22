@@ -6,7 +6,7 @@ import LoadListingDetailModal from '../modals/LoadListingDetailModal';
 import ShipmentRequestDetailModal from '../modals/ShipmentRequestDetailModal';
 import TransportServiceDetailModal from '../modals/TransportServiceDetailModal';
 import CreateOfferModal from '../modals/CreateOfferModal';
-import CreateServiceOfferModal from '../modals/CreateServiceOfferModal';
+import EnhancedServiceOfferModal from '../modals/EnhancedServiceOfferModal';
 import { useListings } from '../../hooks/useListings';
 import { OfferService } from '../../services/offerService';
 import type { ExtendedListing, TransportService, Database } from '../../types/database-types';
@@ -818,9 +818,9 @@ const ListingsPage: React.FC = () => {
         />
       )}
       
-      {/* CreateServiceOfferModal - Transport Service için */}
+      {/* EnhancedServiceOfferModal - Transport Service için */}
       {selectedListing && showCreateServiceOfferModal && (
-        <CreateServiceOfferModal
+        <EnhancedServiceOfferModal
           transportService={selectedListing}
           isOpen={showCreateServiceOfferModal}
           onClose={handleCloseServiceOfferModal}

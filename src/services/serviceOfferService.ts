@@ -9,7 +9,17 @@ export class ServiceOfferService {
     try {
       const { data: offers, error: offersError } = await supabase
         .from('service_offers')
-        .select('*')
+        .select(`
+          *,
+          transport_service:transport_services (
+            id,
+            service_number,
+            title,
+            origin,
+            destination,
+            user_id
+          )
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
@@ -18,7 +28,7 @@ export class ServiceOfferService {
         throw new Error(`Sent service offers fetch failed: ${offersError.message}`);
       }
 
-      console.log('✅ Base service offers fetched:', offers?.length || 0);
+      console.log('✅ Service offers with transport_service data fetched:', offers?.length || 0);
 
       if (!offers || offers.length === 0) {
         console.log('✅ No sent service offers found');
@@ -27,7 +37,6 @@ export class ServiceOfferService {
 
       const extendedOffers: ExtendedServiceOffer[] = offers.map(offer => ({
         ...offer,
-        transport_service: null,
         service_owner: null,
         sender: null
       }));
@@ -67,11 +76,22 @@ export class ServiceOfferService {
 
       const serviceIds = userServices.map(service => service.id);
 
-      // Bu hizmetlere gelen teklifleri al
+      // Bu hizmetlere gelen teklifleri al (kendi verdiği teklifler hariç)
       const { data: offers, error: offersError } = await supabase
         .from('service_offers')
-        .select('*')
+        .select(`
+          *,
+          transport_service:transport_services (
+            id,
+            service_number,
+            title,
+            origin,
+            destination,
+            user_id
+          )
+        `)
         .in('transport_service_id', serviceIds)
+        .neq('user_id', userId) // Kullanıcının kendi verdiği teklifleri hariç tut
         .order('created_at', { ascending: false });
 
       if (offersError) {
@@ -79,7 +99,7 @@ export class ServiceOfferService {
         throw new Error(`Received service offers fetch failed: ${offersError.message}`);
       }
 
-      console.log('✅ Base received service offers fetched:', offers?.length || 0);
+      console.log('✅ Received service offers with transport_service data fetched:', offers?.length || 0);
 
       if (!offers || offers.length === 0) {
         console.log('✅ No received service offers found');

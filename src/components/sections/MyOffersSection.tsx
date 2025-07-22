@@ -4,16 +4,20 @@ import {
   Eye,
   Edit,
   Check,
-  X,
   RefreshCw,
   Filter,
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Package,
+  Truck
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../../lib/supabase';
 import { OfferService, type ExtendedOffer } from '../../services/offerService';
+import { ServiceOfferService } from '../../services/serviceOfferService';
+import type { ExtendedServiceOffer } from '../../types/service-offer-types';
 import OfferDetailModal from '../modals/OfferDetailModal';
 import CreateOfferModal from '../modals/CreateOfferModal';
 import EditOfferModal from '../modals/EditOfferModal';
@@ -21,8 +25,6 @@ import AcceptRejectOfferModal from '../modals/AcceptRejectOfferModal';
 import type { Database } from '../../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
-type OfferInsert = Database['public']['Tables']['offers']['Insert'];
-type OfferUpdate = Database['public']['Tables']['offers']['Update'];
 
 interface MyOffersSectionProps {
   currentUserId: string;
@@ -33,12 +35,14 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('received');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [selectedOffer, setSelectedOffer] = useState<ExtendedOffer | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<ExtendedOffer | ExtendedServiceOffer | null>(null);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
 
   // Real data states
   const [sentOffers, setSentOffers] = useState<ExtendedOffer[]>([]);
   const [receivedOffers, setReceivedOffers] = useState<ExtendedOffer[]>([]);
+  const [sentServiceOffers, setSentServiceOffers] = useState<ExtendedServiceOffer[]>([]);
+  const [receivedServiceOffers, setReceivedServiceOffers] = useState<ExtendedServiceOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,23 +52,44 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [acceptRejectModalOpen, setAcceptRejectModalOpen] = useState(false);
 
-  // --- DATA FETCHING ---
-  const fetchOffers = useCallback(async () => {
+  // --- HELPER FUNCTIONS ---
+  const closeAllModals = useCallback(() => {
+    setDetailModalOpen(false);
+    setCreateModalOpen(false);
+    setEditModalOpen(false);
+    setAcceptRejectModalOpen(false);
+    setSelectedOffer(null);
+    setSelectedListing(null);
+  }, []);
+
+  // --- VERİ ÇEKME FONKSİYONLARI ---
+  const loadOffers = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      const [sentData, receivedData] = await Promise.all([
+      
+      // Load regular offers
+      const [sent, received] = await Promise.all([
         OfferService.getSentOffers(currentUserId),
         OfferService.getReceivedOffers(currentUserId)
       ]);
+      
+      setSentOffers(sent);
+      setReceivedOffers(received);
 
-      setSentOffers(sentData);
-      setReceivedOffers(receivedData);
+      // Load service offers
+      const [sentService, receivedService] = await Promise.all([
+        ServiceOfferService.getSentServiceOffers(currentUserId),
+        ServiceOfferService.getReceivedServiceOffers(currentUserId)
+      ]);
+      
+      setSentServiceOffers(sentService);
+      setReceivedServiceOffers(receivedService);
+
     } catch (err) {
-      console.error('Failed to fetch offers:', err);
-      setError('Teklifler yüklenirken bir hata oluştu');
-      toast.error('Teklifler yüklenirken bir hata oluştu');
+      console.error('Error loading offers:', err);
+      setError(err instanceof Error ? err.message : 'Bilinmeyen hata oluştu');
+      toast.error('Teklifler yüklenirken hata oluştu');
     } finally {
       setIsLoading(false);
     }
@@ -72,407 +97,463 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
 
   useEffect(() => {
     if (currentUserId) {
-      fetchOffers();
-
-      // TEST: Basit queries
-      console.log('🧪 Running test queries...');
-      import('../../services/testQueries').then(({ testOffers, testProfiles, testListings }) => {
-        testOffers();
-        testProfiles();
-        testListings();
-      });
+      loadOffers();
     }
-  }, [currentUserId, fetchOffers]);
+  }, [loadOffers, currentUserId]);
 
-  // --- OFFER ACTIONS ---
-  const handleCreateOffer = async (offerData: Omit<OfferInsert, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      await OfferService.createOffer(offerData);
-      toast.success('Teklif başarıyla gönderildi');
-      fetchOffers(); // Refresh data
-    } catch (error) {
-      console.error('Create offer failed:', error);
-      toast.error('Teklif gönderilirken bir hata oluştu');
+  // --- STATUS HELPER FUNCTIONS ---
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'rejected':
+        return <XCircle className="w-4 h-4" />;
+      case 'pending':
+        return <Clock className="w-4 h-4" />;
+      default:
+        return <AlertCircle className="w-4 h-4" />;
     }
   };
 
-  const handleUpdateOffer = async (offerId: string, updates: OfferUpdate) => {
-    try {
-      await OfferService.updateOffer(offerId, updates);
-      toast.success('Teklif başarıyla güncellendi');
-      fetchOffers(); // Refresh data
-    } catch (error) {
-      console.error('Update offer failed:', error);
-      toast.error('Teklif güncellenirken bir hata oluştu');
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return 'Kabul Edildi';
+      case 'rejected':
+        return 'Reddedildi';
+      case 'pending':
+        return 'Bekliyor';
+      default:
+        return 'Bilinmiyor';
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleAcceptOffer = async (offerId: string, _reason?: string) => {
+  // --- FORMAT LISTING NUMBER ---
+  const formatListingNumber = (offer: ExtendedOffer) => {
+    // İlan numarasını sadece numara olarak göster
+    if (offer.listing?.listing_number) {
+      return offer.listing.listing_number;
+    }
+    return offer.listing_id || 'N/A';
+  };
+
+  // --- FORMAT SERVICE NUMBER ---
+  const formatServiceNumber = (offer: ExtendedServiceOffer) => {
+    // Servis numarasını sadece numara olarak göster
+    if (offer.transport_service?.service_number) {
+      return offer.transport_service.service_number;
+    }
+    return offer.transport_service_id || 'N/A';
+  };
+
+  // --- EVENT HANDLERS ---
+  const handleAcceptOffer = useCallback(async (offerId: string) => {
     try {
-      await OfferService.acceptOffer(offerId);
+      // Regular offers için OfferService kullan
+      const { error } = await supabase
+        .from('offers')
+        .update({ status: 'accepted', updated_at: new Date().toISOString() })
+        .eq('id', offerId);
+
+      if (error) throw error;
+
       toast.success('Teklif kabul edildi');
-      fetchOffers(); // Refresh data
+      await loadOffers();
+      closeAllModals();
     } catch (error) {
-      console.error('Accept offer failed:', error);
-      toast.error('Teklif kabul edilirken bir hata oluştu');
+      console.error('Error accepting offer:', error);
+      toast.error('Teklif kabul edilirken hata oluştu');
     }
-  };
+  }, [loadOffers, closeAllModals]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleRejectOffer = async (offerId: string, _reason?: string) => {
+  const handleRejectOffer = useCallback(async (offerId: string) => {
     try {
-      await OfferService.rejectOffer(offerId);
+      // Regular offers için OfferService kullan
+      const { error } = await supabase
+        .from('offers')
+        .update({ status: 'rejected', updated_at: new Date().toISOString() })
+        .eq('id', offerId);
+
+      if (error) throw error;
+
       toast.success('Teklif reddedildi');
-      fetchOffers(); // Refresh data
+      await loadOffers();
+      closeAllModals();
     } catch (error) {
-      console.error('Reject offer failed:', error);
-      toast.error('Teklif reddedilirken bir hata oluştu');
+      console.error('Error rejecting offer:', error);
+      toast.error('Teklif reddedilirken hata oluştu');
     }
-  };
+  }, [loadOffers, closeAllModals]);
 
-  const handleWithdrawOffer = async (offerId: string) => {
-    try {
-      await OfferService.withdrawOffer(offerId);
-      toast.success('Teklif geri çekildi');
-      fetchOffers(); // Refresh data
-    } catch (error) {
-      console.error('Withdraw offer failed:', error);
-      toast.error('Teklif geri çekilirken bir hata oluştu');
-    }
-  };
-
-  // --- MODAL HANDLERS ---
-  const openDetailModal = (offer: ExtendedOffer) => {
-    setSelectedOffer(offer);
-    setDetailModalOpen(true);
-  };
-
-  const openEditModal = (offer: ExtendedOffer) => {
-    setSelectedOffer(offer);
-    setEditModalOpen(true);
-  };
-
-  const openAcceptRejectModal = (offer: ExtendedOffer) => {
-    setSelectedOffer(offer);
-    setAcceptRejectModalOpen(true);
-  };
-
-  const closeAllModals = () => {
-    setDetailModalOpen(false);
-    setCreateModalOpen(false);
-    setEditModalOpen(false);
-    setAcceptRejectModalOpen(false);
-    setSelectedOffer(null);
-    setSelectedListing(null);
-  };
-
-  // --- FILTERING & SEARCH ---
-  const currentOffers = activeTab === 'sent' ? sentOffers : receivedOffers;
-
-  const filteredOffers = currentOffers.filter(offer => {
-    const matchesSearch = !searchTerm ||
-      offer.listing?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      offer.carrier?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      offer.listing_owner?.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus = !statusFilter || (offer.status && offer.status === statusFilter);
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // --- HELPER FUNCTIONS ---
-  const getStatusIcon = (status: string | null) => {
-    if (!status) return null;
-    switch (status) {
-      case 'pending': return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'accepted': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'rejected': return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'withdrawn': return <AlertCircle className="w-4 h-4 text-gray-500" />;
-      case 'countered': return <AlertCircle className="w-4 h-4 text-blue-500" />;
-      default: return null;
-    }
-  };
-
-  const getStatusLabel = (status: string | null) => {
-    if (!status) return 'Bilinmiyor';
-    switch (status) {
-      case 'pending': return 'Beklemede';
-      case 'accepted': return 'Kabul Edildi';
-      case 'rejected': return 'Reddedildi';
-      case 'withdrawn': return 'Geri Çekildi';
-      case 'countered': return 'Karşı Teklif';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status: string | null) => {
-    if (!status) return 'bg-gray-100 text-gray-800 border-gray-200';
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'accepted': return 'bg-green-100 text-green-800 border-green-200';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
-      case 'withdrawn': return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'countered': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const formatPrice = (price: number, currency?: string | null) => {
-    const curr = currency || 'TRY';
-    return new Intl.NumberFormat('tr-TR', {
-      style: 'currency',
-      currency: curr === 'TRY' ? 'TRY' : 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(price);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('tr-TR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+  // --- FILTERING ---
+  const getFilteredOffers = () => {
+    const offers = activeTab === 'sent' ? sentOffers : receivedOffers;
+    const serviceOffers = activeTab === 'sent' ? sentServiceOffers : receivedServiceOffers;
+    
+    const filtered = offers.filter(offer => {
+      const searchMatch = searchTerm === '' || 
+        offer.listing?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        offer.price_amount?.toString().includes(searchTerm);
+      
+      const statusMatch = statusFilter === '' || offer.status === statusFilter;
+      
+      return searchMatch && statusMatch;
     });
+
+    const filteredService = serviceOffers.filter(offer => {
+      const searchMatch = searchTerm === '' || 
+        offer.transport_service?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        offer.price_amount?.toString().includes(searchTerm);
+      
+      const statusMatch = statusFilter === '' || offer.status === statusFilter;
+      
+      return searchMatch && statusMatch;
+    });
+
+    return { offers: filtered, serviceOffers: filteredService };
   };
 
-  // --- RENDER ---
+  const { offers: filteredOffers, serviceOffers: filteredServiceOffers } = getFilteredOffers();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <RefreshCw className="w-6 h-6 animate-spin mr-2" />
+        <span>Teklifler yükleniyor...</span>
+      </div>
+    );
+  }
+
   if (error) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Bir Hata Oluştu</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchOffers}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Tekrar Dene
-          </button>
-        </div>
+      <div className="text-center p-8">
+        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <p className="text-red-600 mb-4">{error}</p>
+        <button 
+          onClick={loadOffers}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Tekrar Dene
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900">Tekliflerim</h2>
-          <button
-            onClick={fetchOffers}
-            disabled={isLoading}
-            className="inline-flex items-center px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Yenile
-          </button>
-        </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Tekliflerim</h2>
+        <button
+          onClick={loadOffers}
+          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span>Yenile</span>
+        </button>
+      </div>
 
-        {/* Tabs */}
-        <div className="flex space-x-1 mt-4 bg-gray-100 p-1 rounded-lg">
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('received')}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'received'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'received'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           >
-            Gelen Teklifler ({receivedOffers.length})
+            Aldığım Teklifler
           </button>
           <button
             onClick={() => setActiveTab('sent')}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'sent'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'sent'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           >
-            Gönderilen Teklifler ({sentOffers.length})
+            Gönderdiğim Teklifler
           </button>
-        </div>
+        </nav>
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          <div className="flex-1 relative">
+      {/* Filters */}
+      <div className="flex space-x-4">
+        <div className="flex-1">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="İlan başlığı veya kullanıcı adı ile ara..."
+              placeholder="Teklif ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <div className="sm:w-48">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              title="Durum filtresi"
-              aria-label="Durum filtresi"
-            >
-              <option value="">Tüm Durumlar</option>
-              <option value="pending">Beklemede</option>
-              <option value="accepted">Kabul Edildi</option>
-              <option value="rejected">Reddedildi</option>
-              <option value="withdrawn">Geri Çekildi</option>
-              <option value="countered">Karşı Teklif</option>
-            </select>
-          </div>
+        </div>
+        <div className="relative">
+          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            title="Durum filtresi"
+            className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+          >
+            <option value="">Tüm Durumlar</option>
+            <option value="pending">Bekliyor</option>
+            <option value="accepted">Kabul Edildi</option>
+            <option value="rejected">Reddedildi</option>
+          </select>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-6">
-        {isLoading ? (
-          <div className="text-center py-12">
-            <RefreshCw className="w-8 h-8 text-blue-600 mx-auto mb-4 animate-spin" />
-            <p className="text-gray-600">Teklifler yükleniyor...</p>
-          </div>
-        ) : filteredOffers.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Filter className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {currentOffers.length === 0 ? 'Henüz teklif yok' : 'Sonuç bulunamadı'}
-            </h3>
-            <p className="text-gray-600">
-              {currentOffers.length === 0
-                ? `Henüz ${activeTab === 'sent' ? 'gönderilen' : 'gelen'} teklif bulunmuyor.`
-                : 'Arama kriterlerinize uygun teklif bulunamadı.'
-              }
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredOffers.map((offer) => (
-              <div
-                key={offer.id}
-                className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-3">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {offer.listing?.title || `İlan #${offer.listing_id?.substring(0, 8)}` || 'İlan Başlığı'}
-                      </h3>
-                      <div className={`flex items-center space-x-1 px-2 py-1 rounded-full border text-xs font-medium ${getStatusColor(offer.status || 'pending')}`}>
-                        {getStatusIcon(offer.status || 'pending')}
-                        <span>{getStatusLabel(offer.status || 'pending')}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div>
-                        <span className="font-medium">Teklif Tutarı: </span>
-                        <span className="text-blue-600 font-semibold">
-                          {formatPrice(offer.price_amount || 0, offer.price_currency || 'TRY')}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Tarih: </span>
-                        {formatDate(offer.created_at)}
-                      </div>
-                      {offer.service_description && (
-                        <div>
-                          <span className="font-medium">Hizmet Açıklaması: </span>
-                          {offer.service_description}
-                        </div>
-                      )}
-                      <div>
-                        <span className="font-medium">
-                          {activeTab === 'sent' ? 'İlan Sahibi: ' : 'Teklif Veren: '}
-                        </span>
-                        {activeTab === 'sent'
-                          ? (offer.listing_owner?.full_name || offer.listing?.user_id?.substring(0, 8) || 'Bilinmiyor')
-                          : (offer.carrier?.full_name || offer.user_id?.substring(0, 8) || 'Bilinmiyor')
-                        }
-                      </div>
-                    </div>
-
-                    {offer.message && (
-                      <div className="mt-3">
-                        <p className="text-sm text-gray-700 line-clamp-2">{offer.message}</p>
-                      </div>
-                    )}
+      {/* Offer Cards */}
+      <div className="space-y-4">
+        {/* Regular Offers */}
+        {filteredOffers.map((offer) => (
+          <div
+            key={offer.id}
+            className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden"
+          >
+            {/* Card Header with Listing Number - MAVI ŞERİT */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Package className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                      {formatListingNumber(offer)}
+                    </span>
+                    <h3 className="text-lg font-semibold text-gray-900 mt-1">
+                      {offer.listing?.title || 'İlan başlığı bulunamadı'}
+                    </h3>
                   </div>
-
-                  <div className="flex items-center space-x-2 ml-4">
-                    <button
-                      onClick={() => openDetailModal(offer)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Detayları Görüntüle"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-
-                    {/* Actions based on user role and offer status */}
-                    {activeTab === 'sent' && offer.status === 'pending' && (
-                      <button
-                        onClick={() => openEditModal(offer)}
-                        className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                        title="Teklifi Düzenle"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {activeTab === 'received' && offer.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => openAcceptRejectModal(offer)}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                          title="Kabul Et / Reddet"
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                      </>
-                    )}
-
-                    {activeTab === 'sent' && offer.status === 'pending' && (
-                      <button
-                        onClick={() => handleWithdrawOffer(offer.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Teklifi Geri Çek"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    )}
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  offer.status === 'pending' ? 'bg-yellow-400 text-yellow-900' :
+                  offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  <div className="flex items-center space-x-1">
+                    {getStatusIcon(offer.status || 'pending')}
+                    <span>{getStatusLabel(offer.status || 'pending')}</span>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Card Content */}
+            <div className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <p className="text-sm text-gray-500">Teklif Tutarı</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    ₺{offer.price_amount?.toLocaleString('tr-TR')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Teklif Veren</p>
+                  <p className="text-sm font-medium">{offer.carrier?.full_name || 'Bilinmiyor'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Oluşturma</p>
+                  <p className="text-sm">{new Date(offer.created_at).toLocaleDateString('tr-TR')}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Güncelleme</p>
+                  <p className="text-sm">{new Date(offer.updated_at).toLocaleDateString('tr-TR')}</p>
+                </div>
+              </div>
+
+              {/* Offer Description */}
+              {offer.message && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500 mb-1">Mesaj</p>
+                  <p className="text-sm text-gray-700">{offer.message}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setSelectedOffer(offer);
+                    setDetailModalOpen(true);
+                  }}
+                  className="flex items-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Detay</span>
+                </button>
+
+                {activeTab === 'received' && offer.status === 'pending' && (
+                  <button
+                    onClick={() => {
+                      setSelectedOffer(offer);
+                      setAcceptRejectModalOpen(true);
+                    }}
+                    className="flex items-center space-x-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Kabul Et/Reddet</span>
+                  </button>
+                )}
+
+                {activeTab === 'sent' && offer.status === 'pending' && (
+                  <button
+                    onClick={() => {
+                      setSelectedOffer(offer);
+                      setEditModalOpen(true);
+                    }}
+                    className="flex items-center space-x-1 px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Düzenle</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Service Offers */}
+        {filteredServiceOffers.map((offer) => (
+          <div
+            key={`service-${offer.id}`}
+            className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 overflow-hidden"
+          >
+            {/* Service Offer Card Header with Service Number - TURUNCU ŞERİT */}
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Truck className="w-5 h-5 text-orange-600" />
+                  <div>
+                    <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                      {formatServiceNumber(offer)}
+                    </span>
+                    <h3 className="text-lg font-semibold text-gray-900 mt-1">
+                      {offer.transport_service?.title || 'Servis başlığı bulunamadı'}
+                    </h3>
+                  </div>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  offer.status === 'pending' ? 'bg-yellow-400 text-yellow-900' :
+                  offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  <div className="flex items-center space-x-1">
+                    {getStatusIcon(offer.status || 'pending')}
+                    <span>{getStatusLabel(offer.status || 'pending')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Service Card Content */}
+            <div className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div>
+                  <p className="text-sm text-gray-500">Teklif Tutarı</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    ₺{offer.price_amount?.toLocaleString('tr-TR')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Teklif Veren</p>
+                  <p className="text-sm font-medium">{offer.sender?.full_name || 'Bilinmiyor'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Oluşturma</p>
+                  <p className="text-sm">{new Date(offer.created_at).toLocaleDateString('tr-TR')}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Güncelleme</p>
+                  <p className="text-sm">{new Date(offer.updated_at).toLocaleDateString('tr-TR')}</p>
+                </div>
+              </div>
+
+              {/* Service Route Info */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-sm text-gray-500">Kalkış</p>
+                  <p className="text-sm font-medium">{offer.transport_service?.origin || 'Belirtilmemiş'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Varış</p>
+                  <p className="text-sm font-medium">{offer.transport_service?.destination || 'Belirtilmemiş'}</p>
+                </div>
+              </div>
+
+              {/* Service Offer Description */}
+              {offer.message && (
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500 mb-1">Mesaj</p>
+                  <p className="text-sm text-gray-700">{offer.message}</p>
+                </div>
+              )}
+
+              {/* Service Action Buttons */}
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => {
+                    setSelectedOffer(offer);
+                    setDetailModalOpen(true);
+                  }}
+                  className="flex items-center space-x-1 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Detay</span>
+                </button>
+
+                {activeTab === 'received' && offer.status === 'pending' && (
+                  <button
+                    onClick={() => {
+                      setSelectedOffer(offer);
+                      setAcceptRejectModalOpen(true);
+                    }}
+                    className="flex items-center space-x-1 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>Kabul Et/Reddet</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Empty State */}
+        {filteredOffers.length === 0 && filteredServiceOffers.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">
+              {activeTab === 'sent' ? 'Henüz gönderdiğiniz teklif yok.' : 'Henüz aldığınız teklif yok.'}
+            </p>
           </div>
         )}
       </div>
 
       {/* Modals */}
-      {selectedOffer && (
+      {selectedOffer && 'listing_id' in selectedOffer && (
         <>
           <OfferDetailModal
-            offer={selectedOffer}
+            offer={selectedOffer as ExtendedOffer}
+            currentUserId={currentUserId}
             isOpen={detailModalOpen}
             onClose={closeAllModals}
-            currentUserId={currentUserId}
-            onAccept={handleAcceptOffer}
-            onReject={handleRejectOffer}
-            onWithdraw={handleWithdrawOffer}
-            onEdit={openEditModal}
           />
-
+          
           <EditOfferModal
-            offer={selectedOffer}
+            offer={selectedOffer as ExtendedOffer}
             isOpen={editModalOpen}
             onClose={closeAllModals}
-            onSubmit={handleUpdateOffer}
+            onSubmit={loadOffers}
           />
-
+          
           <AcceptRejectOfferModal
-            offer={selectedOffer}
+            offer={selectedOffer as ExtendedOffer}
             isOpen={acceptRejectModalOpen}
             onClose={closeAllModals}
             onAccept={handleAcceptOffer}
@@ -484,10 +565,10 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       {selectedListing && (
         <CreateOfferModal
           listing={selectedListing}
+          currentUserId={currentUserId}
           isOpen={createModalOpen}
           onClose={closeAllModals}
-          onSubmit={handleCreateOffer}
-          currentUserId={currentUserId}
+          onSubmit={loadOffers}
         />
       )}
     </div>

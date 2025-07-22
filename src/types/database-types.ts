@@ -796,6 +796,20 @@ export interface Database {
           weekend_service: boolean | null
           fuel_surcharge_included: boolean | null
           toll_fees_included: boolean | null
+          // Yeni eklenen alanlar
+          pickup_date_latest: string | null
+          delivery_date_latest: string | null
+          weight_capacity_kg: number | null
+          volume_capacity_m3: number | null
+          insurance_coverage_amount: number | null
+          insurance_provider: string | null
+          port_charges_included: boolean | null
+          airport_charges_included: boolean | null
+          on_time_guarantee: boolean | null
+          damage_free_guarantee: boolean | null
+          temperature_guarantee: boolean | null
+          emergency_contact: string | null
+          contingency_plan: string | null
         }
         Insert: {
           id?: string
@@ -843,6 +857,20 @@ export interface Database {
           weekend_service?: boolean | null
           fuel_surcharge_included?: boolean | null
           toll_fees_included?: boolean | null
+          // Yeni eklenen alanlar
+          pickup_date_latest?: string | null
+          delivery_date_latest?: string | null
+          weight_capacity_kg?: number | null
+          volume_capacity_m3?: number | null
+          insurance_coverage_amount?: number | null
+          insurance_provider?: string | null
+          port_charges_included?: boolean | null
+          airport_charges_included?: boolean | null
+          on_time_guarantee?: boolean | null
+          damage_free_guarantee?: boolean | null
+          temperature_guarantee?: boolean | null
+          emergency_contact?: string | null
+          contingency_plan?: string | null
         }
         Update: {
           id?: string
@@ -890,6 +918,20 @@ export interface Database {
           weekend_service?: boolean | null
           fuel_surcharge_included?: boolean | null
           toll_fees_included?: boolean | null
+          // Yeni eklenen alanlar
+          pickup_date_latest?: string | null
+          delivery_date_latest?: string | null
+          weight_capacity_kg?: number | null
+          volume_capacity_m3?: number | null
+          insurance_coverage_amount?: number | null
+          insurance_provider?: string | null
+          port_charges_included?: boolean | null
+          airport_charges_included?: boolean | null
+          on_time_guarantee?: boolean | null
+          damage_free_guarantee?: boolean | null
+          temperature_guarantee?: boolean | null
+          emergency_contact?: string | null
+          contingency_plan?: string | null
         }
       }
       messages: {

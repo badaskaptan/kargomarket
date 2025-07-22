@@ -10,6 +10,7 @@ export interface ExtendedOffer extends Offer {
   listing?: {
     id: string;
     user_id?: string;
+    listing_number?: string;
     title: string;
     origin: string;
     destination: string;
@@ -48,10 +49,28 @@ export class OfferService {
     console.log('📤 Fetching sent offers for user:', userId);
 
     try {
-      // user_id kullanarak teklifleri al (carrier_id değil!)
+      // user_id kullanarak teklifleri al ve listing bilgilerini join et
       const { data: offers, error: offersError } = await supabase
         .from('offers')
-        .select('*')
+        .select(`
+          *,
+          listing:listings (
+            id,
+            user_id,
+            listing_number,
+            title,
+            origin,
+            destination,
+            listing_type,
+            transport_mode,
+            weight_value,
+            volume_value,
+            loading_date,
+            delivery_date,
+            load_type,
+            vehicle_types
+          )
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
@@ -60,17 +79,15 @@ export class OfferService {
         throw new Error(`Sent offers fetch failed: ${offersError.message}`);
       }
 
-      console.log('✅ Base offers fetched:', offers?.length || 0);
+      console.log('✅ Offers with listing data fetched:', offers?.length || 0);
 
       if (!offers || offers.length === 0) {
         console.log('✅ No sent offers found');
         return [];
       }
 
-      // Şimdilik sadece base offers döndür, sonra listings ekleriz
       const extendedOffers: ExtendedOffer[] = offers.map(offer => ({
         ...offer,
-        listing: null,
         listing_owner: null,
         carrier: null
       }));
@@ -112,7 +129,25 @@ export class OfferService {
       // Bu ilanlara gelen teklifleri al
       const { data: offers, error: offersError } = await supabase
         .from('offers')
-        .select('*')
+        .select(`
+          *,
+          listing:listings (
+            id,
+            user_id,
+            listing_number,
+            title,
+            origin,
+            destination,
+            listing_type,
+            transport_mode,
+            weight_value,
+            volume_value,
+            loading_date,
+            delivery_date,
+            load_type,
+            vehicle_types
+          )
+        `)
         .in('listing_id', listingIds)
         .order('created_at', { ascending: false });
 
@@ -121,17 +156,15 @@ export class OfferService {
         throw new Error(`Received offers fetch failed: ${offersError.message}`);
       }
 
-      console.log('✅ Base received offers fetched:', offers?.length || 0);
+      console.log('✅ Received offers with listing data fetched:', offers?.length || 0);
 
       if (!offers || offers.length === 0) {
         console.log('✅ No received offers found');
         return [];
       }
 
-      // Şimdilik sadece base offers döndür
       const extendedOffers: ExtendedOffer[] = offers.map(offer => ({
         ...offer,
-        listing: null,
         listing_owner: null,
         carrier: null
       }));
