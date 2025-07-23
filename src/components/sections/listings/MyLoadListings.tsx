@@ -8,9 +8,9 @@ import {
 import { useDashboard } from '../../../context/DashboardContext';
 import { useAuth } from '../../../context/SupabaseAuthContext';
 import { ListingService } from '../../../services/listingService';
-import LoadListingDetailModal from '../../modals/LoadListingDetailModal';
+import LoadListingDetailModal from '../../modals/listings/detail/LoadListingDetailModal';
 import ListingCard from '../../common/ListingCard';
-import EditLoadListingModal from '../../modals/EditLoadListingModal';
+import EditLoadListingModal from '../../modals/listings/edit/EditLoadListingModal';
 import type { ExtendedListing } from '../../../types/database-types';
 
 /**

@@ -8,8 +8,8 @@ import {
 import { useDashboard } from '../../../context/DashboardContext';
 import { useAuth } from '../../../context/SupabaseAuthContext';
 import { supabase } from '../../../lib/supabase';
-import TransportServiceDetailModal from '../../modals/TransportServiceDetailModal';
-import EditTransportServiceModal from '../../modals/EditTransportServiceModal';
+import TransportServiceDetailModal from '../../modals/listings/detail/TransportServiceDetailModal';
+import EditTransportServiceModal from '../../modals/listings/edit/EditTransportServiceModal';
 import ListingCard from '../../common/ListingCard';
 import type { ExtendedListing, TransportService } from '../../../types/database-types';
 import toast from 'react-hot-toast';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ExtendedListing } from '../../types/database-types';
-import EditLoadListingModal from '../modals/EditLoadListingModal';
+import EditLoadListingModal from '../modals/listings/edit/EditLoadListingModal';
 
 interface AdCardProps {
   listing: ExtendedListing;

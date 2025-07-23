@@ -12,7 +12,7 @@ import {
   Settings,
   MessageSquare
 } from 'lucide-react';
-import type { Database } from '../../types/database-types';
+import type { Database } from '../../../../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
 type OfferInsert = Database['public']['Tables']['offers']['Insert'];
@@ -452,8 +452,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         />
                         <select
                           value={formData.price_currency}
-                          onChange={(e) => updateFormData('price_currency', e.target.value as any)}
+                          onChange={(e) => updateFormData('price_currency', e.target.value as 'TRY' | 'USD' | 'EUR')}
                           className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          title="Para birimi seçin"
+                          aria-label="Para birimi seçin"
                         >
                           <option value="TRY">₺ TRY</option>
                           <option value="USD">$ USD</option>
@@ -484,8 +486,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                       </label>
                       <select
                         value={formData.transport_mode}
-                        onChange={(e) => updateFormData('transport_mode', e.target.value as any)}
+                        onChange={(e) => updateFormData('transport_mode', e.target.value as 'road' | 'sea' | 'air' | 'rail' | 'multimodal')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        title="Taşıma türü seçin"
+                        aria-label="Taşıma türü seçin"
                       >
                         <option value="road">Karayolu</option>
                         <option value="sea">Deniz</option>
@@ -502,8 +506,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                       </label>
                       <select
                         value={formData.cargo_type}
-                        onChange={(e) => updateFormData('cargo_type', e.target.value as any)}
+                        onChange={(e) => updateFormData('cargo_type', e.target.value as 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        title="Kargo türü seçin"
+                        aria-label="Kargo türü seçin"
                       >
                         <option value="general_cargo">Genel Kargo</option>
                         <option value="bulk_cargo">Dökme Kargo</option>
@@ -522,8 +528,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                       </label>
                       <select
                         value={formData.service_scope}
-                        onChange={(e) => updateFormData('service_scope', e.target.value as any)}
+                        onChange={(e) => updateFormData('service_scope', e.target.value as 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        title="Hizmet kapsamı seçin"
+                        aria-label="Hizmet kapsamı seçin"
                       >
                         <option value="door_to_door">Kapıdan Kapıya</option>
                         <option value="port_to_port">Limanlar Arası</option>
@@ -547,6 +555,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           errors.pickup_date_preferred ? 'border-red-300' : 'border-gray-300'
                         }`}
+                        title="Tercih edilen alış tarihini seçin"
+                        aria-label="Tercih edilen alış tarihini seçin"
                       />
                       {errors.pickup_date_preferred && <p className="mt-1 text-sm text-red-600">{errors.pickup_date_preferred}</p>}
                     </div>
@@ -562,6 +572,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         value={formData.delivery_date_preferred}
                         onChange={(e) => updateFormData('delivery_date_preferred', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        title="Tercih edilen teslimat tarihini seçin"
+                        aria-label="Tercih edilen teslimat tarihini seçin"
                       />
                     </div>
 
@@ -608,6 +620,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.customs_handling_included}
                           onChange={(e) => updateFormData('customs_handling_included', e.target.checked)}
                           className="sr-only peer"
+                          title="Gümrük işlemleri dahil"
+                          aria-label="Gümrük işlemleri dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -625,6 +639,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.documentation_handling_included}
                           onChange={(e) => updateFormData('documentation_handling_included', e.target.checked)}
                           className="sr-only peer"
+                          title="Döküman işlemleri dahil"
+                          aria-label="Döküman işlemleri dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -642,6 +658,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.loading_unloading_included}
                           onChange={(e) => updateFormData('loading_unloading_included', e.target.checked)}
                           className="sr-only peer"
+                          title="Yükleme/Boşaltma dahil"
+                          aria-label="Yükleme/Boşaltma dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -659,6 +677,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.tracking_system_provided}
                           onChange={(e) => updateFormData('tracking_system_provided', e.target.checked)}
                           className="sr-only peer"
+                          title="Takip sistemi dahil"
+                          aria-label="Takip sistemi dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -676,6 +696,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.express_service}
                           onChange={(e) => updateFormData('express_service', e.target.checked)}
                           className="sr-only peer"
+                          title="Express hizmet dahil"
+                          aria-label="Express hizmet dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -693,6 +715,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.weekend_service}
                           onChange={(e) => updateFormData('weekend_service', e.target.checked)}
                           className="sr-only peer"
+                          title="Hafta sonu hizmeti dahil"
+                          aria-label="Hafta sonu hizmeti dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -710,6 +734,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.fuel_surcharge_included}
                           onChange={(e) => updateFormData('fuel_surcharge_included', e.target.checked)}
                           className="sr-only peer"
+                          title="Yakıt surcharj dahil"
+                          aria-label="Yakıt surcharj dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -727,6 +753,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           checked={formData.toll_fees_included}
                           onChange={(e) => updateFormData('toll_fees_included', e.target.checked)}
                           className="sr-only peer"
+                          title="Geçiş ücretleri dahil"
+                          aria-label="Geçiş ücretleri dahil"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
@@ -815,6 +843,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           errors.expires_at ? 'border-red-300' : 'border-gray-300'
                         }`}
+                        title="Teklifin geçerlilik tarihi"
+                        aria-label="Teklifin geçerlilik tarihi"
                       />
                       {errors.expires_at && <p className="mt-1 text-sm text-red-600">{errors.expires_at}</p>}
                     </div>
@@ -830,6 +860,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         value={formData.valid_until}
                         onChange={(e) => updateFormData('valid_until', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        title="Teklifin son geçerli tarihi"
+                        aria-label="Teklifin son geçerli tarihi"
                       />
                     </div>
 

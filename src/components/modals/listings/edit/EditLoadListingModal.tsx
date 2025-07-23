@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Calendar, Package, MapPin, FileText, Upload, Eye, Download, Trash2, Image } from 'lucide-react';
-import type { ExtendedListing, ListingUpdate } from '../../types/database-types';
-import { ListingService } from '../../services/listingService';
-import { storage } from '../../lib/supabase';
+import type { ExtendedListing, ListingUpdate } from '../../../../types/database-types';
+import { ListingService } from '../../../../services/listingService';
+import { storage } from '../../../../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface EditLoadListingModalProps {

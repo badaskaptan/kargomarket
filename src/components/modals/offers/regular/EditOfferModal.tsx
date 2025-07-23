@@ -8,8 +8,8 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react';
-import type { ExtendedOffer } from '../../services/offerService';
-import type { Database } from '../../types/database-types';
+import type { ExtendedOffer } from '../../../../services/offerService';
+import type { Database } from '../../../../types/database-types';
 
 type OfferUpdate = Database['public']['Tables']['offers']['Update'];
 

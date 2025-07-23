@@ -12,9 +12,9 @@ import {
   Shield,
   User
 } from 'lucide-react';
-import { ServiceOfferService } from '../../services/serviceOfferService';
-import { useAuth } from '../../context/SupabaseAuthContext';
-import type { ExtendedListing } from '../../types/database-types';
+import { ServiceOfferService } from '../../../../services/serviceOfferService';
+import { useAuth } from '../../../../context/SupabaseAuthContext';
+import type { ExtendedListing } from '../../../../types/database-types';
 
 interface EnhancedServiceOfferModalProps {
   transportService: ExtendedListing;

@@ -2,6 +2,24 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+@layer utilities {
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+}
+
 @layer base {
   body {
     font-family: 'Inter', sans-serif;
@@ -20,12 +38,7 @@
 }
 
 @layer components {
-  .custom-scrollbar {
-    /* Modern browsers */
-    scrollbar-width: thin;
-    scrollbar-color: #cbd5e1 #f1f5f9;
-  }
-  
+  /* Webkit scrollbar styling for Chromium-based browsers */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
@@ -38,6 +51,18 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  
+  /* Fallback for browsers that don't support custom scrollbars */
+  @supports not selector(::-webkit-scrollbar) {
+    .custom-scrollbar {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
   }
   
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {

@@ -10,8 +10,8 @@ import {
   Phone,
   Calendar
 } from 'lucide-react';
-import type { TransportService } from '../../types/database-types';
-import { translateDocument, translateVehicleType } from '../../utils/translationUtils';
+import type { TransportService } from '../../../../types/database-types';
+import { translateDocument, translateVehicleType } from '../../../../utils/translationUtils';
 
 
 interface TransportServiceDetailModalProps {

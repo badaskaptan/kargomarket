@@ -1,0 +1,73 @@
+🔧 CLAUDE PROMPT - KargoMarket Proje Rehberi Oluşturma
+
+Aşağıdaki prompt'u Claude'a tam olarak kopyalayıp yapıştır:
+
+---
+
+**GÖREV**: Aşağıdaki React TypeScript projesini analiz ederek gelişmiş bir sistem rehberi hazırla. Bu rehber hem insan geliştiriciye hem de yapay zeka asistanlarına referans olacak.
+
+**PROJE ADI**: KargoMarket Dashboard  
+**TEKNOLOJİ STACK**: React 18 + TypeScript + Vite + Supabase + Tailwind CSS
+
+**AMAÇ**:
+- Proje karmaşıklaştı, dosyalar arası ilişkiler takip edilemiyor
+- Hangi component'in neyi tetiklediği, nasıl import edildiği belirsiz
+- AI agent'ların hallucination yapmadan doğru yapıları bulabilmesi gerekiyor
+- Geliştirici kaybolmadan ilerleyebilmeli, hataları minimize etmeli
+
+**İÇERİK BEKLENTİSİ**:
+
+1. **📦 Proje Mimarisi**:
+   - Frontend yapısı, context sistemi, service katmanları
+   - Supabase entegrasyonu nasıl çalışıyor?
+   - Auth sistemi akışı
+
+2. **📄 Dosya Sistematiği**:
+   - `src/components/` yapısı (pages, sections, modals, common)
+   - `src/services/` katmanı (listingService, offerService, serviceOfferService)
+   - `src/context/` provider'ları (Auth, Dashboard)
+   - `src/types/` tanımları
+
+3. **🔄 Import Zinciri Analizi**:
+   - Hangi component neyi nereden import ediyor?
+   - Modal sisteminde yeni organize yapı (listings/, offers/, unused/)
+   - Service layer'ların nasıl çağrıldığı
+
+4. **🔧 Key Patterns**:
+   - Context kullanımı: `useAuth()`, `useDashboard()`
+   - Modal state management pattern'ları
+   - Database service call pattern'ları
+   - Type safety yaklaşımları
+
+5. **📡 Data Flow**:
+   - User authentication → Supabase Auth
+   - CRUD operations → Service layers → Supabase
+   - State management → React Context
+   - Modal interactions → Parent-child communication
+
+6. **⚠️ Kritik Notlar**:
+   - Modal dosyaları yeni organize edildi, eski import path'leri kullanılmamalı
+   - Service layer'da 3 adet aktif service var: listing, offer, serviceOffer
+   - Type definitions'da ExtendedListing vs ExtendedOffer vs ExtendedServiceOffer farkları
+
+7. **🚨 Common Issues & Solutions**:
+   - Import path errors sonrası modal reorganization
+   - Type mismatch problems ve çözümleri
+   - Authentication state management
+
+**ÇIKTI FORMAT**: 
+- Markdown formatında
+- Başlık hiyerarşisi ile organize
+- Code snippets ile desteklenmiş
+- Dosya path'leri örnek olarak verilmiş
+- AI agent'lar için özel "dikkat edilmesi gereken noktalar" bölümü
+
+**HEDEF**: Bu dokümanı okuyan herkes (insan ya da AI) projenin nasıl çalıştığını %90+ doğrulukla anlayabilmeli.
+
+**MEVCUT DURUM**: 
+- Modal sistemi yeni organize edildi (4 seviyeli folder structure)
+- Services cleanup yapıldı, 9 dosya silindi, 3 aktif service kaldı
+- Build working, no broken imports
+- Complex project with 60+ components
+
+Lütfen bu bilgiler ışığında detaylı, pratik ve navigasyon kolaylığı sağlayan bir rehber hazırla.

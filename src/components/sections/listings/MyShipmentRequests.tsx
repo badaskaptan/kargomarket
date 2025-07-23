@@ -8,8 +8,8 @@ import {
 import { useDashboard } from '../../../context/DashboardContext';
 import { useAuth } from '../../../context/SupabaseAuthContext';
 import { ListingService } from '../../../services/listingService';
-import ShipmentRequestDetailModal from '../../modals/ShipmentRequestDetailModal';
-import EditShipmentRequestModal from '../../modals/EditShipmentRequestModal';
+import ShipmentRequestDetailModal from '../../modals/listings/detail/ShipmentRequestDetailModal';
+import EditShipmentRequestModal from '../../modals/listings/edit/EditShipmentRequestModal';
 import ListingCard from '../../common/ListingCard';
 import type { ExtendedListing } from '../../../types/database-types';
 

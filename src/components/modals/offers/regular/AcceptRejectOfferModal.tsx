@@ -11,7 +11,7 @@ import {
   User,
   Star
 } from 'lucide-react';
-import type { ExtendedOffer } from '../../services/offerService';
+import type { ExtendedOffer } from '../../../../services/offerService';
 
 interface AcceptRejectOfferModalProps {
   offer: ExtendedOffer;

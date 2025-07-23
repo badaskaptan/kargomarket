@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Package, MapPin, FileText, Upload, Eye, Download, Trash2, Truck, Ship, Plane, Train } from 'lucide-react';
-import type { TransportService, TransportServiceUpdate } from '../../types/database-types';
-import { supabase, storage } from '../../lib/supabase';
+import type { TransportService, TransportServiceUpdate } from '../../../../types/database-types';
+import { supabase, storage } from '../../../../lib/supabase';
 import toast from 'react-hot-toast';
 
 interface EditTransportServiceModalProps {
