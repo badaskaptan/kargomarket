@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/SupabaseAuthContext';
 import { OfferService, type ExtendedOffer } from '../../services/offerService';
 import { ServiceOfferService } from '../../services/serviceOfferService';
 import type { ExtendedServiceOffer } from '../../types/service-offer-types';
@@ -35,6 +36,9 @@ interface MyOffersSectionProps {
 }
 
 const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
+  // --- AUTH CONTEXT ---
+  const { clearSession } = useAuth();
+  
   // --- STATE TANIMLARI ---
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('received');
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,12 +83,15 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       setIsLoading(true);
       setError(null);
       
+      console.log('🔄 Loading offers for user:', currentUserId);
+      
       // Load regular offers
       const [sent, received] = await Promise.all([
         OfferService.getSentOffers(currentUserId),
         OfferService.getReceivedOffers(currentUserId)
       ]);
       
+      console.log('📊 Regular offers loaded - Sent:', sent.length, 'Received:', received.length);
       setSentOffers(sent);
       setReceivedOffers(received);
 
@@ -94,19 +101,38 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
         ServiceOfferService.getReceivedServiceOffers(currentUserId)
       ]);
       
+      console.log('📊 Service offers loaded - Sent:', sentService.length, 'Received:', receivedService.length);
+      console.log('📋 Received service offers data:', receivedService);
+      
       setSentServiceOffers(sentService);
       setReceivedServiceOffers(receivedService);
 
     } catch (err) {
       console.error('Error loading offers:', err);
-      setError(err instanceof Error ? err.message : 'Bilinmeyen hata oluştu');
+      
+      // Check for auth-related errors
+      const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata oluştu';
+      const isAuthError = errorMessage.includes('token') || 
+                         errorMessage.includes('Invalid Refresh Token') || 
+                         errorMessage.includes('Token Not Found') ||
+                         errorMessage.includes('JWT');
+      
+      if (isAuthError) {
+        console.log('🔄 Auth error detected, clearing session...');
+        toast.error('Oturum süresi dolmuş, lütfen tekrar giriş yapın');
+        await clearSession();
+        return;
+      }
+      
+      setError(errorMessage);
       toast.error('Teklifler yüklenirken hata oluştu');
     } finally {
       setIsLoading(false);
     }
-  }, [currentUserId]);
+  }, [currentUserId, clearSession]);
 
   useEffect(() => {
+    console.log('🔥 MyOffersSection useEffect triggered, currentUserId:', currentUserId);
     if (currentUserId) {
       loadOffers();
     }
@@ -301,10 +327,140 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
     }
   }, [loadOffers]);
 
+  // DEBUG: Tüm veriyi log'la
+  const debugAllData = async () => {
+    console.log('🔍 DEBUG: Manual data check for user:', currentUserId);
+    
+    try {
+      // 1. Transport services check
+      const { data: transportServices } = await supabase
+        .from('transport_services')
+        .select('*')
+        .eq('user_id', currentUserId);
+        
+      console.log('🚛 User transport services:', transportServices?.length || 0, transportServices);
+      
+      // 2. SPECIFIC OFFER CHECK - Look for the expected offer
+      console.log('🎯 SPECIFIC OFFER CHECK: Looking for offer 28bd21fa-c717-4734-9c7c-0d83f11c3533');
+      const { data: specificOffer } = await supabase
+        .from('service_offers')
+        .select(`
+          *,
+          transport_service:transport_services (
+            id,
+            service_number,
+            title,
+            user_id
+          )
+        `)
+        .eq('id', '28bd21fa-c717-4734-9c7c-0d83f11c3533');
+        
+      console.log('🎯 Specific offer result:', specificOffer?.length || 0, specificOffer);
+      
+      if (transportServices && transportServices.length > 0) {
+        const serviceIds = transportServices.map(s => s.id);
+        console.log('📋 Service IDs to check:', serviceIds);
+        
+        // 3. Service offers to these services (should be received offers)
+        const { data: receivedOffers } = await supabase
+          .from('service_offers')
+          .select(`
+            *,
+            transport_service:transport_services (
+              id,
+              service_number,
+              title,
+              user_id
+            )
+          `)
+          .in('transport_service_id', serviceIds)
+          .neq('user_id', currentUserId);
+          
+        console.log('📥 Raw received service offers:', receivedOffers?.length || 0, receivedOffers);
+        
+        // 3. Service offers to these services (ALL offers including user's own)
+        const { data: allOffersToServices } = await supabase
+          .from('service_offers')
+          .select(`
+            *,
+            transport_service:transport_services (
+              id,
+              service_number,
+              title,
+              user_id
+            )
+          `)
+          .in('transport_service_id', serviceIds);
+          
+        console.log('📊 ALL offers to user services (including own):', allOffersToServices?.length || 0, allOffersToServices);
+        
+        if (allOffersToServices && allOffersToServices.length > 0) {
+          allOffersToServices.forEach((offer, index) => {
+            console.log(`  🔍 Offer ${index + 1}:`, {
+              id: offer.id,
+              message: offer.message?.substring(0, 50) + '...',
+              price_amount: offer.price_amount,
+              transport_service_id: offer.transport_service_id,
+              transport_service_title: offer.transport_service?.title,
+              offer_creator: offer.user_id,
+              transport_service_owner: offer.transport_service?.user_id,
+              current_user: currentUserId,
+              is_own_offer: offer.user_id === currentUserId,
+              should_be_received: offer.user_id !== currentUserId
+            });
+          });
+        }
+      } else {
+        console.log('⚠️ User has no transport services, so no received service offers expected');
+      }
+      
+      // 4. All service offers created by current user (sent offers)
+      const { data: sentOffers } = await supabase
+        .from('service_offers')
+        .select(`
+          *,
+          transport_service:transport_services (
+            id,
+            service_number,
+            title,
+            user_id
+          )
+        `)
+        .eq('user_id', currentUserId);
+        
+      console.log('📤 User sent service offers:', sentOffers?.length || 0, sentOffers);
+      
+      // 5. Test the actual service methods
+      console.log('🧪 Testing ServiceOfferService methods:');
+      
+      try {
+        const methodSentOffers = await ServiceOfferService.getSentServiceOffers(currentUserId);
+        console.log('� getSentServiceOffers result:', methodSentOffers.length, methodSentOffers);
+        
+        const methodReceivedOffers = await ServiceOfferService.getReceivedServiceOffers(currentUserId);
+        console.log('📥 getReceivedServiceOffers result:', methodReceivedOffers.length, methodReceivedOffers);
+        
+      } catch (methodError) {
+        console.error('❌ Service method error:', methodError);
+      }
+      
+    } catch (error) {
+      console.error('Debug error:', error);
+    }
+  };
+
   // --- FILTERING ---
   const getFilteredOffers = () => {
     const offers = activeTab === 'sent' ? sentOffers : receivedOffers;
     const serviceOffers = activeTab === 'sent' ? sentServiceOffers : receivedServiceOffers;
+    
+    console.log('🔍 getFilteredOffers called with:', {
+      activeTab,
+      offersCount: offers.length,
+      serviceOffersCount: serviceOffers.length,
+      searchTerm,
+      statusFilter
+    });
     
     const filtered = offers.filter(offer => {
       const searchMatch = searchTerm === '' || 
@@ -324,6 +480,11 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       const statusMatch = statusFilter === '' || offer.status === statusFilter;
       
       return searchMatch && statusMatch;
+    });
+    
+    console.log('📊 Filtered results:', {
+      regularOffers: filtered.length,
+      serviceOffers: filteredService.length
     });
 
     return { offers: filtered, serviceOffers: filteredService };
@@ -393,6 +554,15 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             Gönderdiğim Teklifler
           </button>
         </nav>
+        
+        {/* STATS DISPLAY */}
+        <div className="mb-4">
+          <span className="text-xs text-gray-500">
+            Received Service Offers: {receivedServiceOffers.length} | 
+            Sent Service Offers: {sentServiceOffers.length} | 
+            Total Filtered Service: {filteredServiceOffers.length}
+          </span>
+        </div>
       </div>
 
       {/* Filters */}
@@ -664,6 +834,14 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
         ))}
 
         {/* Empty State */}
+        {(() => {
+          console.log('🔍 Empty state check:', {
+            filteredOffersLength: filteredOffers.length,
+            filteredServiceOffersLength: filteredServiceOffers.length,
+            totalEmpty: filteredOffers.length === 0 && filteredServiceOffers.length === 0
+          });
+          return null;
+        })()}
         {filteredOffers.length === 0 && filteredServiceOffers.length === 0 && (
           <div className="text-center py-12">
             <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />

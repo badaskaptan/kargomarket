@@ -1,0 +1,120 @@
+-- Test için service offer oluştur
+-- Bu kullanıcının transport service'larından birine başka kullanıcıdan teklif yap
+
+INSERT INTO service_offers (
+    transport_service_id,
+    user_id,
+    offer_type,
+    status,
+    message,
+    price_amount,
+    price_currency,
+    price_per,
+    payment_method,
+    payment_terms,
+    service_scope,
+    transport_mode,
+    pickup_date_preferred,
+    delivery_date_preferred,
+    contact_person,
+    contact_phone,
+    transit_time_estimate,
+    cargo_type,
+    expires_at,
+    loading_unloading_included,
+    customs_handling_included,
+    documentation_handling_included,
+    fuel_surcharge_included,
+    port_charges_included,
+    toll_fees_included,
+    airport_charges_included,
+    express_service,
+    weekend_service,
+    temperature_guarantee,
+    on_time_guarantee,
+    damage_free_guarantee,
+    tracking_system_provided
+) VALUES (
+    '0f9e59a3-a7d1-4f3a-bed9-87862cf489ed', -- Senin denizyolu transport service ID'n
+    '08449379-6c07-446d-89c8-997d1ebc1a9f', -- Farklı user ID (teklif veren)
+    'direct_offer',
+    'pending',
+    'Test received service offer - Denizyolu hizmeti için teklif',
+    125000,
+    'TRY',
+    'total',
+    'bank_transfer',
+    'after_delivery',
+    'door_to_door',
+    'sea',
+    '2025-07-25T00:00:00+00:00',
+    '2025-07-28T00:00:00+00:00',
+    'Test Müşteri',
+    '+905551234567',
+    '3',
+    'container',
+    '2025-08-25T00:00:00+00:00',
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    true,
+    true
+),
+(
+    '2fd57541-ffce-4ba8-93af-48766709d57f', -- Senin karayolu transport service ID'n
+    '08449379-6c07-446d-89c8-997d1ebc1a9f', -- Farklı user ID (teklif veren)
+    'direct_offer',
+    'pending',
+    'Test received service offer - Karayolu hizmeti için teklif',
+    85000,
+    'TRY',
+    'total',
+    'bank_transfer',
+    'before_delivery',
+    'door_to_door',
+    'road',
+    '2025-07-26T00:00:00+00:00',
+    '2025-07-27T00:00:00+00:00',
+    'Test Müşteri 2',
+    '+905559876543',
+    '1',
+    'general_cargo',
+    '2025-08-26T00:00:00+00:00',
+    true,
+    false,
+    true,
+    true,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    true,
+    true,
+    true
+);
+
+-- Kontrol sorgusu
+SELECT 
+    so.id,
+    so.message,
+    so.price_amount,
+    so.transport_service_id,
+    so.user_id as offer_creator,
+    ts.user_id as transport_service_owner,
+    ts.title as service_title,
+    ts.service_number
+FROM service_offers so
+JOIN transport_services ts ON so.transport_service_id = ts.id
+WHERE ts.user_id = '1cc5549f-2826-43f9-b378-a3861b5af9e7'  -- Senin user ID'n
+AND so.user_id != '1cc5549f-2826-43f9-b378-a3861b5af9e7'   -- Başkası tarafından yapılan teklifler
+ORDER BY so.created_at DESC;

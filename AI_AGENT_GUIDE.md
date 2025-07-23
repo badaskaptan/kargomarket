@@ -26,6 +26,58 @@
 
 ---
 
+## 🚨 **CRITICAL DEBUGGING LESSONS LEARNED** (Updated: July 24, 2025)
+
+### 🔍 **RLS (Row Level Security) Policy Issues**
+**Problem**: Service offers not displaying in "Aldığım Teklifler" tab
+**Root Cause**: RLS policies referencing wrong table (`listings` instead of `transport_services`)
+**Solution Pattern**:
+```sql
+-- ❌ WRONG: Looking at listings table
+auth.uid() IN (SELECT user_id FROM listings WHERE id = service_offers.transport_service_id)
+
+-- ✅ CORRECT: Should look at transport_services table  
+auth.uid() IN (SELECT user_id FROM transport_services WHERE id = service_offers.transport_service_id)
+```
+
+**Debugging Steps**:
+1. Check if service methods return empty arrays despite UI showing data
+2. Verify RLS policies reference correct tables
+3. Test with direct SQL queries in Supabase Dashboard
+4. Fix policies and verify with debug functions
+
+### 🔐 **Authentication Token Issues**
+**Problem**: "Invalid Refresh Token" and "Token Not Found" errors
+**Root Cause**: Corrupted localStorage or expired sessions
+**Solution Pattern**:
+```typescript
+// Add session clearing function
+const clearSession = async () => {
+  const keys = Object.keys(localStorage);
+  keys.forEach(key => {
+    if (key.includes('supabase') || key.includes('auth-token')) {
+      localStorage.removeItem(key);
+    }
+  });
+  await supabase.auth.signOut();
+};
+```
+
+### 🧪 **Service Method Testing Strategy**
+**Essential Debug Pattern**:
+```typescript
+// Always add session validation in service methods
+const { data: { session } } = await supabase.auth.getSession();
+console.log('🔑 Current session:', { 
+  userId: session?.user?.id, 
+  hasToken: !!session?.access_token,
+  paramUserId: userId,
+  userIdMatch: session?.user?.id === userId
+});
+```
+
+---
+
 ## 📋 Quick Project Overview
 
 **Project Type**: React TypeScript + Vite + Supabase  
@@ -72,7 +124,31 @@ kargomark/
 Located in `src/services/`:
 - **`listingService.ts`** (670 lines) - CRUD operations for listings (loads, shipments, transport services)
 - **`offerService.ts`** (365 lines) - Regular offer management
-- **`serviceOfferService.ts`** (325 lines) - Enhanced service offer operations
+- **`serviceOfferService.ts`** (400 lines) - **Enhanced service offer operations with debugging**
+
+#### 🔧 **ServiceOfferService Key Methods** (Recently Fixed & Enhanced):
+```typescript
+// Core methods with authentication validation
+static async getSentServiceOffers(userId: string): Promise<ExtendedServiceOffer[]>
+static async getReceivedServiceOffers(userId: string): Promise<ExtendedServiceOffer[]>
+static async createServiceOffer(offerData: ServiceOfferInsert): Promise<ServiceOffer>
+static async withdrawServiceOffer(offerId: string): Promise<ServiceOffer>
+
+// Authentication session logging added for debugging
+const { data: { session } } = await supabase.auth.getSession();
+console.log('🔑 Current session:', { 
+  userId: session?.user?.id, 
+  hasToken: !!session?.access_token,
+  paramUserId: userId,
+  userIdMatch: session?.user?.id === userId
+});
+```
+
+**Critical Implementation Notes**:
+- `getReceivedServiceOffers()` depends on correct RLS policies
+- All methods include comprehensive error logging
+- Session validation prevents authentication issues
+- Uses `transport_services` table for relationships (NOT `listings`)
 
 ---
 
@@ -216,17 +292,41 @@ const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
 ### **Key Tables**:
 1. **`listings`** - Load requests, shipment requests, transport services
 2. **`offers`** - Regular offers for listings
-3. **`service_offers`** - Enhanced offers for transport services
+3. **`service_offers`** - Enhanced offers for transport services ⚠️ **RLS Critical**
 4. **`profiles`** - User profile information
+5. **`transport_services`** - Dedicated transport service table ⚠️ **RLS Reference**
+
+### **🚨 Critical Table Relationships**:
+```sql
+-- service_offers references transport_services (NOT listings!)
+service_offers.transport_service_id → transport_services.id
+
+-- RLS Policies MUST reference correct tables:
+-- ✅ CORRECT: transport_services table
+CREATE POLICY "Users can view offers on their transport services" ON service_offers
+FOR SELECT USING (
+    auth.uid() IN (
+        SELECT user_id FROM transport_services 
+        WHERE id = service_offers.transport_service_id
+    )
+);
+
+-- ❌ WRONG: Do NOT reference listings table for service_offers
+-- This causes getReceivedServiceOffers() to return empty arrays
+```
 
 ### **Service Layer Pattern**:
 ```typescript
-// All services follow this pattern
+// All services follow this pattern with enhanced debugging
 export class ServiceName {
   static async create(data: InsertType): Promise<RowType>
   static async getById(id: string): Promise<RowType | null>
   static async update(id: string, data: UpdateType): Promise<RowType>
   static async delete(id: string): Promise<boolean>
+  
+  // NEW: Always validate session for debugging
+  const { data: { session } } = await supabase.auth.getSession();
+  console.log('🔑 Session validation:', { userId: session?.user?.id });
 }
 ```
 
@@ -319,6 +419,7 @@ export class ServiceName {
 4. **Type Safety**: Enhanced formatDate function to handle undefined values
 5. **Modal Organization**: Cleaned duplicate modals from root directory, enforced proper separation
 6. **Data Isolation**: Confirmed no cross-contamination between listing and offer detail systems
+7. **Received Service Offers Bug**: Fixed getReceivedServiceOffers to query transport_services table instead of listings table for proper offer retrieval
 
 ### **🔄 Ongoing Technical Debt**:
 1. **Inline Functions**: Some components have duplicate inline functions (e.g., file upload in transport service creation)
@@ -373,11 +474,15 @@ npm run lint
 
 ---
 
-**Last Updated**: July 23, 2025  
-**Version**: Enhanced Service Offer System + Full Schema Coverage  
+**Last Updated**: July 24, 2025  
+**Version**: RLS Debugging Lessons + Authentication Fix Patterns  
 **Maintainer**: AI-Assistant Ready Documentation
 
-> 💡 **Pro Tip for AI Agents**: When making changes, always verify import paths, use proper types, and follow the established service layer patterns. The ServiceOfferDetailModal now serves as a reference for comprehensive data display - it shows ALL Supabase fields with proper formatting for different data types (text, dates, booleans, JSON objects).
+> 💡 **Pro Tip for AI Agents**: When debugging missing data issues, always check:
+> 1. **RLS Policies** - Verify they reference correct tables
+> 2. **Authentication State** - Add session logging to service methods  
+> 3. **Table Relationships** - Ensure foreign keys match expected schema
+> 4. **Direct SQL Testing** - Test queries in Supabase Dashboard first
 
 ---
 
@@ -385,13 +490,22 @@ npm run lint
 
 ### 🔍 **Before Starting Any Task**:
 - [ ] Review this guide for current project structure
+- [ ] Check for recent RLS/Authentication lessons learned
 - [ ] Verify import paths match the documented patterns
 - [ ] Check if similar functionality already exists
 - [ ] Understand the data flow for the area you're working on
 
+### 🐛 **When Debugging Data Issues**:
+- [ ] Add session validation logging to service methods
+- [ ] Check RLS policies in Supabase Dashboard
+- [ ] Verify table relationships match expected schema
+- [ ] Test with direct SQL queries first
+- [ ] Create debug functions in UI components
+
 ### ✅ **After Completing Any Task**:
 - [ ] Update this guide if any structural changes were made
-- [ ] Document new patterns or workflows introduced
+- [ ] Document new debugging patterns discovered
+- [ ] Update RLS policy references if tables changed
 - [ ] Verify all import paths are still accurate
 - [ ] Test that builds still work correctly
 - [ ] Add any new pitfalls or solutions discovered

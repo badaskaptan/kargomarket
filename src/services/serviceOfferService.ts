@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase';
 import type { ServiceOffer, ServiceOfferInsert, ServiceOfferUpdate, ExtendedServiceOffer } from '../types/service-offer-types';
 
 export class ServiceOfferService {
-  // Kullanıcının verdiği service tekliflerini getir (sent service offers)
+  // Kullanıcının gönderdiği service tekliflerini getir (sent service offers)
   static async getSentServiceOffers(userId: string): Promise<ExtendedServiceOffer[]> {
     console.log('📤 Fetching sent service offers for user:', userId);
 
@@ -28,7 +28,8 @@ export class ServiceOfferService {
         throw new Error(`Sent service offers fetch failed: ${offersError.message}`);
       }
 
-      console.log('✅ Service offers with transport_service data fetched:', offers?.length || 0);
+      console.log('✅ Sent service offers with transport_service data fetched:', offers?.length || 0);
+      console.log('📊 Raw sent service offers data:', offers);
 
       if (!offers || offers.length === 0) {
         console.log('✅ No sent service offers found');
@@ -57,10 +58,9 @@ export class ServiceOfferService {
     try {
       // Önce kullanıcının transport service'lerini bul
       const { data: userServices, error: userServicesError } = await supabase
-        .from('listings')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('listing_type', 'transport_service');
+        .from('transport_services')
+        .select('id, title, service_number')
+        .eq('user_id', userId);
 
       if (userServicesError) {
         console.error('❌ User transport services fetch failed:', userServicesError);
@@ -68,6 +68,7 @@ export class ServiceOfferService {
       }
 
       console.log('✅ User transport services fetched:', userServices?.length || 0);
+      console.log('📊 Raw user transport services:', userServices);
 
       if (!userServices || userServices.length === 0) {
         console.log('✅ No user transport services found');
@@ -75,6 +76,8 @@ export class ServiceOfferService {
       }
 
       const serviceIds = userServices.map(service => service.id);
+      console.log('🔍 Service IDs to query for received offers:', serviceIds);
+      console.log('🔍 Query logic: Looking for service_offers where transport_service_id IN', serviceIds, 'AND user_id !=', userId);
 
       // Bu hizmetlere gelen teklifleri al (kendi verdiği teklifler hariç)
       const { data: offers, error: offersError } = await supabase
@@ -91,7 +94,7 @@ export class ServiceOfferService {
           )
         `)
         .in('transport_service_id', serviceIds)
-        .neq('user_id', userId) // Kullanıcının kendi verdiği teklifleri hariç tut
+        .neq('user_id', userId) // Kendi verdiği teklifler hariç
         .order('created_at', { ascending: false });
 
       if (offersError) {
@@ -100,15 +103,40 @@ export class ServiceOfferService {
       }
 
       console.log('✅ Received service offers with transport_service data fetched:', offers?.length || 0);
+      console.log('📊 Raw received service offers data:', offers);
+      
+      // Debug: Check each offer individually
+      if (offers && offers.length > 0) {
+        offers.forEach((offer, index) => {
+          console.log(`🔍 Offer ${index + 1}:`, {
+            id: offer.id,
+            message: offer.message,
+            price_amount: offer.price_amount,
+            transport_service_id: offer.transport_service_id,
+            offer_user_id: offer.user_id,
+            transport_service_owner: offer.transport_service?.user_id,
+            current_user: userId,
+            should_be_received: offer.transport_service?.user_id === userId && offer.user_id !== userId
+          });
+        });
+      }
 
       if (!offers || offers.length === 0) {
-        console.log('✅ No received service offers found');
+        console.log('⚠️ No received service offers found - but database shows data exists!');
+        console.log('🔍 Double-checking with direct query...');
+        
+        // Direct query for debugging
+        const { data: directQuery } = await supabase
+          .from('service_offers')
+          .select('*')
+          .in('transport_service_id', serviceIds);
+          
+        console.log('🔍 Direct query result:', directQuery?.length || 0, directQuery);
         return [];
       }
 
       const extendedOffers: ExtendedServiceOffer[] = offers.map(offer => ({
         ...offer,
-        transport_service: null,
         service_owner: null,
         sender: null
       }));
@@ -118,6 +146,7 @@ export class ServiceOfferService {
 
     } catch (error) {
       console.error('❌ Full received service offers error:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
   }
@@ -149,177 +178,213 @@ export class ServiceOfferService {
         throw new Error('Bu nakliye hizmeti aktif değil');
       }
 
+      // Kullanıcının kendi hizmetine teklif vermesini engelle
       if (existingService.user_id === offerData.user_id) {
         throw new Error('Kendi nakliye hizmetinize teklif veremezsiniz');
       }
 
-      console.log('✅ Transport service verified:', existingService);
-
+      // Service offer oluştur
       const { data, error } = await supabase
         .from('service_offers')
-        .insert({
+        .insert([{
           ...offerData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }])
         .select()
         .single();
 
       if (error) {
-        console.error('❌ Service offer creation failed with error:', error);
+        console.error('❌ Service offer creation failed:', error);
         throw new Error(`Service offer creation failed: ${error.message}`);
-      }
-
-      if (!data) {
-        console.error('❌ No data returned from service offer creation');
-        throw new Error('No data returned from service offer creation');
       }
 
       console.log('✅ Service offer created successfully:', data.id);
       return data;
-    } catch (err) {
-      console.error('❌ Exception during service offer creation:', err);
-      throw err;
+
+    } catch (error) {
+      console.error('❌ Full service offer creation error:', error);
+      throw error;
     }
   }
 
   // Service teklifi güncelle
   static async updateServiceOffer(offerId: string, updates: ServiceOfferUpdate): Promise<ServiceOffer> {
-    console.log('📝 Updating service offer:', offerId, updates);
+    console.log('📝 Updating service offer:', offerId, 'with updates:', JSON.stringify(updates, null, 2));
 
-    const { data, error } = await supabase
-      .from('service_offers')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', offerId)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('service_offers')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', offerId)
+        .select()
+        .single();
 
-    if (error) {
-      console.error('❌ Service offer update failed:', error);
-      throw new Error(`Service offer update failed: ${error.message}`);
+      if (error) {
+        console.error('❌ Service offer update failed:', error);
+        throw new Error(`Service offer update failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Service offer not found');
+      }
+
+      console.log('✅ Service offer updated successfully:', data.id);
+      return data;
+
+    } catch (error) {
+      console.error('❌ Full service offer update error:', error);
+      throw error;
     }
-
-    if (!data) {
-      throw new Error('No data returned from service offer update');
-    }
-
-    console.log('✅ Service offer updated successfully:', data.id);
-    return data;
   }
 
   // Service teklifi sil
-  static async deleteServiceOffer(offerId: string): Promise<boolean> {
+  static async deleteServiceOffer(offerId: string): Promise<void> {
     console.log('🗑️ Deleting service offer:', offerId);
 
-    const { error } = await supabase
-      .from('service_offers')
-      .delete()
-      .eq('id', offerId);
+    try {
+      const { error } = await supabase
+        .from('service_offers')
+        .delete()
+        .eq('id', offerId);
 
-    if (error) {
-      console.error('❌ Service offer deletion failed:', error);
-      throw new Error(`Service offer deletion failed: ${error.message}`);
+      if (error) {
+        console.error('❌ Service offer deletion failed:', error);
+        throw new Error(`Service offer deletion failed: ${error.message}`);
+      }
+
+      console.log('✅ Service offer deleted successfully:', offerId);
+
+    } catch (error) {
+      console.error('❌ Full service offer deletion error:', error);
+      throw error;
     }
-
-    console.log('✅ Service offer deleted successfully:', offerId);
-    return true;
-  }
-
-  // Service teklifi kabul et
-  static async acceptServiceOffer(offerId: string): Promise<ServiceOffer> {
-    return this.updateServiceOffer(offerId, { status: 'accepted' });
-  }
-
-  // Service teklifi reddet
-  static async rejectServiceOffer(offerId: string): Promise<ServiceOffer> {
-    return this.updateServiceOffer(offerId, { status: 'rejected' });
   }
 
   // Service teklifi geri çek
   static async withdrawServiceOffer(offerId: string): Promise<ServiceOffer> {
-    return this.updateServiceOffer(offerId, { status: 'withdrawn' });
+    console.log('↩️ Withdrawing service offer:', offerId);
+
+    try {
+      const { data, error } = await supabase
+        .from('service_offers')
+        .update({
+          status: 'withdrawn',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', offerId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Service offer withdrawal failed:', error);
+        throw new Error(`Service offer withdrawal failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('Service offer not found');
+      }
+
+      console.log('✅ Service offer withdrawn successfully:', data.id);
+      return data;
+
+    } catch (error) {
+      console.error('❌ Full service offer withdrawal error:', error);
+      throw error;
+    }
   }
 
-  // Belirli bir transport service için teklifleri getir
-  static async getOffersForTransportService(serviceId: string): Promise<ExtendedServiceOffer[]> {
-    console.log('📋 Fetching offers for transport service:', serviceId);
+  // ID ile service teklifi getir
+  static async getServiceOfferById(offerId: string): Promise<ExtendedServiceOffer | null> {
+    console.log('🔍 Fetching service offer by ID:', offerId);
 
-    const { data, error } = await supabase
-      .from('service_offers')
-      .select(`
-        *,
-        sender:profiles!service_offers_user_id_fkey (
-          id, full_name, company_name, phone, email, avatar_url, rating
-        )
-      `)
-      .eq('transport_service_id', serviceId)
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('service_offers')
+        .select(`
+          *,
+          transport_service:transport_services (
+            id,
+            service_number,
+            title,
+            origin,
+            destination,
+            user_id
+          )
+        `)
+        .eq('id', offerId)
+        .single();
 
-    if (error) {
-      console.error('❌ Service offers fetch failed:', error);
-      throw new Error(`Service offers fetch failed: ${error.message}`);
+      if (error) {
+        console.error('❌ Service offer fetch by ID failed:', error);
+        if (error.code === 'PGRST116') {
+          return null; // Not found
+        }
+        throw new Error(`Service offer fetch failed: ${error.message}`);
+      }
+
+      console.log('✅ Service offer fetched by ID:', data?.id);
+      
+      const extendedOffer: ExtendedServiceOffer = {
+        ...data,
+        service_owner: null,
+        sender: null
+      };
+
+      return extendedOffer;
+
+    } catch (error) {
+      console.error('❌ Full service offer fetch by ID error:', error);
+      throw error;
     }
-
-    console.log('✅ Service offers fetched:', data?.length || 0);
-    return data || [];
   }
 
-  // Service teklif istatistikleri
-  static async getServiceOfferStats(userId: string): Promise<{
-    sent: { total: number; pending: number; accepted: number; rejected: number };
-    received: { total: number; pending: number; accepted: number; rejected: number };
-  }> {
-    console.log('📊 Fetching service offer stats for user:', userId);
+  // Transport service'e gelen tüm teklifleri getir (service owner için)
+  static async getOffersForTransportService(transportServiceId: string): Promise<ExtendedServiceOffer[]> {
+    console.log('📋 Fetching offers for transport service:', transportServiceId);
 
-    // Verilen teklifler
-    const { data: sentOffers, error: sentError } = await supabase
-      .from('service_offers')
-      .select('status')
-      .eq('user_id', userId);
+    try {
+      const { data: offers, error } = await supabase
+        .from('service_offers')
+        .select(`
+          *,
+          transport_service:transport_services (
+            id,
+            service_number,
+            title,
+            origin,
+            destination,
+            user_id
+          )
+        `)
+        .eq('transport_service_id', transportServiceId)
+        .order('created_at', { ascending: false });
 
-    if (sentError) {
-      console.error('❌ Sent service offer stats fetch failed:', sentError);
-      throw new Error(`Sent service offer stats fetch failed: ${sentError.message}`);
+      if (error) {
+        console.error('❌ Transport service offers fetch failed:', error);
+        throw new Error(`Transport service offers fetch failed: ${error.message}`);
+      }
+
+      console.log('✅ Transport service offers fetched:', offers?.length || 0);
+
+      if (!offers || offers.length === 0) {
+        return [];
+      }
+
+      const extendedOffers: ExtendedServiceOffer[] = offers.map(offer => ({
+        ...offer,
+        service_owner: null,
+        sender: null
+      }));
+
+      return extendedOffers;
+
+    } catch (error) {
+      console.error('❌ Full transport service offers fetch error:', error);
+      throw error;
     }
-
-    // Alınan teklifler - önce kullanıcının transport service'lerini al
-    const { data: userServices, error: servicesError } = await supabase
-      .from('listings')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('listing_type', 'transport_service');
-
-    if (servicesError) {
-      console.error('❌ User transport services fetch failed:', servicesError);
-      throw new Error(`User transport services fetch failed: ${servicesError.message}`);
-    }
-
-    const serviceIds = userServices?.map(service => service.id) || [];
-
-    const { data: receivedOffers, error: receivedError } = await supabase
-      .from('service_offers')
-      .select('status')
-      .in('transport_service_id', serviceIds);
-
-    if (receivedError) {
-      console.error('❌ Received service offer stats fetch failed:', receivedError);
-      throw new Error(`Received service offer stats fetch failed: ${receivedError.message}`);
-    }
-
-    // İstatistikleri hesapla
-    const sentStats = this.calculateStats(sentOffers || []);
-    const receivedStats = this.calculateStats(receivedOffers || []);
-
-    console.log('✅ Service offer stats calculated:', { sent: sentStats, received: receivedStats });
-    return { sent: sentStats, received: receivedStats };
-  }
-
-  private static calculateStats(offers: { status: string }[]) {
-    return {
-      total: offers.length,
-      pending: offers.filter(o => o.status === 'pending').length,
-      accepted: offers.filter(o => o.status === 'accepted').length,
-      rejected: offers.filter(o => o.status === 'rejected').length
-    };
   }
 }

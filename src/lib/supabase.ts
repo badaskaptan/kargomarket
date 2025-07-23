@@ -68,6 +68,28 @@ export const auth = {
     return { error }
   },
 
+  // Clear invalid session and tokens
+  clearSession: async () => {
+    console.log('🧹 Clearing invalid session and tokens');
+    try {
+      // Clear all auth-related localStorage
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.includes('supabase') || key.includes('auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      console.log('✅ Session cleared successfully');
+      return { error: null };
+    } catch (error) {
+      console.error('❌ Error clearing session:', error);
+      return { error };
+    }
+  },
+
   // Get current session
   getSession: async () => {
     const { data: { session }, error } = await supabase.auth.getSession()

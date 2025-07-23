@@ -13,6 +13,7 @@ interface AuthContextType {
   register: (fullName: string, email: string, password: string) => Promise<void>;
   googleLogin: () => Promise<void>;
   logout: () => Promise<void>;
+  clearSession: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
@@ -271,6 +272,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const clearSession = async () => {
+    setLoading(true);
+    try {
+      console.log('🧹 Clearing corrupted session...');
+      
+      // Clear session from auth helper
+      await auth.clearSession();
+      
+      // Reset all state
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      
+      console.log('✅ Session cleared, please login again');
+    } catch (error) {
+      console.error('❌ Clear session error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
     
@@ -303,6 +326,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     googleLogin,
     logout,
+    clearSession,
     updateProfile
   };
 
