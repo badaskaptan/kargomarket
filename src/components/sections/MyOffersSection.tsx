@@ -196,6 +196,31 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
     }
   }, [loadOffers, closeAllModals]);
 
+  // --- WITHDRAW HANDLERS ---
+  const handleWithdrawOffer = useCallback(async (offerId: string) => {
+    try {
+      await OfferService.withdrawOffer(offerId);
+      toast.success('Teklif geri çekildi');
+      await loadOffers();
+      closeAllModals();
+    } catch (error) {
+      console.error('Error withdrawing offer:', error);
+      toast.error('Teklif geri çekilirken hata oluştu');
+    }
+  }, [loadOffers, closeAllModals]);
+
+  const handleWithdrawServiceOffer = useCallback(async (offerId: string) => {
+    try {
+      await ServiceOfferService.withdrawServiceOffer(offerId);
+      toast.success('Nakliye hizmeti teklifi geri çekildi');
+      await loadOffers();
+    } catch (error) {
+      console.error('Error withdrawing service offer:', error);
+      toast.error('Nakliye hizmeti teklifi geri çekilirken hata oluştu');
+      throw error; // ServiceOfferDetailModal error handling için
+    }
+  }, [loadOffers]);
+
   // --- SERVICE OFFER HANDLERS ---
   const handleAcceptServiceOffer = useCallback(async (offerId: string) => {
     try {
@@ -657,6 +682,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             currentUserId={currentUserId}
             isOpen={detailModalOpen}
             onClose={closeAllModals}
+            onWithdraw={handleWithdrawOffer}
           />
           
           <EditOfferModal
@@ -685,6 +711,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             currentUserId={currentUserId}
             isOpen={serviceDetailModalOpen}
             onClose={closeAllModals}
+            onWithdraw={handleWithdrawServiceOffer}
           />
           
           {/* Service Offer Accept/Reject Modal */}

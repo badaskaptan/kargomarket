@@ -78,31 +78,63 @@ Located in `src/services/`:
 
 ## 📂 Component Organization
 
-### **Modal System** (Recently Reorganized)
+### **Modal System** (Recently Reorganized & Enhanced)
 ```
 src/components/modals/
 ├── listings/
-│   ├── detail/             # View-only modals
-│   │   ├── LoadListingDetailModal.tsx
-│   │   ├── ShipmentRequestDetailModal.tsx
-│   │   └── TransportServiceDetailModal.tsx
-│   └── edit/               # Edit modals
+│   ├── detail/             # View-only modals for LISTING previews
+│   │   ├── LoadListingDetailModal.tsx (Yük İlanları)
+│   │   ├── ShipmentRequestDetailModal.tsx (Nakliye Talebi)
+│   │   └── TransportServiceDetailModal.tsx (Nakliye Hizmeti)
+│   └── edit/               # Edit modals (Step-by-step, compact design)
 │       ├── EditLoadListingModal.tsx
 │       ├── EditShipmentRequestModal.tsx
-│       └── EditTransportServiceModal.tsx
+│       ├── EditTransportServiceModal.tsx (2-step modal)
+│       └── EditServiceOfferModal.tsx (2-step, next/update separation)
 ├── offers/
-│   ├── regular/            # Standard offer modals
+│   ├── regular/            # Standard offer modals for OFFERS table
 │   │   ├── AcceptRejectOfferModal.tsx
 │   │   ├── CreateOfferModal.tsx
 │   │   ├── EditOfferModal.tsx
-│   │   └── OfferDetailModal.tsx
-│   └── service/            # Service offer modals
+│   │   └── OfferDetailModal.tsx (Regular offers from 'offers' table)
+│   └── service/            # Service offer modals for SERVICE_OFFERS table
 │       ├── EnhancedServiceOfferModal.tsx
 │       ├── ServiceOfferAcceptRejectModal.tsx
-│       └── ServiceOfferDetailModal.tsx
+│       ├── ServiceOfferDetailModal.tsx (Service offers from 'service_offers' table)
+│       └── EditServiceOfferModal.tsx
 └── unused/                 # Deprecated components
     └── CreateServiceOfferModal.tsx
 ```
+
+#### **🚨 CRITICAL MODAL SEPARATION**:
+**Two completely separate systems to prevent data confusion:**
+
+1. **LISTING DETAIL MODALS** (İlan Önizleme):
+   - Purpose: Display listing information (loads, shipments, transport services)
+   - Data Source: `listings` table
+   - Usage: When user clicks to preview a listing
+
+2. **OFFER DETAIL MODALS** (Teklif Önizleme):
+   - Purpose: Display offer information 
+   - Data Sources: `offers` table (regular) + `service_offers` table (enhanced)
+   - Usage: When user clicks to preview an offer made ON a listing
+
+#### **Recent Modal Enhancements (July 2025)**:
+- **EditServiceOfferModal**: Converted to 2-step modal with separate "Next" and "Update" buttons
+- **ServiceOfferDetailModal**: Fully enhanced to display ALL Supabase service_offers table fields including:
+  - All text fields (payment_terms, transport_mode, cargo_type, etc.)
+  - All date fields with proper formatting
+  - All boolean fields with checkbox display
+  - JSON fields (additional_services, price_breakdown, etc.) with formatted display
+  - File attachments with clickable links
+  - Complete transport service and user profile information
+  - **Withdraw functionality**: Added "Teklifi Geri Çek" button for offer owners with pending status
+- **Modal Cleanup**: Removed duplicate modals from root `/modals/` directory
+- **Withdraw System**: All offer detail modals now have proper withdraw functionality:
+  - Regular offers: Uses `OfferService.withdrawOffer()`
+  - Service offers: Uses `ServiceOfferService.withdrawServiceOffer()`
+  - Proper error handling and user confirmation dialogs
+  - Status updates to 'withdrawn' in database
 
 ### **Page Components**
 ```
@@ -228,10 +260,16 @@ export class ServiceName {
 - Service imports are exact: `../../../services/serviceName`
 - Context imports: `../../../context/ContextName`
 
+### **Modal System Architecture**:
+- **NEVER confuse listing detail modals with offer detail modals**
+- Listing details show the original posting (load, shipment, transport service)
+- Offer details show proposals made ON those postings
+- Two separate database tables: `listings` vs `offers`/`service_offers`
+
 ### **Type Safety**:
 - Always use proper types from `database-types.ts` or `service-offer-types.ts`
-- `ExtendedListing` includes joined profile data
-- `ExtendedOffer` and `ExtendedServiceOffer` are service-specific
+- `ExtendedListing` includes joined profile data (for listing details)
+- `ExtendedOffer` and `ExtendedServiceOffer` are service-specific (for offer details)
 
 ### **State Management**:
 - User state: Use `useAuth()` hook
@@ -251,26 +289,52 @@ export class ServiceName {
 **Problem**: Modals moved to organized folders  
 **Solution**: Use the correct new paths from the modal organization
 
-### **2. Type Mismatches**:
+### **2. Modal Confusion (CRITICAL)**:
+**Problem**: Using wrong modal for listings vs offers  
+**Solution**: 
+- Use `listings/detail/` modals for showing listing information
+- Use `offers/regular/` or `offers/service/` modals for showing offer information
+- **NEVER mix these - they use different database tables!**
+
+### **3. Type Mismatches**:
 **Problem**: Using wrong type for different offer types  
 **Solution**: `ExtendedOffer` for regular offers, `ExtendedServiceOffer` for service offers
 
-### **3. State Not Updating**:
+### **4. State Not Updating**:
 **Problem**: Component not re-rendering after data changes  
 **Solution**: Ensure proper `onSuccess` callbacks in modals to refresh parent data
 
-### **4. Authentication Issues**:
+### **5. Authentication Issues**:
 **Problem**: Operations failing due to missing user  
 **Solution**: Always check `if (!user)` before database operations
 
 ---
 
-## 🔍 Current Technical Debt
+## 🔍 Current Technical Debt & Recent Improvements
 
+### **✅ Recently Resolved**:
+1. **Modal JSX Structure**: ServiceOfferDetailModal completely rebuilt with proper JSX hierarchy
+2. **Supabase Schema Coverage**: ServiceOfferDetailModal now displays ALL table fields
+3. **Step-by-step Modals**: EditServiceOfferModal converted to 2-step process with proper UX
+4. **Type Safety**: Enhanced formatDate function to handle undefined values
+5. **Modal Organization**: Cleaned duplicate modals from root directory, enforced proper separation
+6. **Data Isolation**: Confirmed no cross-contamination between listing and offer detail systems
+
+### **🔄 Ongoing Technical Debt**:
 1. **Inline Functions**: Some components have duplicate inline functions (e.g., file upload in transport service creation)
 2. **Type Consistency**: Some components use `any` types instead of proper typing
 3. **Error Handling**: Not all service calls have comprehensive error handling
 4. **Performance**: Large bundle size due to Lucide React icons
+
+### **🎯 Modal System Status**:
+- **Listing Detail Modals**: ✅ Properly separated, no confusion with offers
+- **ServiceOfferDetailModal**: ✅ Complete Supabase schema coverage, all fields displayed, withdraw functionality implemented
+- **OfferDetailModal**: ✅ Handles regular offers correctly, withdraw functionality implemented
+- **EditServiceOfferModal**: ✅ 2-step modal with proper next/update button separation
+- **Data Display**: JSON fields formatted with proper indentation, boolean fields as checkboxes
+- **User Experience**: Compact, step-by-step design for better mobile compatibility
+- **Architecture**: ✅ No modal confusion - listings vs offers completely separated
+- **Withdraw System**: ✅ All offer modals have proper withdraw buttons with confirmation dialogs and error handling
 
 ---
 
@@ -309,11 +373,11 @@ npm run lint
 
 ---
 
-**Last Updated**: July 2025  
-**Version**: Post-Modal-Reorganization  
+**Last Updated**: July 23, 2025  
+**Version**: Enhanced Service Offer System + Full Schema Coverage  
 **Maintainer**: AI-Assistant Ready Documentation
 
-> 💡 **Pro Tip for AI Agents**: When making changes, always verify import paths, use proper types, and follow the established service layer patterns. This project has grown complex but follows consistent patterns throughout.
+> 💡 **Pro Tip for AI Agents**: When making changes, always verify import paths, use proper types, and follow the established service layer patterns. The ServiceOfferDetailModal now serves as a reference for comprehensive data display - it shows ALL Supabase fields with proper formatting for different data types (text, dates, booleans, JSON objects).
 
 ---
 
