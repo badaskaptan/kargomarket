@@ -25,6 +25,7 @@ import EditOfferModal from '../modals/offers/regular/EditOfferModal';
 import AcceptRejectOfferModal from '../modals/offers/regular/AcceptRejectOfferModal';
 import ServiceOfferDetailModal from '../modals/offers/service/ServiceOfferDetailModal';
 import ServiceOfferAcceptRejectModal from '../modals/offers/service/ServiceOfferAcceptRejectModal';
+import EditServiceOfferModal from '../modals/offers/service/EditServiceOfferModal';
 import type { Database } from '../../types/database-types';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
@@ -58,6 +59,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   // Service Offer specific states
   const [serviceDetailModalOpen, setServiceDetailModalOpen] = useState(false);
   const [serviceAcceptRejectModalOpen, setServiceAcceptRejectModalOpen] = useState(false);
+  const [serviceEditModalOpen, setServiceEditModalOpen] = useState(false);
 
   // --- HELPER FUNCTIONS ---
   const closeAllModals = useCallback(() => {
@@ -613,8 +615,8 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                 {activeTab === 'sent' && offer.status === 'pending' && (
                   <button
                     onClick={() => {
-                      console.log('Service offer edit clicked:', offer);
-                      toast.success('Nakliye hizmeti teklifleri henüz düzenlenemiyor. Yakında geliyor!');
+                      setSelectedOffer(offer);
+                      setServiceEditModalOpen(true);
                     }}
                     className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100"
                   >
@@ -703,6 +705,16 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
           isOpen={createModalOpen}
           onClose={closeAllModals}
           onSubmit={loadOffers}
+        />
+      )}
+
+      {/* Render EditServiceOfferModal for service offers */}
+      {serviceEditModalOpen && selectedOffer && 'transport_service_id' in selectedOffer && (
+        <EditServiceOfferModal
+          offer={selectedOffer as ExtendedServiceOffer}
+          isOpen={serviceEditModalOpen}
+          onClose={() => setServiceEditModalOpen(false)}
+          onSuccess={loadOffers}
         />
       )}
     </div>
