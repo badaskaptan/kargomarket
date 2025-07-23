@@ -328,6 +328,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   }, [loadOffers]);
 
   // DEBUG: Tüm veriyi log'la
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const debugAllData = async () => {
     console.log('🔍 DEBUG: Manual data check for user:', currentUserId);
     
