@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { conversationService } from '../services/conversationService.ts';
 import { messageService } from '../services/messageService.ts';
-import type { Conversation, ExtendedMessage } from '../types/messaging-types.ts';
+import type { ExtendedConversation, ExtendedMessage } from '../types/messaging-types.ts';
 
 export function useMessaging(currentUserId: string | null) {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<ExtendedConversation[]>([]);
   const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

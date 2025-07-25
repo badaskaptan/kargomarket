@@ -12,6 +12,7 @@ import CreateAdSection from './sections/CreateAdSection';
 import MyReviewsSection from './sections/MyReviewsSection';
 import ProfileSection from './sections/ProfileSection';
 import SettingsSection from './sections/SettingsSection';
+import MessagesSection from './sections/MessagesSection';
 
 const MainContent: React.FC = () => {
   const { activeSection } = useDashboard();
@@ -32,7 +33,7 @@ const MainContent: React.FC = () => {
       case 'my-offers':
         return user?.id ? <MyOffersSectionComponent currentUserId={user.id} /> : null;
       case 'messages':
-        return <div className="p-6"><h2 className="text-xl font-bold">Mesajlar - Yakında</h2><p>Mesajlaşma sistemi aktif edilecek.</p></div>;
+        return <MessagesSection />;
       case 'my-ads':
         return <MyAdsSection />;
       case 'create-ad':

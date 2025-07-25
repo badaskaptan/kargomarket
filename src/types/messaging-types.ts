@@ -40,6 +40,17 @@ export interface ExtendedMessage extends Message {
   };
 }
 
+export interface ExtendedConversation extends Conversation {
+  participants?: Array<{
+    user_id: string;
+    profiles?: {
+      id: string;
+      full_name: string | null;
+      avatar_url: string | null;
+    };
+  }>;
+}
+
 export interface ConversationWithParticipant {
   conversation_id: number;
   conversations: Conversation | null;
@@ -63,7 +74,7 @@ export interface ConversationServiceInterface {
     userId: string
   ): Promise<ConversationParticipant>;
   
-  getUserConversations(userId: string): Promise<Conversation[]>;
+  getUserConversations(userId: string): Promise<ExtendedConversation[]>;
 }
 
 export interface MessageServiceInterface {

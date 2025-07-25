@@ -3,7 +3,8 @@ import type {
   Conversation, 
   ConversationParticipant, 
   ConversationServiceInterface,
-  ConversationWithParticipant 
+  ConversationWithParticipant,
+  ExtendedConversation 
 } from '../types/messaging-types.ts';
 
 export const conversationService: ConversationServiceInterface = {
@@ -132,9 +133,9 @@ export const conversationService: ConversationServiceInterface = {
   },
 
   /**
-   * Kullanıcının tüm konuşmalarını getirir
+   * Kullanıcının tüm konuşmalarını getirir (participants dahil)
    */
-  async getUserConversations(userId: string): Promise<Conversation[]> {
+  async getUserConversations(userId: string): Promise<ExtendedConversation[]> {
     try {
       console.log('📋 Getting conversations for user:', userId);
       
@@ -161,8 +162,37 @@ export const conversationService: ConversationServiceInterface = {
         throw error;
       }
 
-      console.log(`✅ Found ${data?.length || 0} conversations`);
-      return data?.map(item => item.conversations).filter((conv): conv is Conversation => conv !== null) || [];
+      // Her konuşma için participants bilgisini de al
+      const conversations = data?.map(item => item.conversations).filter((conv): conv is Conversation => conv !== null) || [];
+      
+      const extendedConversations: ExtendedConversation[] = [];
+      for (const conversation of conversations) {
+        const { data: participantsData, error: participantsError } = await supabase
+          .from('conversation_participants')
+          .select(`
+            user_id,
+            profiles:user_id (
+              id,
+              full_name,
+              avatar_url
+            )
+          `)
+          .eq('conversation_id', conversation.id)
+          .eq('is_active', true);
+
+        if (participantsError) {
+          console.error('❌ Error getting participants:', participantsError);
+          continue;
+        }
+
+        extendedConversations.push({
+          ...conversation,
+          participants: (participantsData as unknown) as ExtendedConversation['participants']
+        });
+      }
+
+      console.log(`✅ Found ${extendedConversations.length} conversations with participants`);
+      return extendedConversations;
     } catch (error) {
       console.error('❌ getUserConversations error:', error);
       throw error;
