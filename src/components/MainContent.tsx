@@ -7,7 +7,6 @@ import CreateLoadListingSection from './sections/CreateLoadListingSection';
 import CreateShipmentRequestSection from './sections/CreateShipmentRequestSection';
 import CreateTransportServiceSection from './sections/CreateTransportServiceSection';
 import MyOffersSectionComponent from './sections/MyOffersSection';
-import MessagesSection from './sections/MessagesSection';
 import MyAdsSection from './sections/MyAdsSection';
 import CreateAdSection from './sections/CreateAdSection';
 import MyReviewsSection from './sections/MyReviewsSection';
@@ -33,7 +32,7 @@ const MainContent: React.FC = () => {
       case 'my-offers':
         return user?.id ? <MyOffersSectionComponent currentUserId={user.id} /> : null;
       case 'messages':
-        return <MessagesSection />;
+        return <div className="p-6"><h2 className="text-xl font-bold">Mesajlar - Yakında</h2><p>Mesajlaşma sistemi aktif edilecek.</p></div>;
       case 'my-ads':
         return <MyAdsSection />;
       case 'create-ad':

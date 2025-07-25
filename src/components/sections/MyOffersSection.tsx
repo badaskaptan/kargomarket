@@ -38,7 +38,7 @@ interface MyOffersSectionProps {
 const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   // --- AUTH CONTEXT ---
   const { clearSession } = useAuth();
-  
+
   // --- STATE TANIMLARI ---
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('received');
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,7 +59,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [acceptRejectModalOpen, setAcceptRejectModalOpen] = useState(false);
-  
+
   // Service Offer specific states
   const [serviceDetailModalOpen, setServiceDetailModalOpen] = useState(false);
   const [serviceAcceptRejectModalOpen, setServiceAcceptRejectModalOpen] = useState(false);
@@ -82,15 +82,15 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       console.log('🔄 Loading offers for user:', currentUserId);
-      
+
       // Load regular offers
       const [sent, received] = await Promise.all([
         OfferService.getSentOffers(currentUserId),
         OfferService.getReceivedOffers(currentUserId)
       ]);
-      
+
       console.log('📊 Regular offers loaded - Sent:', sent.length, 'Received:', received.length);
       setSentOffers(sent);
       setReceivedOffers(received);
@@ -100,30 +100,30 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
         ServiceOfferService.getSentServiceOffers(currentUserId),
         ServiceOfferService.getReceivedServiceOffers(currentUserId)
       ]);
-      
+
       console.log('📊 Service offers loaded - Sent:', sentService.length, 'Received:', receivedService.length);
       console.log('📋 Received service offers data:', receivedService);
-      
+
       setSentServiceOffers(sentService);
       setReceivedServiceOffers(receivedService);
 
     } catch (err) {
       console.error('Error loading offers:', err);
-      
+
       // Check for auth-related errors
       const errorMessage = err instanceof Error ? err.message : 'Bilinmeyen hata oluştu';
-      const isAuthError = errorMessage.includes('token') || 
-                         errorMessage.includes('Invalid Refresh Token') || 
-                         errorMessage.includes('Token Not Found') ||
-                         errorMessage.includes('JWT');
-      
+      const isAuthError = errorMessage.includes('token') ||
+        errorMessage.includes('Invalid Refresh Token') ||
+        errorMessage.includes('Token Not Found') ||
+        errorMessage.includes('JWT');
+
       if (isAuthError) {
         console.log('🔄 Auth error detected, clearing session...');
         toast.error('Oturum süresi dolmuş, lütfen tekrar giriş yapın');
         await clearSession();
         return;
       }
-      
+
       setError(errorMessage);
       toast.error('Teklifler yüklenirken hata oluştu');
     } finally {
@@ -331,16 +331,16 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const debugAllData = async () => {
     console.log('🔍 DEBUG: Manual data check for user:', currentUserId);
-    
+
     try {
       // 1. Transport services check
       const { data: transportServices } = await supabase
         .from('transport_services')
         .select('*')
         .eq('user_id', currentUserId);
-        
+
       console.log('🚛 User transport services:', transportServices?.length || 0, transportServices);
-      
+
       // 2. SPECIFIC OFFER CHECK - Look for the expected offer
       console.log('🎯 SPECIFIC OFFER CHECK: Looking for offer 28bd21fa-c717-4734-9c7c-0d83f11c3533');
       const { data: specificOffer } = await supabase
@@ -355,13 +355,13 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
           )
         `)
         .eq('id', '28bd21fa-c717-4734-9c7c-0d83f11c3533');
-        
+
       console.log('🎯 Specific offer result:', specificOffer?.length || 0, specificOffer);
-      
+
       if (transportServices && transportServices.length > 0) {
         const serviceIds = transportServices.map(s => s.id);
         console.log('📋 Service IDs to check:', serviceIds);
-        
+
         // 3. Service offers to these services (should be received offers)
         const { data: receivedOffers } = await supabase
           .from('service_offers')
@@ -376,9 +376,9 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
           `)
           .in('transport_service_id', serviceIds)
           .neq('user_id', currentUserId);
-          
+
         console.log('📥 Raw received service offers:', receivedOffers?.length || 0, receivedOffers);
-        
+
         // 3. Service offers to these services (ALL offers including user's own)
         const { data: allOffersToServices } = await supabase
           .from('service_offers')
@@ -392,9 +392,9 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             )
           `)
           .in('transport_service_id', serviceIds);
-          
+
         console.log('📊 ALL offers to user services (including own):', allOffersToServices?.length || 0, allOffersToServices);
-        
+
         if (allOffersToServices && allOffersToServices.length > 0) {
           allOffersToServices.forEach((offer, index) => {
             console.log(`  🔍 Offer ${index + 1}:`, {
@@ -414,7 +414,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       } else {
         console.log('⚠️ User has no transport services, so no received service offers expected');
       }
-      
+
       // 4. All service offers created by current user (sent offers)
       const { data: sentOffers } = await supabase
         .from('service_offers')
@@ -428,23 +428,23 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
           )
         `)
         .eq('user_id', currentUserId);
-        
+
       console.log('📤 User sent service offers:', sentOffers?.length || 0, sentOffers);
-      
+
       // 5. Test the actual service methods
       console.log('🧪 Testing ServiceOfferService methods:');
-      
+
       try {
         const methodSentOffers = await ServiceOfferService.getSentServiceOffers(currentUserId);
         console.log('� getSentServiceOffers result:', methodSentOffers.length, methodSentOffers);
-        
+
         const methodReceivedOffers = await ServiceOfferService.getReceivedServiceOffers(currentUserId);
         console.log('📥 getReceivedServiceOffers result:', methodReceivedOffers.length, methodReceivedOffers);
-        
+
       } catch (methodError) {
         console.error('❌ Service method error:', methodError);
       }
-      
+
     } catch (error) {
       console.error('Debug error:', error);
     }
@@ -454,7 +454,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   const getFilteredOffers = () => {
     const offers = activeTab === 'sent' ? sentOffers : receivedOffers;
     const serviceOffers = activeTab === 'sent' ? sentServiceOffers : receivedServiceOffers;
-    
+
     console.log('🔍 getFilteredOffers called with:', {
       activeTab,
       offersCount: offers.length,
@@ -462,27 +462,27 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       searchTerm,
       statusFilter
     });
-    
+
     const filtered = offers.filter(offer => {
-      const searchMatch = searchTerm === '' || 
+      const searchMatch = searchTerm === '' ||
         offer.listing?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         offer.price_amount?.toString().includes(searchTerm);
-      
+
       const statusMatch = statusFilter === '' || offer.status === statusFilter;
-      
+
       return searchMatch && statusMatch;
     });
 
     const filteredService = serviceOffers.filter(offer => {
-      const searchMatch = searchTerm === '' || 
+      const searchMatch = searchTerm === '' ||
         offer.transport_service?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         offer.price_amount?.toString().includes(searchTerm);
-      
+
       const statusMatch = statusFilter === '' || offer.status === statusFilter;
-      
+
       return searchMatch && statusMatch;
     });
-    
+
     console.log('📊 Filtered results:', {
       regularOffers: filtered.length,
       serviceOffers: filteredService.length
@@ -507,7 +507,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       <div className="text-center p-8">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <p className="text-red-600 mb-4">{error}</p>
-        <button 
+        <button
           onClick={loadOffers}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
@@ -536,31 +536,29 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('received')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'received'
+            className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === 'received'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             Aldığım Teklifler
           </button>
           <button
             onClick={() => setActiveTab('sent')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-              activeTab === 'sent'
+            className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === 'sent'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+              }`}
           >
             Gönderdiğim Teklifler
           </button>
         </nav>
-        
+
         {/* STATS DISPLAY */}
         <div className="mb-4">
           <span className="text-xs text-gray-500">
-            Received Service Offers: {receivedServiceOffers.length} | 
-            Sent Service Offers: {sentServiceOffers.length} | 
+            Received Service Offers: {receivedServiceOffers.length} |
+            Sent Service Offers: {sentServiceOffers.length} |
             Total Filtered Service: {filteredServiceOffers.length}
           </span>
         </div>
@@ -615,11 +613,10 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                     </span>
                   </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+                  }`}>
                   <div className="flex items-center space-x-1">
                     {getStatusIcon(offer.status || 'pending')}
                     <span>{getStatusLabel(offer.status || 'pending')}</span>
@@ -731,11 +728,10 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                     </span>
                   </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium ${offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+                  }`}>
                   <div className="flex items-center space-x-1">
                     {getStatusIcon(offer.status || 'pending')}
                     <span>{getStatusLabel(offer.status || 'pending')}</span>
@@ -863,14 +859,14 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             onClose={closeAllModals}
             onWithdraw={handleWithdrawOffer}
           />
-          
+
           <EditOfferModal
             offer={selectedOffer as ExtendedOffer}
             isOpen={editModalOpen}
             onClose={closeAllModals}
             onSubmit={loadOffers}
           />
-          
+
           <AcceptRejectOfferModal
             offer={selectedOffer as ExtendedOffer}
             isOpen={acceptRejectModalOpen}
@@ -892,7 +888,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             onClose={closeAllModals}
             onWithdraw={handleWithdrawServiceOffer}
           />
-          
+
           {/* Service Offer Accept/Reject Modal */}
           <ServiceOfferAcceptRejectModal
             offer={selectedOffer as ExtendedServiceOffer}

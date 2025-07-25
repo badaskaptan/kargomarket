@@ -79,7 +79,7 @@ export const auth = {
           localStorage.removeItem(key);
         }
       });
-      
+
       // Sign out from Supabase
       await supabase.auth.signOut();
       console.log('✅ Session cleared successfully');
@@ -115,7 +115,7 @@ export const db = {
         .single()
       return { data, error }
     },
-    
+
     update: async (userId: string, updates: Partial<Database['public']['Tables']['profiles']['Update']>) => {
       const { data, error } = await supabase
         .from('profiles')
@@ -305,43 +305,43 @@ export const storage = {
   uploadAvatar: async (userId: string, file: File) => {
     const fileExt = file.name.split('.').pop()
     const fileName = `${userId}.${fileExt}`
-    
+
     const { data, error } = await supabase.storage
       .from('avatars')
       .upload(fileName, file, { upsert: true })
-    
+
     if (error) return { data: null, error }
-    
+
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
       .getPublicUrl(fileName)
-    
+
     return { data: { path: data.path, publicUrl }, error: null }
   },
 
   // Upload listing documents
   uploadListingDocument: async (listingId: string, file: File, documentType: string) => {
     console.log('📄 Uploading document:', { listingId, fileName: file.name, documentType, size: file.size });
-    
+
     const fileExt = file.name.split('.').pop()
     const timestamp = Date.now()
     // Kullanıcı ID'si ile başlat (RLS politikaları için)
     const { data: { user } } = await supabase.auth.getUser()
     const fileName = `${user?.id}/${listingId}_${documentType}_${timestamp}.${fileExt}`
-    
+
     const { data, error } = await supabase.storage
       .from('documents')
       .upload(fileName, file)
-    
+
     if (error) {
       console.error('❌ Document upload error:', error);
       return { data: null, error }
     }
-    
+
     const { data: { publicUrl } } = supabase.storage
       .from('documents')
       .getPublicUrl(fileName)
-    
+
     console.log('✅ Document uploaded successfully:', { fileName, publicUrl });
     return { data: { path: data.path, publicUrl, originalName: file.name }, error: null }
   },
@@ -349,25 +349,25 @@ export const storage = {
   // Upload listing images
   uploadListingImage: async (listingId: string, file: File, index: number) => {
     console.log('🖼️ Uploading image:', { listingId, fileName: file.name, index, size: file.size });
-    
+
     const fileExt = file.name.split('.').pop()
     // Kullanıcı ID'si ile başlat (RLS politikaları için)
     const { data: { user } } = await supabase.auth.getUser()
     const fileName = `${user?.id}/${listingId}_${index}.${fileExt}`
-    
+
     const { data, error } = await supabase.storage
       .from('listings')
       .upload(fileName, file)
-    
+
     if (error) {
       console.error('❌ Image upload error:', error);
       return { data: null, error }
     }
-    
+
     const { data: { publicUrl } } = supabase.storage
       .from('listings')
       .getPublicUrl(fileName)
-    
+
     console.log('✅ Image uploaded successfully:', { fileName, publicUrl });
     return { data: { path: data.path, publicUrl }, error: null }
   }

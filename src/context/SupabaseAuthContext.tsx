@@ -41,28 +41,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     console.log('�📊 Loading profile for user:', userId);
     setProfileLoading(true);
-    
+
     try {
       // Timeout ekleyelim
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Profile loading timeout')), 10000); // 10 saniye
       });
-      
+
       const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-        
+
       const result = await Promise.race([queryPromise, timeoutPromise]);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = result as any;
 
-      console.log('📊 Profile query result:', JSON.stringify({ 
-        hasData: !!data, 
-        errorCode: error?.code, 
+      console.log('📊 Profile query result:', JSON.stringify({
+        hasData: !!data,
+        errorCode: error?.code,
         errorMessage: error?.message,
-        profileId: data?.id 
+        profileId: data?.id
       }));
 
       if (error && error.code === 'PGRST116') {
@@ -107,20 +107,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('❌ Error loading profile:', error);
       setProfileLoading(false);
     }
-  }, 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  []); // Empty dependency array to prevent re-creation and infinite loops
+  },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []); // Empty dependency array to prevent re-creation and infinite loops
 
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
       const { session } = await auth.getSession();
-      console.log('🔐 Initial session:', JSON.stringify({ 
-        hasSession: !!session, 
-        userId: session?.user?.id, 
-        userEmail: session?.user?.email 
+      console.log('🔐 Initial session:', JSON.stringify({
+        hasSession: !!session,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email
       }));
-      
+
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -131,16 +131,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth event:', event, JSON.stringify({ 
-          hasSession: !!session, 
-          userId: session?.user?.id, 
-          userEmail: session?.user?.email 
+        console.log('🔐 Auth event:', event, JSON.stringify({
+          hasSession: !!session,
+          userId: session?.user?.id,
+          userEmail: session?.user?.email
         }));
-        
+
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-        
+
         // Profile management
         if (event === 'SIGNED_OUT') {
           setProfile(null);
@@ -159,20 +159,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user && !profile && !profileLoading) {
       console.log('🎯 Triggering profile load for user:', user.id);
       loadProfile(user.id);
-    } 
+    }
     // If user is null, clear profile
     else if (!user && profile) {
       console.log('🧹 Clearing profile as user is null');
       setProfile(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]); // Only depend on user.id to minimize re-renders
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
       const { error } = await auth.signIn(email, password);
-      
+
       if (error) {
         // Hata mesajlarını Türkçe ve anlaşılır hale getir
         let message = error.message;
@@ -201,7 +201,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const { error } = await auth.signUp(email, password, fullName);
-      
+
       if (error) {
         // Hata mesajlarını Türkçe ve anlaşılır hale getir
         let message = error.message;
@@ -231,7 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const { error } = await auth.signInWithGoogle();
-      
+
       if (error) {
         // Hata mesajlarını Türkçe ve anlaşılır hale getir
         let message = error.message;
@@ -256,7 +256,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const { error } = await auth.signOut();
-      
+
       if (error) {
         throw new Error(error.message);
       }
@@ -276,15 +276,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       console.log('🧹 Clearing corrupted session...');
-      
+
       // Clear session from auth helper
       await auth.clearSession();
-      
+
       // Reset all state
       setUser(null);
       setProfile(null);
       setSession(null);
-      
+
       console.log('✅ Session cleared, please login again');
     } catch (error) {
       console.error('❌ Clear session error:', error);
@@ -296,7 +296,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
-    
+
     try {
       const { data, error } = await supabase
         .from('profiles')

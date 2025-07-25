@@ -1,0 +1,31 @@
+-- FK düzeltmelerini uygulama rehberi (GÜNCELLENDİ)
+-- 
+-- ÖNEMLI: Bu dosyaları Supabase SQL Editor'da SIRASI İLE çalıştırın:
+--
+-- ADIM 1: check-current-table-structure.sql - Mevcut tablo yapısını kontrol et
+-- ADIM 2: fix-table-structure-first.sql - Tablo yapısını güncelle (creator_id ekle, receiver_id kaldır)
+-- ADIM 3: fix-messaging-foreign-keys.sql - FK kontrolü yap
+-- ADIM 4: fix-messaging-rls-policies.sql - RLS policy'leri güncelle
+--
+-- HATA AYIKLAMA:
+-- 
+-- Eğer "creator_id does not exist" hatası alıyorsan:
+-- 1. fix-table-structure-first.sql dosyasını çalıştır
+-- 2. conversations tablosunda sender_id varsa creator_id'ye dönüştürür
+-- 3. receiver_id'yi kaldırır ve conversation_participants tablosunu oluşturur
+-- 
+-- Kontrol sorguları:
+-- - Tablo yapısı: SELECT column_name FROM information_schema.columns WHERE table_name = 'conversations';
+-- - FK'lar: SELECT constraint_name, table_name FROM information_schema.table_constraints WHERE constraint_type = 'FOREIGN KEY';
+-- - RLS: SELECT tablename, rowsecurity FROM pg_tables WHERE tablename LIKE '%conversation%';
+--
+-- Mesajlaşma testi:
+-- 1. Frontend'de Messages bölümüne git (http://localhost:5178)
+-- 2. Yeni konuşma oluşturmaya çalış
+-- 3. Mesaj göndermeye çalış
+-- 4. Supabase Table Editor'da verileri kontrol et
+--
+-- Eğer hala hata alırsan:
+-- - Browser console'u kontrol et (F12)
+-- - Network tab'da API isteklerini kontrol et
+-- - Supabase logs'u kontrol et

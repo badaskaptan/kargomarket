@@ -20,9 +20,9 @@ function AppContent() {
   // Debug logs (production'da kaldırılabilir)
   if (import.meta.env.DEV) {
     console.log('App Debug:', JSON.stringify({ user: !!user, profile: !!profile, showDashboard, loading }));
-    console.log('🎯 Dashboard Decision:', JSON.stringify({ 
-      showDashboard, 
-      hasUser: !!user, 
+    console.log('🎯 Dashboard Decision:', JSON.stringify({
+      showDashboard,
+      hasUser: !!user,
       hasProfile: !!profile
     }));
   }
@@ -44,7 +44,7 @@ function AppContent() {
   }
 
   return (
-    <PublicLayout 
+    <PublicLayout
       onShowDashboard={() => setShowDashboard(true)}
     />
   );

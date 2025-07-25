@@ -104,7 +104,7 @@ export class ServiceOfferService {
 
       console.log('✅ Received service offers with transport_service data fetched:', offers?.length || 0);
       console.log('📊 Raw received service offers data:', offers);
-      
+
       // Debug: Check each offer individually
       if (offers && offers.length > 0) {
         offers.forEach((offer, index) => {
@@ -124,13 +124,13 @@ export class ServiceOfferService {
       if (!offers || offers.length === 0) {
         console.log('⚠️ No received service offers found - but database shows data exists!');
         console.log('🔍 Double-checking with direct query...');
-        
+
         // Direct query for debugging
         const { data: directQuery } = await supabase
           .from('service_offers')
           .select('*')
           .in('transport_service_id', serviceIds);
-          
+
         console.log('🔍 Direct query result:', directQuery?.length || 0, directQuery);
         return [];
       }
@@ -327,7 +327,7 @@ export class ServiceOfferService {
       }
 
       console.log('✅ Service offer fetched by ID:', data?.id);
-      
+
       const extendedOffer: ExtendedServiceOffer = {
         ...data,
         service_owner: null,
