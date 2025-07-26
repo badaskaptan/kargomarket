@@ -13,7 +13,13 @@ export function useMessaging(currentUserId: string | null) {
    * ⚠️ CRITICAL: Bu fonksiyon ismi ListingsPage.tsx'in beklediği isim!
    * Değiştirmeyin: sendOrStartConversationAndMessage
    */
-  const sendOrStartConversationAndMessage = useCallback(async (recipientId: string, content: string, listingId: number | null = null) => {
+  const sendOrStartConversationAndMessage = useCallback(async (
+    recipientId: string, 
+    content: string, 
+    listingId: number | null = null,
+    imageUrls?: string[],
+    documentUrls?: string[]
+  ) => {
     if (!currentUserId) {
       throw new Error('Kullanıcı giriş yapmamış');
     }
@@ -61,7 +67,13 @@ export function useMessaging(currentUserId: string | null) {
 
       // 3. Mesaj gönder
       console.log('📤 Sending message...');
-      const message = await messageService.sendMessage(conversation.id, currentUserId, content);
+      const message = await messageService.sendMessage(
+        conversation.id, 
+        currentUserId, 
+        content,
+        imageUrls,
+        documentUrls
+      );
       
       console.log('🎉 Message sent successfully!');
       

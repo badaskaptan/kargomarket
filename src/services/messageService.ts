@@ -9,9 +9,21 @@ export const messageService: MessageServiceInterface = {
   /**
    * Konuşmaya mesaj gönderir
    */
-  async sendMessage(conversationId: number, senderId: string, content: string): Promise<Message> {
+  async sendMessage(
+    conversationId: number, 
+    senderId: string, 
+    content: string,
+    imageUrls?: string[],
+    documentUrls?: string[]
+  ): Promise<Message> {
     try {
-      console.log('📤 Sending message:', { conversationId, senderId, contentLength: content?.length });
+      console.log('📤 Sending message:', { 
+        conversationId, 
+        senderId, 
+        contentLength: content?.length,
+        imageCount: imageUrls?.length || 0,
+        documentCount: documentUrls?.length || 0
+      });
       
       const { data, error } = await supabase
         .from('messages')
@@ -19,7 +31,9 @@ export const messageService: MessageServiceInterface = {
           conversation_id: conversationId,
           sender_id: senderId,
           content: content,
-          message_type: 'text'
+          message_type: 'text',
+          image_urls: imageUrls || null,
+          document_urls: documentUrls || null
         })
         .select()
         .single();
@@ -55,6 +69,8 @@ export const messageService: MessageServiceInterface = {
           is_read,
           created_at,
           metadata,
+          image_urls,
+          document_urls,
           profiles:sender_id (
             id,
             full_name,

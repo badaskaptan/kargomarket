@@ -28,6 +28,8 @@ export interface Message {
   message_type: string; // character varying(50)
   is_read: boolean;
   metadata: Record<string, unknown> | null; // jsonb
+  document_urls: string[] | null; // text[]
+  image_urls: string[] | null; // text[]
   created_at: string; // timestamp with time zone
 }
 
@@ -81,7 +83,9 @@ export interface MessageServiceInterface {
   sendMessage(
     conversationId: number, 
     senderId: string, 
-    content: string
+    content: string,
+    imageUrls?: string[],
+    documentUrls?: string[]
   ): Promise<Message>;
   
   getMessages(
@@ -103,7 +107,9 @@ export interface UseMessagingReturn {
   sendOrStartConversationAndMessage: (
     recipientId: string, 
     content: string, 
-    listingId?: number | null
+    listingId?: number | null,
+    imageUrls?: string[],
+    documentUrls?: string[]
   ) => Promise<{
     success: boolean;
     conversation: Conversation;

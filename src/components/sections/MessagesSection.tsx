@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { useMessaging } from '../../hooks/useMessaging.ts';
+import { MessageFileService } from '../../services/messageFileService';
 import type { ExtendedConversation } from '../../types/messaging-types.ts';
 import { 
   MessageCircle, 
@@ -72,21 +73,42 @@ const MessagesSection: React.FC = () => {
     try {
       setUploadingFiles(true);
       
+      let imageUrls: string[] = [];
+      let documentUrls: string[] = [];
+      
       // Dosya varsa önce upload et
       if (selectedFiles.length > 0) {
-        // Burada gerçek dosya upload işlemi yapılacak
-        // Şimdilik dosya isimlerini mesaj içeriğine dahil ediyoruz
         console.log('Files to upload:', selectedFiles.map(f => f.name));
+        
+        const uploadPromises = selectedFiles.map(async (file) => {
+          const result = await MessageFileService.uploadFile(file, user.id);
+          
+          if (result.success && result.url) {
+            if (MessageFileService.isImageFile(file)) {
+              imageUrls.push(result.url);
+            } else {
+              documentUrls.push(result.url);
+            }
+          } else {
+            console.error('File upload failed:', result.error);
+            throw new Error(result.error || 'Dosya yüklenemedi');
+          }
+        });
+        
+        await Promise.all(uploadPromises);
       }
 
-      // Mesajı metadata ile birlikte gönder
+      // Mesajı URL'ler ile birlikte gönder  
       const messageContent = newMessage.trim() || (selectedFiles.length > 0 ? '📎 Dosya gönderildi' : '');
       
       await sendOrStartConversationAndMessage(
         selectedConversation.creator_id === user.id 
           ? selectedConversation.participants?.[0]?.user_id || ''
           : selectedConversation.creator_id,
-        messageContent
+        messageContent,
+        null, // listingId
+        imageUrls.length > 0 ? imageUrls : undefined,
+        documentUrls.length > 0 ? documentUrls : undefined
       );
       
       setNewMessage('');
@@ -99,6 +121,7 @@ const MessagesSection: React.FC = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      alert('Mesaj gönderilirken hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'));
     } finally {
       setUploadingFiles(false);
     }
@@ -314,23 +337,38 @@ const MessagesSection: React.FC = () => {
                       >
                         <p className="text-sm">{message.content}</p>
                         
-                        {/* Dosya Ekleri */}
-                        {message.metadata && 
-                         typeof message.metadata === 'object' && 
-                         'attachments' in message.metadata && 
-                         Array.isArray(message.metadata.attachments) && (
-                          <div className="mt-2 space-y-1">
-                            {(message.metadata.attachments as string[]).map((fileName: string, index: number) => (
-                              <div key={index} className="flex items-center space-x-2 p-2 bg-black bg-opacity-10 rounded text-xs">
-                                {fileName.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
-                                  <Image className="h-3 w-3" />
-                                ) : (
-                                  <File className="h-3 w-3" />
-                                )}
-                                <span className="flex-1 truncate">{fileName}</span>
-                                <Download className="h-3 w-3 cursor-pointer hover:opacity-70" />
+                        {/* Resim Ekleri */}
+                        {message.image_urls && message.image_urls.length > 0 && (
+                          <div className="mt-2 space-y-2">
+                            {message.image_urls.map((imageUrl: string, index: number) => (
+                              <div key={`img-${index}`} className="relative">
+                                <img 
+                                  src={imageUrl} 
+                                  alt={`Attachment ${index + 1}`}
+                                  className="max-w-xs rounded-lg cursor-pointer hover:opacity-90"
+                                  onClick={() => window.open(imageUrl, '_blank')}
+                                />
                               </div>
                             ))}
+                          </div>
+                        )}
+                        
+                        {/* Dosya Ekleri */}
+                        {message.document_urls && message.document_urls.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {message.document_urls.map((docUrl: string, index: number) => {
+                              const fileName = docUrl.split('/').pop() || `Document ${index + 1}`;
+                              return (
+                                <div key={`doc-${index}`} className="flex items-center space-x-2 p-2 bg-black bg-opacity-10 rounded text-xs">
+                                  <File className="h-3 w-3" />
+                                  <span className="flex-1 truncate">{fileName}</span>
+                                  <Download 
+                                    className="h-3 w-3 cursor-pointer hover:opacity-70" 
+                                    onClick={() => window.open(docUrl, '_blank')}
+                                  />
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                         
