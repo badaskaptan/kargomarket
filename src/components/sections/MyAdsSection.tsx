@@ -1,673 +1,961 @@
-import React, { useState } from 'react';
-import { Plus, Search, Edit, Pause, Play, Trash2, Eye, BarChart3, CreditCard, X, CheckCircle } from 'lucide-react';
-import { useDashboard } from '../../context/DashboardContext';
+import React, { useState, useEffect } from 'react';
+import { Eye, Edit2, Play, Pause, Trash2, TrendingUp, MousePointer, AlertTriangle } from 'lucide-react';
+import MediaUploader from '../MediaUploader';
+import BalanceDisplay from '../BalanceDisplay';
+import { AdsService, Ad, CreateAdData, TargetAudience } from '../../services/adsService';
+import { BillingService, UserBalance, AD_PRICING, BILLING_CONFIG } from '../../services/billingService';
 
-// Ad interface tanımı
-interface Ad {
-  id: number;
-  title: string;
-  type: string;
-  duration: string;
-  targetRole: string;
-  status: string;
-  statusLabel: string;
-  remainingDays: string;
-  views: number;
-  clicks: number;
-  budget: string;
-  spent: string;
-}
-
-// Reklamlar dizisi en üste taşındı
-const initialAds = [
-  {
-    id: 1,
-    title: 'Hızlı Taşıma Hizmetleri',
-    type: 'Premium Reklam Kartı',
-    duration: '30 gün',
-    targetRole: 'Alıcı/Satıcı',
-    status: 'active',
-    statusLabel: 'Aktif',
-    remainingDays: '25 gün',
-    views: 1234,
-    clicks: 89,
-    budget: '₺500',
-    spent: '₺300'
-  },
-  {
-    id: 2,
-    title: 'Özel Fiyat Kampanyası',
-    type: 'Video Reklamı',
-    duration: '15 gün',
-    targetRole: 'Nakliyeci',
-    status: 'active',
-    statusLabel: 'Aktif',
-    remainingDays: '8 gün',
-    views: 856,
-    clicks: 67,
-    budget: '₺750',
-    spent: '₺500'
-  },
-  {
-    id: 3,
-    title: 'Yeni Rota Duyurusu',
-    type: 'Standart Reklam Kartı',
-    duration: '7 gün',
-    targetRole: 'Tümü',
-    status: 'pending',
-    statusLabel: 'Beklemede',
-    remainingDays: '-',
-    views: 0,
-    clicks: 0,
-    budget: '₺300',
-    spent: '₺0'
-  }
-];
-
-const MyAdsSection: React.FC = () => {
-  const { setActiveSection } = useDashboard();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [showPerformanceModal, setShowPerformanceModal] = useState(false);
+const MyAdsSection = () => {
+  // State
+  const [ads, setAds] = useState<Ad[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedAd, setSelectedAd] = useState<Ad | null>(null);
-  const [showBalanceModal, setShowBalanceModal] = useState(false);
-  const [balance, setBalance] = useState(1250); // Varsayılan bakiye
-  const [balanceForm, setBalanceForm] = useState({
-    cardNumber: '',
-    expiry: '',
-    cvc: '',
-    amount: ''
-  });
-  const [balanceSuccess, setBalanceSuccess] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [infoMessage, setInfoMessage] = useState('');
+  const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
+  const [estimatedCost, setEstimatedCost] = useState(0);
   const [editForm, setEditForm] = useState({
     title: '',
-    type: '',
+    type: 'banner',
     targetRole: '',
     budget: '',
-    duration: ''
+    duration: '',
+    placement: '',
+    description: '',
+    mediaUrl: '',
+    startDate: '',
+    endDate: ''
   });
-  const [adsState, setAdsState] = useState(initialAds);
-  const [infoMessage, setInfoMessage] = useState('');
 
-  const getStatusBadge = (status: string, label: string) => {
+  // Load ads on component mount
+  useEffect(() => {
+    loadAds();
+  }, []);
+
+  // Reklam oluşturma fonksiyonu
+  const handleCreateAd = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('=== REKLAM OLUŞTURMA BAŞLADI ===');
+      console.log('Form data:', editForm);
+
+      // Form doğrulama
+      if (!editForm.title || !editForm.description) {
+        setError('Lütfen başlık ve açıklama alanlarını doldurun.');
+        return;
+      }
+
+      // Maliyet hesaplama
+      const dailyRate = BillingService.getDailyRate(editForm.type);
+      const totalCost = BillingService.calculateTotalCost(editForm.type, editForm.startDate, editForm.endDate);
+      const budgetValue = parseFloat(editForm.budget) || dailyRate;
+
+      console.log('Hesaplanan değerler:', { dailyRate, totalCost, budgetValue });
+
+      // Ücretsiz modda değilse bakiye kontrolü
+      if (!BILLING_CONFIG.FREE_MODE && userBalance && userBalance.current_balance < totalCost) {
+        setError('Yetersiz bakiye. Lütfen bakiye ekleyin.');
+        return;
+      }
+
+      // Reklam verisi hazırlama
+      const adData: CreateAdData = {
+        title: editForm.title,
+        description: editForm.description,
+        image_url: editForm.mediaUrl || undefined,
+        target_url: undefined,
+        placement: editForm.placement,
+        start_date: new Date(editForm.startDate).toISOString(),
+        end_date: new Date(editForm.endDate).toISOString(),
+        budget: budgetValue,
+        ad_type: editForm.type,
+        daily_budget: dailyRate,
+        total_cost: totalCost,
+        billing_status: 'active',
+        target_audience: {
+          roles: editForm.targetRole === 'Tümü' ? [] : [editForm.targetRole]
+        },
+        keywords: []
+      };
+
+      console.log('Gönderilecek ad data:', adData);
+
+      // Reklam oluştur
+      const { data: newAd, error: adError } = await AdsService.createAd(adData);
+      
+      console.log('AdsService.createAd sonucu:', { newAd, adError });
+      
+      if (adError) {
+        setError(adError);
+        return;
+      }
+
+      if (!newAd) {
+        setError('Reklam oluşturulamadı - veri döndürülmedi.');
+        return;
+      }
+
+      // Billing işlemi
+      const { success: billingSuccess, error: billingError } = await BillingService.deductBalance(
+        totalCost,
+        `Reklam oluşturma - ${editForm.title}`,
+        newAd.id.toString()
+      );
+
+      console.log('Billing sonucu:', { billingSuccess, billingError });
+
+      if (!billingSuccess && billingError && !BILLING_CONFIG.FREE_MODE) {
+        console.error('Billing error:', billingError);
+        setError('Ödeme işlemi başarısız: ' + billingError);
+        return;
+      }
+
+      // UI güncellemeleri
+      setInfoMessage(`Reklam başarıyla oluşturuldu! ${BILLING_CONFIG.FREE_MODE ? '(Ücretsiz mod)' : `Ücret: ${totalCost} TL`}`);
+      setIsCreateModalOpen(false);
+      
+      // Reklamları yeniden yükle
+      await loadAds();
+      
+      setTimeout(() => setInfoMessage(''), 5000);
+
+      console.log('=== REKLAM OLUŞTURMA TAMAMLANDI ===');
+
+    } catch (error) {
+      console.error('Create ad error:', error);
+      setError('Reklam oluşturulurken beklenmeyen bir hata oluştu: ' + String(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAds = async () => {
+    setLoading(true);
+    setError(null);
+    
+    const { data, error: apiError } = await AdsService.getUserAds();
+    
+    if (apiError) {
+      setError(apiError);
+    } else {
+      setAds(data || []);
+    }
+    
+    setLoading(false);
+  };
+
+  // Event handlers
+  const handleEdit = (id: bigint | number) => {
+    const ad = ads.find(ad => ad.id === id);
+    if (ad) {
+      setSelectedAd(ad);
+      setEditForm({
+        title: ad.title || '',
+        type: ad.ad_type || '',
+        targetRole: getTargetAudienceLabel(ad.target_audience),
+        budget: ad.budget ? String(ad.budget) : '',
+        duration: getRemainingDays(ad.end_date),
+        placement: ad.placement || '',
+        description: ad.description || '',
+        mediaUrl: ad.image_url || '',
+        startDate: ad.start_date || '',
+        endDate: ad.end_date || ''
+      });
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleView = (id: bigint | number) => {
+    const ad = ads.find(ad => ad.id === id);
+    if (ad) {
+      setSelectedAd(ad);
+      setIsViewModalOpen(true);
+    }
+  };
+
+  const handleDelete = async (id: bigint | number) => {
+    const adId = typeof id === 'bigint' ? id : BigInt(id);
+    
+    const { success, error: apiError } = await AdsService.deleteAd(adId);
+    
+    if (success) {
+      setInfoMessage('Reklam başarıyla silindi.');
+      await loadAds(); // Listeyi yenile
+    } else {
+      setInfoMessage(apiError || 'Reklam silinirken bir hata oluştu.');
+    }
+    
+    setTimeout(() => setInfoMessage(''), 3000);
+  };
+
+  const handleStatusChange = async (id: bigint | number, newStatus: string) => {
+    const adId = typeof id === 'bigint' ? id : BigInt(id);
+    
+    const { success, error: apiError } = await AdsService.updateAdStatus(adId, newStatus);
+    
+    if (success) {
+      setInfoMessage(`Reklam durumu "${getStatusLabel(newStatus)}" olarak güncellendi.`);
+      await loadAds(); // Listeyi yenile
+    } else {
+      setInfoMessage(apiError || 'Durum güncellenirken bir hata oluştu.');
+    }
+    
+    setTimeout(() => setInfoMessage(''), 3000);
+  };
+
+  // Helper fonksiyonlar
+  const formatId = (id: bigint | number) => {
+    return id.toString();
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency',
+      currency: 'TRY'
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('tr-TR');
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Aktif';
+      case 'pending': return 'Beklemede';
+      case 'completed': return 'Tamamlandı';
+      case 'paused': return 'Pasif';
+      case 'rejected': return 'Reddedildi';
+      default: return status;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
     const statusClasses = {
       active: 'bg-green-100 text-green-800',
       pending: 'bg-yellow-100 text-yellow-800',
       completed: 'bg-blue-100 text-blue-800',
-      paused: 'bg-gray-100 text-gray-800'
+      paused: 'bg-gray-100 text-gray-800',
+      rejected: 'bg-red-100 text-red-800'
     };
     return (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses]}`}>
-        {status === 'active' ? 'Aktif' : status === 'paused' ? 'Pasif' : label}
+      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${statusClasses[status as keyof typeof statusClasses] || statusClasses.paused}`}>
+        {getStatusLabel(status)}
       </span>
     );
   };
 
-  const handleEdit = (ad: Ad) => {
-    setSelectedAd(ad);
-    setEditForm({
-      title: ad.title,
-      type: ad.type,
-      targetRole: ad.targetRole,
-      budget: ad.budget.replace('₺',''),
-      duration: ad.duration.replace(' gün','')
-    });
-    setShowEditModal(true);
-  };
-  const handlePreview = (ad: Ad) => {
-    setSelectedAd(ad);
-    setShowPreviewModal(true);
-  };
-  const handlePause = (ad: Ad) => {
-    setAdsState(prev => prev.map(a => a.id === ad.id ? { ...a, status: 'paused', statusLabel: 'Pasif' } : a));
-    setInfoMessage('Reklam pasif hale getirildi.');
-    setTimeout(() => setInfoMessage(''), 2000);
-  };
-  const handleActivate = (ad: Ad) => {
-    setAdsState(prev => prev.map(a => a.id === ad.id ? { ...a, status: 'active', statusLabel: 'Aktif' } : a));
-    setInfoMessage('Reklam aktif hale getirildi.');
-    setTimeout(() => setInfoMessage(''), 2000);
-  };
-  const handleDelete = (ad: Ad) => {
-    setSelectedAd(ad);
-    setShowDeleteModal(true);
-  };
-  const confirmDelete = () => {
-    if (!selectedAd) return;
-    setAdsState(prev => prev.filter(a => a.id !== selectedAd.id));
-    setShowDeleteModal(false);
-    setInfoMessage('Reklam silindi.');
-    setTimeout(() => setInfoMessage(''), 2000);
-  };
-  const handleEditInput = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setEditForm(f => ({ ...f, [name]: value }));
-  };
-  const saveEdit = () => {
-    if (!selectedAd) return;
-    setAdsState(prev => prev.map(a => a.id === selectedAd.id ? {
-      ...a,
-      title: editForm.title,
-      type: editForm.type,
-      targetRole: editForm.targetRole,
-      budget: `₺${editForm.budget}`,
-      duration: `${editForm.duration} gün`
-    } : a));
-    setShowEditModal(false);
-    setInfoMessage('Reklam başarıyla güncellendi.');
-    setTimeout(() => setInfoMessage(''), 2000);
+  // Helper functions for ads data
+  const getRemainingDays = (endDate: string) => {
+    const end = new Date(endDate);
+    const now = new Date();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? `${diffDays} gün` : 'Süresi doldu';
   };
 
-  const getActionButtons = (status: string, ad: Ad) => {
-    if (status === 'pending') {
-      return (
-        <div className="flex space-x-2">
-          <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Düzenle" onClick={() => handleEdit(ad)}>
-            <Edit size={18} />
-          </button>
-          <button className="text-green-600 hover:text-green-900 transition-colors" title="Aktifleştir" onClick={() => handleActivate(ad)}>
-            <Play size={18} />
-          </button>
-          <button title="Sil" onClick={() => handleDelete(ad)}>
-            <Trash2 />
-          </button>
-        </div>
-      );
+  const getTargetAudienceLabel = (targetAudience?: TargetAudience) => {
+    if (!targetAudience || !targetAudience.roles) return 'Tümü';
+    const roles = targetAudience.roles;
+    if (roles.includes('all')) return 'Tümü';
+    if (roles.includes('shipper') && roles.includes('carrier')) return 'Alıcı/Satıcı';
+    if (roles.includes('carrier')) return 'Nakliyeci';
+    if (roles.includes('shipper')) return 'Yük Sahibi';
+    return 'Tümü';
+  };
+
+  const handlePreview = (id: bigint | number) => {
+    const ad = ads.find(ad => ad.id === id);
+    if (ad) {
+      setSelectedAd(ad);
+      setIsViewModalOpen(true);
     }
-    return (
-      <div className="flex space-x-2">
-        <button className="text-blue-600 hover:text-blue-900 transition-colors" title="Düzenle" onClick={() => handleEdit(ad)}>
-          <Edit size={18} />
-        </button>
-        <button className="text-purple-600 hover:text-purple-900 transition-colors" title="Önizleme" onClick={() => handlePreview(ad)}>
-          <Eye size={18} />
-        </button>
-        {status === 'active' ? (
-          <button className="text-yellow-600 hover:text-yellow-900 transition-colors" title="Pasif Yap" onClick={() => handlePause(ad)}>
-            <Pause size={18} />
-          </button>
-        ) : status === 'paused' ? (
-          <button className="text-green-600 hover:text-green-900 transition-colors" title="Aktif Yap" onClick={() => handleActivate(ad)}>
-            <Play size={18} />
-          </button>
-        ) : null}
-        <button className="text-green-600 hover:text-green-900 transition-colors" title="Performans" onClick={() => { setSelectedAd(ad); setShowPerformanceModal(true); }}>
-          <BarChart3 size={18} />
-        </button>
-        <button title="Sil" onClick={() => handleDelete(ad)}>
-          <Trash2 />
-        </button>
-      </div>
-    );
   };
 
-  // Kullanıcı dostu reklam performans modalı
-  const renderPerformanceModal = () => {
-    if (!showPerformanceModal || !selectedAd) return null;
-    // CTR hesaplama
-    const ctr = selectedAd.views > 0 ? ((selectedAd.clicks / selectedAd.views) * 100).toFixed(2) : '0.00';
-    return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="relative bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-          <button
-            onClick={() => setShowPerformanceModal(false)}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-            title="Kapat"
-            aria-label="Kapat"
-          >
-            <X size={24} />
-          </button>
-          <h3 className="text-2xl font-bold text-primary-700 mb-4 flex items-center gap-2">
-            <BarChart3 size={24} /> Reklam Performansı
-          </h3>
-          <div className="mb-4">
-            <div className="text-lg font-semibold text-gray-900 mb-1">{selectedAd.title}</div>
-            <div className="text-sm text-gray-500">{selectedAd.type} • {selectedAd.targetRole}</div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 rounded-lg p-3 text-center">
-              <div className="text-xs text-gray-500 mb-1">Görüntülenme</div>
-              <div className="text-xl font-bold text-blue-600">{selectedAd.views.toLocaleString()}</div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-3 text-center">
-              <div className="text-xs text-gray-500 mb-1">Tıklama</div>
-              <div className="text-xl font-bold text-green-600">{selectedAd.clicks}</div>
-            </div>
-            <div className="bg-amber-50 rounded-lg p-3 text-center">
-              <div className="text-xs text-gray-500 mb-1">Tıklanma Oranı (CTR)</div>
-              <div className="text-xl font-bold text-amber-600">{ctr}%</div>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-3 text-center">
-              <div className="text-xs text-gray-500 mb-1">Kalan Gün</div>
-              <div className="text-xl font-bold text-purple-600">{selectedAd.remainingDays}</div>
-            </div>
-            <div className="bg-pink-50 rounded-lg p-3 text-center col-span-2">
-              <div className="text-xs text-gray-500 mb-1">Bütçe / Harcama</div>
-              <div className="text-lg font-bold text-pink-600">{selectedAd.budget} / {selectedAd.spent}</div>
-            </div>
-          </div>
-          <div className="text-sm text-gray-600 text-center mb-2">Reklam performansınızı artırmak için <b>görsel/video kalitesine</b> ve <b>hedef kitle seçimine</b> dikkat edin.</div>
-          <button
-            onClick={() => setShowPerformanceModal(false)}
-            className="w-full mt-2 bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors"
-          >
-            Kapat
-          </button>
-        </div>
-      </div>
-    );
+  const handleCreateNew = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    setEditForm({
+      title: '',
+      type: 'banner',
+      targetRole: 'Tümü',
+      budget: '',
+      duration: '',
+      placement: 'homepage',
+      description: '',
+      mediaUrl: '',
+      startDate: tomorrow.toISOString().split('T')[0],
+      endDate: nextWeek.toISOString().split('T')[0]
+    });
+    setIsCreateModalOpen(true);
   };
 
-  // Bakiye yükleme modalı
-  const renderBalanceModal = () => {
-    if (!showBalanceModal) return null;
-    return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="relative bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-          <button
-            onClick={() => { setShowBalanceModal(false); setBalanceSuccess(false); setBalanceForm({cardNumber:'',expiry:'',cvc:'',amount:''}); }}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-            title="Kapat"
-            aria-label="Kapat"
-          >
-            <X size={24} />
-          </button>
-          <h3 className="text-2xl font-bold text-primary-700 mb-4 flex items-center gap-2">
-            <CreditCard size={24} /> Bakiye Yükle
-          </h3>
-          {balanceSuccess ? (
-            <div className="text-center">
-              <CheckCircle size={48} className="mx-auto text-green-500 mb-4" />
-              <div className="text-lg font-semibold text-green-700 mb-2">Bakiye başarıyla yüklendi!</div>
-              <div className="text-gray-600 mb-4">Yeni bakiyeniz: <span className="font-bold text-primary-600">{balance.toLocaleString()} ₺</span></div>
-              <button
-                onClick={() => { setShowBalanceModal(false); setBalanceSuccess(false); setBalanceForm({cardNumber:'',expiry:'',cvc:'',amount:''}); }}
-                className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors mt-2"
-              >
-                Kapat
-              </button>
-            </div>
-          ) : (
-            <form className="space-y-5" onSubmit={e => { e.preventDefault();
-              if (!balanceForm.cardNumber || !balanceForm.expiry || !balanceForm.cvc || !balanceForm.amount) return;
-              setBalance(b => b + parseInt(balanceForm.amount));
-              setBalanceSuccess(true);
-            }}>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kart Numarası</label>
-                <input
-                  type="text"
-                  maxLength={19}
-                  inputMode="numeric"
-                  pattern="[0-9 ]*"
-                  placeholder="1234 5678 9012 3456"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={balanceForm.cardNumber}
-                  onChange={e => setBalanceForm(f => ({ ...f, cardNumber: e.target.value.replace(/[^0-9 ]/g, '') }))}
-                  required
-                />
-              </div>
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Son Kullanma</label>
-                  <input
-                    type="text"
-                    maxLength={5}
-                    placeholder="AA/YY"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value={balanceForm.expiry}
-                    onChange={e => setBalanceForm(f => ({ ...f, expiry: e.target.value.replace(/[^0-9/]/g, '') }))}
-                    required
-                  />
-                </div>
-                <div className="w-24">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">CVC</label>
-                  <input
-                    type="text"
-                    maxLength={4}
-                    placeholder="123"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    value={balanceForm.cvc}
-                    onChange={e => setBalanceForm(f => ({ ...f, cvc: e.target.value.replace(/[^0-9]/g, '') }))}
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Yüklenecek Tutar (₺)</label>
-                <input
-                  type="number"
-                  min={1}
-                  placeholder="Örn: 500"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={balanceForm.amount}
-                  onChange={e => setBalanceForm(f => ({ ...f, amount: e.target.value.replace(/[^0-9]/g, '') }))}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors mt-2"
-              >
-                Yüklemeyi Onayla
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-    );
+  const handlePause = async (id: bigint | number) => {
+    await handleStatusChange(id, 'paused');
   };
 
-  // Edit Modal
-  const renderEditModal = () => {
-    if (!showEditModal || !selectedAd) return null;
-    return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="relative bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-          <button onClick={() => setShowEditModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200" title="Kapat" aria-label="Kapat">
-            <X size={24} />
-          </button>
-          <h3 className="text-2xl font-bold text-primary-700 mb-4">Reklamı Düzenle</h3>
-          <form className="space-y-4" onSubmit={e => { e.preventDefault(); saveEdit(); }}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Başlık</label>
-              <input type="text" name="title" value={editForm.title} onChange={handleEditInput} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required placeholder="Reklam başlığı" title="Reklam başlığı" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tip</label>
-              <select name="type" value={editForm.type} onChange={handleEditInput} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" title="Reklam tipi">
-                <option>Premium Reklam Kartı</option>
-                <option>Video Reklamı</option>
-                <option>Standart Reklam Kartı</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Hedef Kitle</label>
-              <select name="targetRole" value={editForm.targetRole} onChange={handleEditInput} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" title="Hedef kitle">
-                <option>Alıcı/Satıcı</option>
-                <option>Nakliyeci</option>
-                <option>Tümü</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Bütçe (₺)</label>
-              <input type="number" name="budget" value={editForm.budget} onChange={handleEditInput} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required placeholder="Bütçe" title="Bütçe" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Süre (gün)</label>
-              <input type="number" name="duration" value={editForm.duration} onChange={handleEditInput} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required placeholder="Süre (gün)" title="Süre (gün)" />
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <button type="button" onClick={() => setShowEditModal(false)} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300">İptal</button>
-              <button type="submit" className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700">Kaydet</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  };
-  // Preview Modal
-  const renderPreviewModal = () => {
-    if (!showPreviewModal || !selectedAd) return null;
-    return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="relative bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-          <button onClick={() => setShowPreviewModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200" title="Kapat" aria-label="Kapat">
-            <X size={24} />
-          </button>
-          <h3 className="text-2xl font-bold text-primary-700 mb-4">Reklam Önizleme</h3>
-          <div className="mb-2 text-lg font-semibold">{selectedAd.title}</div>
-          <div className="mb-1 text-gray-600">{selectedAd.type} • {selectedAd.targetRole}</div>
-          <div className="mb-1">Bütçe: <span className="font-bold">{selectedAd.budget}</span></div>
-          <div className="mb-1">Süre: <span className="font-bold">{selectedAd.duration}</span></div>
-          <div className="mb-1">Durum: {getStatusBadge(selectedAd.status, selectedAd.statusLabel)}</div>
-          {/* Duruma göre bilgilendirme */}
-          {selectedAd.status === 'active' ? (
-            <div className="mt-2 text-green-700 text-sm font-medium">Bu reklam yayında ve herkes tarafından görüntülenebilir.</div>
-          ) : selectedAd.status === 'paused' ? (
-            <div className="mt-2 text-yellow-700 text-sm font-medium">Bu reklam pasif durumda, yayında değildir.</div>
-          ) : null}
-          <div className="mt-4 flex justify-end">
-            <button onClick={() => setShowPreviewModal(false)} className="px-6 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700">Kapat</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-  // Delete Modal
-  const renderDeleteModal = () => {
-    if (!showDeleteModal || !selectedAd) return null;
-    return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div className="relative bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-          <button onClick={() => setShowDeleteModal(false)} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200" title="Kapat" aria-label="Kapat">
-            <X size={24} />
-          </button>
-          <h3 className="text-2xl font-bold text-red-700 mb-4">Reklamı Sil</h3>
-          <div className="mb-4">"{selectedAd.title}" reklamını silmek istediğinize emin misiniz?</div>
-          <div className="flex justify-end gap-2">
-            <button onClick={() => setShowDeleteModal(false)} className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300">İptal</button>
-            <button onClick={confirmDelete} className="px-6 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700">Sil</button>
-          </div>
-        </div>
-      </div>
-    );
+  const handleActivate = async (id: bigint | number) => {
+    await handleStatusChange(id, 'active');
   };
 
-  // Filtrelenmiş reklamlar
-  const filteredAds = adsState.filter(ad =>
-    (!searchTerm || ad.title.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    (!statusFilter || ad.status === statusFilter)
-  );
+  if (loading) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="text-red-600 text-center">
+          Reklamlar yüklenirken bir hata oluştu: {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header with Balance */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Reklam Yönetim Paneli</h2>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
-              Mevcut Bakiye: <span className="font-medium text-green-600">{balance.toLocaleString()} ₺</span>
-            </div>
-            <button onClick={() => setShowBalanceModal(true)} className="bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl">
-              <CreditCard size={16} />
-              Bakiye Yükle
-            </button>
-          </div>
-        </div>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      {/* Balance Display */}
+      <div className="mb-6">
+        <BalanceDisplay onBalanceUpdate={setUserBalance} />
+      </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-            <div className="flex items-center justify-between">
+      {/* Pricing Info */}
+      <div className="mb-6 bg-gray-50 rounded-lg p-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">Reklam Fiyatlandırması</h3>
+        {BILLING_CONFIG.FREE_MODE ? (
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4">
+            <div className="flex items-center justify-center text-center">
               <div>
-                <p className="text-sm text-gray-600">Aktif Reklamlar</p>
-                <p className="text-2xl font-bold text-blue-600">2</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Eye className="text-blue-600" size={20} />
-              </div>
-            </div>
-          </div>
-          <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Toplam Görüntülenme</p>
-                <p className="text-2xl font-bold text-green-600">2,090</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <BarChart3 className="text-green-600" size={20} />
+                <h4 className="text-xl font-bold mb-2">🎉 Beta Sürüm - Tamamen Ücretsiz!</h4>
+                <p className="text-sm opacity-90">
+                  Tüm reklam türleri sınırsız kullanım. Hiçbir ödeme yapmanıza gerek yok!
+                </p>
               </div>
             </div>
           </div>
-          <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Bu Ay Harcama</p>
-                <p className="text-2xl font-bold text-purple-600">800 ₺</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(AD_PRICING).map(([type, pricing]) => (
+              <div key={type} className="bg-white rounded-lg p-3 border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-gray-900 capitalize">
+                    {type === 'banner' ? 'Banner' : type === 'video' ? 'Video' : 'Metin'}
+                  </span>
+                  <span className="text-sm text-gray-500">Reklam</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600 mb-1">
+                  {pricing.daily_rate} TL
+                </div>
+                <div className="text-sm text-gray-600">
+                  günlük • min. {pricing.minimum_budget} TL
+                </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <CreditCard className="text-purple-600" size={20} />
-              </div>
-            </div>
-          </div>
-          <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Ortalama CTR</p>
-                <p className="text-2xl font-bold text-amber-600">4.2%</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <BarChart3 className="text-amber-600" size={20} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <button 
-            onClick={() => setActiveSection('create-ad')}
-            className="bg-primary-600 text-white py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-700 transition-colors shadow-lg hover:shadow-xl"
-          >
-            <Plus size={20} className="mr-2" />
-            <span>Yeni Reklam Oluştur</span>
-          </button>
-          <button className="bg-white text-primary-600 border-2 border-primary-600 py-2 px-4 rounded-lg flex items-center justify-center font-medium hover:bg-primary-50 transition-colors">
-            <BarChart3 size={20} className="mr-2" />
-            <span>Reklam Performansı</span>
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Reklam ara..."
-              title="Reklam ara"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-            aria-label="Reklam Durumu Filtrele"
-            title="Reklam Durumu Filtrele"
-          >
-            <option value="">Tüm Durumlar</option>
-            <option value="active">Aktif</option>
-            <option value="pending">Beklemede</option>
-            <option value="completed">Tamamlandı</option>
-          </select>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Başlık
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tip
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hedef Kitle
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Görüntülenme
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tıklama
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Bütçe/Harcama
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Durum
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Süresi Kalan
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Eylemler
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAds.map((ad: Ad) => (
-                <tr key={ad.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{ad.title}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{ad.type}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{ad.targetRole}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{ad.views.toLocaleString()}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{ad.clicks}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{ad.budget} / {ad.spent}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(ad.status, ad.statusLabel)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{ad.remainingDays}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getActionButtons(ad.status, ad)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            Toplam 3 kayıttan 1-3 arası gösteriliyor
-          </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors" disabled>
-              Önceki
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-primary-600 text-white">
-              1
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-lg bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 transition-colors" disabled>
-              Sonraki
-            </button>
-          </div>
-        </div>
-        {renderPerformanceModal()}
-        {renderBalanceModal()}
-        {infoMessage && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-[9999] animate-fade-in">
-            {infoMessage}
+            ))}
           </div>
         )}
-        {renderEditModal()}
-        {renderPreviewModal()}
-        {renderDeleteModal()}
       </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Reklamlarım</h2>
+        <button 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          onClick={handleCreateNew}
+        >
+          Yeni Reklam Oluştur
+        </button>
+      </div>
+
+      {infoMessage && (
+        <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg">
+          {infoMessage}
+        </div>
+      )}
+
+      {ads.length === 0 ? (
+        <div className="text-center py-8">
+          <div className="bg-blue-50 rounded-lg p-6 mb-4">
+            <p className="text-gray-700 mb-2">🎯 Henüz reklam oluşturmadınız.</p>
+            <p className="text-sm text-gray-600 mb-4">
+              {BILLING_CONFIG.FREE_MODE ? 
+                'Reklamlarınızla daha fazla müşteriye ulaşın! Beta sürümde sınırsız reklam oluşturabilirsiniz.' : 
+                'Reklamlarınızla daha fazla müşteriye ulaşın ve işinizi büyütün!'
+              }
+            </p>
+            <div className="text-sm text-gray-600 mb-4">
+              {BILLING_CONFIG.FREE_MODE ? (
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-lg">
+                  🎉 Şu anda tüm reklam türleri ÜCRETSIZ!
+                </span>
+              ) : (
+                '💰 Banner: 50 TL/gün • Video: 100 TL/gün • Metin: 25 TL/gün'
+              )}
+            </div>
+          </div>
+          <button 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            onClick={handleCreateNew}
+          >
+            İlk Reklamınızı Oluşturun
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Desktop view */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Reklam</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Durum</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Tür</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Bütçe</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">Performans</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-900">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ads.map((ad) => (
+                  <tr key={formatId(ad.id)} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-4 px-4">
+                      <div>
+                        <div className="font-medium text-gray-900">{ad.title}</div>
+                        <div className="text-sm text-gray-500">
+                          {ad.placement} • {getTargetAudienceLabel(ad.target_audience)}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      {getStatusBadge(ad.status)}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="text-sm text-gray-600">{ad.ad_type}</span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="text-sm">
+                        <div className="font-medium">{formatCurrency(ad.budget)}</div>
+                        <div className="text-gray-500">{formatCurrency(ad.spent)} harcanmış</div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="text-sm">
+                        <div className="flex items-center mb-1">
+                          <TrendingUp className="h-3 w-3 mr-1 text-blue-600" />
+                          <span className="font-medium">{ad.impressions.toLocaleString()}</span>
+                          <span className="text-gray-500 ml-1">gösterim</span>
+                        </div>
+                        <div className="flex items-center">
+                          <MousePointer className="h-3 w-3 mr-1 text-green-600" />
+                          <span className="font-medium">{ad.clicks.toLocaleString()}</span>
+                          <span className="text-gray-500 ml-1">tıklama</span>
+                          <span className="ml-2 text-purple-600">(%{ad.ctr.toFixed(2)})</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex space-x-2">
+                        <button 
+                          className="text-blue-600 hover:text-blue-900 transition-colors" 
+                          title="Görüntüle" 
+                          onClick={() => handleView(ad.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button 
+                          className="text-blue-600 hover:text-blue-900 transition-colors" 
+                          title="Düzenle" 
+                          onClick={() => handleEdit(ad.id)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        {ad.status === 'active' ? (
+                          <button 
+                            className="text-orange-600 hover:text-orange-900 transition-colors" 
+                            title="Duraklat" 
+                            onClick={() => handlePause(ad.id)}
+                          >
+                            <Pause className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <button 
+                            className="text-green-600 hover:text-green-900 transition-colors" 
+                            title="Başlat" 
+                            onClick={() => handleActivate(ad.id)}
+                          >
+                            <Play className="h-4 w-4" />
+                          </button>
+                        )}
+                        <button 
+                          className="text-red-600 hover:text-red-900 transition-colors" 
+                          title="Sil" 
+                          onClick={() => handleDelete(ad.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile view */}
+          <div className="md:hidden space-y-4">
+            {ads.map((ad) => (
+              <div key={formatId(ad.id)} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900 mb-1">{ad.title}</h3>
+                    <div className="text-sm text-gray-500 mb-2">
+                      {ad.ad_type} • {ad.placement} • {getTargetAudienceLabel(ad.target_audience)}
+                    </div>
+                    {getStatusBadge(ad.status)}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
+                  <div>
+                    <div className="text-gray-500">Bütçe</div>
+                    <div className="font-medium">{formatCurrency(ad.budget)}</div>
+                    <div className="text-gray-500">{formatCurrency(ad.spent)} harcanmış</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500">Performans</div>
+                    <div className="font-medium">{ad.impressions.toLocaleString()} gösterim</div>
+                    <div className="text-gray-500">{ad.clicks.toLocaleString()} tıklama (%{ad.ctr.toFixed(2)})</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <div className="flex space-x-3">
+                    <button 
+                      className="text-blue-600 hover:text-blue-900 transition-colors" 
+                      title="Görüntüle" 
+                      onClick={() => handleView(ad.id)}
+                    >
+                      <Eye className="h-5 w-5" />
+                    </button>
+                    <button 
+                      className="text-blue-600 hover:text-blue-900 transition-colors" 
+                      title="Düzenle" 
+                      onClick={() => handleEdit(ad.id)}
+                    >
+                      <Edit2 className="h-5 w-5" />
+                    </button>
+                    {ad.status === 'active' ? (
+                      <button 
+                        className="text-orange-600 hover:text-orange-900 transition-colors" 
+                        title="Duraklat" 
+                        onClick={() => handlePause(ad.id)}
+                      >
+                        <Pause className="h-5 w-5" />
+                      </button>
+                    ) : (
+                      <button 
+                        className="text-green-600 hover:text-green-900 transition-colors" 
+                        title="Başlat" 
+                        onClick={() => handleActivate(ad.id)}
+                      >
+                        <Play className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+                  <button 
+                    className="text-red-600 hover:text-red-900 transition-colors" 
+                    title="Sil" 
+                    onClick={() => handleDelete(ad.id)}
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* View Modal */}
+      {isViewModalOpen && selectedAd && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold">{selectedAd.title}</h3>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm text-gray-500">{selectedAd.ad_type} • {getTargetAudienceLabel(selectedAd.target_audience)}</div>
+                <div className="mt-2">{getStatusBadge(selectedAd.status)}</div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-blue-600">{selectedAd.impressions.toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">Gösterim</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-600">{selectedAd.clicks.toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">Tıklama</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-600">%{selectedAd.ctr.toFixed(2)}</div>
+                  <div className="text-sm text-gray-600">CTR</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-orange-600">{getRemainingDays(selectedAd.end_date)}</div>
+                  <div className="text-sm text-gray-600">Kalan Süre</div>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Açıklama</h4>
+                <p className="text-gray-700">{selectedAd.description}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">Bütçe Bilgileri</h4>
+                  <div className="text-sm space-y-1">
+                    <div>Toplam Bütçe: <span className="font-medium">{formatCurrency(selectedAd.budget)}</span></div>
+                    <div>Harcanan: <span className="font-medium">{formatCurrency(selectedAd.spent)}</span></div>
+                    <div>Kalan: <span className="font-medium">{formatCurrency(selectedAd.budget - selectedAd.spent)}</span></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Tarihler</h4>
+                  <div className="text-sm space-y-1">
+                    <div>Başlangıç: <span className="font-medium">{formatDate(selectedAd.start_date)}</span></div>
+                    <div>Bitiş: <span className="font-medium">{formatDate(selectedAd.end_date)}</span></div>
+                    <div>Oluşturulma: <span className="font-medium">{formatDate(selectedAd.created_at)}</span></div>
+                  </div>
+                </div>
+              </div>
+              {selectedAd.keywords && selectedAd.keywords.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">Anahtar Kelimeler</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAd.keywords.map((keyword, index) => (
+                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {isEditModalOpen && selectedAd && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Reklamı Düzenle</h3>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reklam Başlığı
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Reklam Türü
+                  </label>
+                  <select
+                    value={editForm.type}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      const newDailyRate = BillingService.getDailyRate(newType);
+                      setEditForm({ 
+                        ...editForm, 
+                        type: newType, 
+                        budget: newDailyRate.toString() 
+                      });
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="banner">Banner</option>
+                    <option value="video">Video</option>
+                    <option value="text">Metin</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hedef Kitle
+                  </label>
+                  <select
+                    value={editForm.targetRole}
+                    onChange={(e) => setEditForm({ ...editForm, targetRole: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Tümü">Tümü</option>
+                    <option value="Nakliyeci">Nakliyeci</option>
+                    <option value="Yük Sahibi">Yük Sahibi</option>
+                    <option value="Alıcı/Satıcı">Alıcı/Satıcı</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Günlük Bütçe (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.budget || BillingService.getDailyRate(editForm.type)}
+                    onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min={BillingService.getDailyRate(editForm.type)}
+                    placeholder={`Minimum: ${BillingService.getDailyRate(editForm.type)} TL`}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Yerleşim
+                  </label>
+                  <select
+                    value={editForm.placement}
+                    onChange={(e) => setEditForm({ ...editForm, placement: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="homepage">Ana Sayfa</option>
+                    <option value="sidebar">Yan Bar</option>
+                    <option value="search">Arama Sonuçları</option>
+                    <option value="listings">İlan Listesi</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reklam Medyası
+                </label>
+                <MediaUploader
+                  adId={selectedAd.id.toString()}
+                  currentMediaUrl={editForm.mediaUrl}
+                  acceptVideo={editForm.type === 'video'}
+                  onUploadSuccess={(url) => setEditForm({ ...editForm, mediaUrl: url })}
+                  onUploadError={(error) => setInfoMessage(error)}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Açıklama
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Güncelle
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Yeni Reklam Oluştur</h3>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            
+            <form className="space-y-4" onSubmit={async (e) => {
+              e.preventDefault();
+              await handleCreateAd();
+            }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reklam Başlığı
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Reklam başlığınızı girin"
+                  required
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Reklam Türü
+                  </label>
+                  <select
+                    value={editForm.type}
+                    onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="banner">Banner</option>
+                    <option value="video">Video</option>
+                    <option value="text">Metin</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hedef Kitle
+                  </label>
+                  <select
+                    value={editForm.targetRole}
+                    onChange={(e) => setEditForm({ ...editForm, targetRole: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="Tümü">Tümü</option>
+                    <option value="Nakliyeci">Nakliyeci</option>
+                    <option value="Yük Sahibi">Yük Sahibi</option>
+                    <option value="Alıcı/Satıcı">Alıcı/Satıcı</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Günlük Bütçe (₺)
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.budget}
+                    onChange={(e) => setEditForm({ ...editForm, budget: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Günlük bütçe"
+                    min="10"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Yerleşim
+                  </label>
+                  <select
+                    value={editForm.placement}
+                    onChange={(e) => setEditForm({ ...editForm, placement: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="homepage">Ana Sayfa</option>
+                    <option value="sidebar">Yan Bar</option>
+                    <option value="search">Arama Sonuçları</option>
+                    <option value="listings">İlan Listesi</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reklam Medyası
+                </label>
+                <MediaUploader
+                  adId="new"
+                  currentMediaUrl={editForm.mediaUrl}
+                  acceptVideo={editForm.type === 'video'}
+                  onUploadSuccess={(url) => setEditForm({ ...editForm, mediaUrl: url })}
+                  onUploadError={(error) => setInfoMessage(error)}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Açıklama
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Reklam açıklaması"
+                  required
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Oluştur
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
