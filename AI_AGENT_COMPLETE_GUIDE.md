@@ -32,11 +32,14 @@ Bu dokümantasyon sistemi 3 temel amaca hizmet eder:
 
 ---
 
-## 📂 **PROJE YAPISI**
+## 📂 **GERÇEK PROJE YAPISI**
 
 ```
 kargomarkk-v2/
 ├── src/
+│   ├── main.tsx               # ✅ Ana giriş noktası (Vite standard)
+│   ├── App.tsx                # ✅ Main app component
+│   ├── index.css              # ✅ Global styles
 │   ├── components/
 │   │   ├── sections/          # Dashboard modülleri ✅ Tamamlandı
 │   │   │   ├── MessagesSection.tsx      # ✅ Enterprise messaging
@@ -52,18 +55,37 @@ kargomarkk-v2/
 │   │   │   ├── AdsPage.tsx              # ⚠️ Advanced filtering
 │   │   │   └── ReviewsPage.tsx          # ⚠️ Real data integration
 │   │   ├── modals/            # ✅ Complete modal system
-│   │   └── ui/                # ✅ Reusable components
+│   │   ├── layout/            # ✅ Layout components
+│   │   ├── auth/              # ✅ Auth components
+│   │   ├── common/            # ✅ Shared components
+│   │   └── public/            # ✅ Public components
 │   ├── services/              # ✅ All services implemented
 │   │   ├── listingService.ts            # ✅ Full CRUD
 │   │   ├── offerService.ts              # ✅ Working with withdraw
+│   │   ├── serviceOfferService.ts       # ✅ Service offers
 │   │   ├── conversationService.ts       # ✅ Enterprise messaging
 │   │   └── messageService.ts            # ✅ Real-time ready
 │   ├── hooks/                 # ✅ Custom hooks ready
+│   │   └── useListings.ts               # ✅ Main data hook
 │   ├── context/               # ✅ State management
 │   ├── types/                 # ✅ Full TypeScript coverage
-│   └── lib/                   # ✅ Supabase integration
-└── docs/                      # 📋 Bu yeni dokümantasyon sistemi
+│   │   ├── database-types.ts            # ✅ Supabase types
+│   │   ├── messaging-types.ts           # ✅ Message types
+│   │   └── service-offer-types.ts       # ✅ Offer types
+│   ├── lib/                   # ✅ Supabase integration
+│   │   └── supabase.ts                  # ✅ DB connection
+│   ├── data/                  # ✅ Mock data (to be replaced)
+│   └── utils/                 # ✅ Utility functions
+├── public/                    # ✅ Static assets
+├── index.html                 # ✅ Main HTML template
+├── package.json               # ✅ Dependencies
+├── vite.config.ts             # ✅ Vite configuration
+├── tsconfig.json              # ✅ TypeScript config
+├── tailwind.config.js         # ✅ Tailwind config
+└── AI_AGENT_COMPLETE_GUIDE.md # 📋 Bu dokümantasyon sistemi
 ```
+
+**⚠️ ÖNEMLİ**: `index.ts` dosyası YOK! Ana giriş noktası `src/main.tsx`
 
 ---
 
