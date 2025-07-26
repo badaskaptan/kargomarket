@@ -4,15 +4,28 @@ import PublicLayout from './components/layout/PublicLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import { DashboardProvider } from './context/DashboardContext';
 import { AuthProvider, useAuth } from './context/SupabaseAuthContext';
+import debugAuth from './utils/debugAuth';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
   const [showDashboard, setShowDashboard] = useState(false);
 
+  // Debug auth bilgileri
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('🔍 Running Auth Debug...');
+      debugAuth().then(authInfo => {
+        console.log('🎯 Auth Debug Result:', authInfo);
+      });
+    }
+  }, []);
+
   // Kullanıcı giriş yaptığında otomatik Dashboard'ı aç
   useEffect(() => {
     if (user && profile && !loading) {
       console.log('🚀 User logged in, opening Dashboard automatically');
+      console.log('👤 Current User ID:', user.id);
+      console.log('📧 Current User Email:', user.email);
       setShowDashboard(true);
     }
   }, [user, profile, loading]);

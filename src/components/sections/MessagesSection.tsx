@@ -73,8 +73,8 @@ const MessagesSection: React.FC = () => {
     try {
       setUploadingFiles(true);
       
-      let imageUrls: string[] = [];
-      let documentUrls: string[] = [];
+      const imageUrls: string[] = [];
+      const documentUrls: string[] = [];
       
       // Dosya varsa önce upload et
       if (selectedFiles.length > 0) {
