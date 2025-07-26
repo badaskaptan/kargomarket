@@ -126,6 +126,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess 
         setError(billingError || 'Ödeme işlemi başarısız oldu.');
       }
     } catch (error) {
+      console.error('Payment error:', error);
       setError('Ödeme işlemi sırasında bir hata oluştu.');
     } finally {
       setIsProcessing(false);
@@ -146,6 +147,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess 
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600"
             disabled={isProcessing}
+            aria-label="Kapat"
           >
             <X className="h-5 w-5" />
           </button>

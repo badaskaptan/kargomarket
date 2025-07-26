@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Edit2, Play, Pause, Trash2, TrendingUp, MousePointer, AlertTriangle } from 'lucide-react';
+import { Eye, Edit2, Play, Pause, Trash2, TrendingUp, MousePointer } from 'lucide-react';
 import MediaUploader from '../MediaUploader';
 import BalanceDisplay from '../BalanceDisplay';
 import { AdsService, Ad, CreateAdData, TargetAudience } from '../../services/adsService';
@@ -16,7 +16,6 @@ const MyAdsSection = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [infoMessage, setInfoMessage] = useState('');
   const [userBalance, setUserBalance] = useState<UserBalance | null>(null);
-  const [estimatedCost, setEstimatedCost] = useState(0);
   const [editForm, setEditForm] = useState({
     title: '',
     type: 'banner',
@@ -267,14 +266,6 @@ const MyAdsSection = () => {
     if (roles.includes('carrier')) return 'Nakliyeci';
     if (roles.includes('shipper')) return 'Yük Sahibi';
     return 'Tümü';
-  };
-
-  const handlePreview = (id: bigint | number) => {
-    const ad = ads.find(ad => ad.id === id);
-    if (ad) {
-      setSelectedAd(ad);
-      setIsViewModalOpen(true);
-    }
   };
 
   const handleCreateNew = () => {
@@ -687,6 +678,8 @@ const MyAdsSection = () => {
                   type="text"
                   value={editForm.title}
                   onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  placeholder="Reklam başlığını girin"
+                  aria-label="Reklam Başlığı"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -707,6 +700,7 @@ const MyAdsSection = () => {
                         budget: newDailyRate.toString() 
                       });
                     }}
+                    aria-label="Reklam Türü"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="banner">Banner</option>
@@ -722,6 +716,7 @@ const MyAdsSection = () => {
                   <select
                     value={editForm.targetRole}
                     onChange={(e) => setEditForm({ ...editForm, targetRole: e.target.value })}
+                    aria-label="Hedef Kitle"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="Tümü">Tümü</option>
@@ -754,6 +749,7 @@ const MyAdsSection = () => {
                   <select
                     value={editForm.placement}
                     onChange={(e) => setEditForm({ ...editForm, placement: e.target.value })}
+                    aria-label="Yerleşim"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="homepage">Ana Sayfa</option>
@@ -785,6 +781,8 @@ const MyAdsSection = () => {
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                   rows={3}
+                  placeholder="Reklam açıklamasını girin"
+                  aria-label="Açıklama"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

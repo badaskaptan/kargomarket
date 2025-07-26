@@ -176,6 +176,8 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             accept={getAcceptedTypes()}
             onChange={handleInputChange}
             className="hidden"
+            aria-label="Dosya Seç"
+            title="Dosya Seç"
           />
         </div>
       )}
