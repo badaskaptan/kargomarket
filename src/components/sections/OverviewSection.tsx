@@ -1,85 +1,86 @@
 import React from 'react';
-import { 
-  FileText, 
-  Tag, 
-  Clock, 
-  CheckCheck, 
-  TrendingUp, 
-  Package, 
-  Truck, 
-  MessageCircle, 
+import {
+  FileText,
+  Tag,
+  Clock,
+  CheckCheck,
+  TrendingUp,
+  Package,
+  Truck,
+  MessageCircle,
   User,
   ArrowRight,
   Activity
 } from 'lucide-react';
 import { useDashboard } from '../../context/DashboardContext';
 import { useAuth } from '../../context/SupabaseAuthContext';
+import { useUserListingStats } from '../../hooks/useUserListingStats'; // Yeni hook
+import { useUserOfferStats } from '../../hooks/useUserOfferStats';   // Yeni hook
+import { useRecentActivities } from '../../hooks/useRecentActivities'; // Mevcut hook
 
 const OverviewSection: React.FC = () => {
   const { setActiveSection } = useDashboard();
   const { profile } = useAuth();
+  const userId = profile?.id; // Kullanıcı ID'sini al
 
+  // Yeni hook'ları çağırarak canlı verileri çek
+  const listingStats = useUserListingStats(userId);
+  const offerStats = useUserOfferStats(userId);
+  const recentActivities = useRecentActivities(userId);
+
+  // Mock verileri kaldırıp canlı verileri kullan
   const stats = [
     {
       title: 'Aktif İlanlarım',
-      value: '8',
-      subtitle: 'Son 7 günde 3 yeni',
+      // value: '8', // Mock
+      value: listingStats.loading ? '...' : listingStats.activeListings.toString(), // Canlı veri
+      // subtitle: 'Son 7 günde 3 yeni', // Mock
+      subtitle: listingStats.loading ? '' : `Son 7 günde ${listingStats.newLast7Days} yeni`, // Canlı veri
       icon: FileText,
       color: 'blue',
-      trend: '+12%'
+      // trend: '+12%' // Mock (şimdilik canlı veri yok)
+      trend: '' // Canlı veri olmadığında boş bırak
     },
     {
       title: 'Bekleyen Teklifler',
-      value: '12',
-      subtitle: 'Son 24 saatte 5 yeni',
+      // value: '12', // Mock
+      value: offerStats.loading ? '...' : offerStats.pendingOffers.toString(), // Canlı veri
+      // subtitle: 'Son 24 saatte 5 yeni', // Mock
+      subtitle: offerStats.loading ? '' : `Son 24 saatte ${offerStats.newLast24Hours} yeni`, // Canlı veri
       icon: Tag,
       color: 'green',
-      trend: '+25%'
+      // trend: '+25%' // Mock (şimdilik canlı veri yok)
+      trend: '' // Canlı veri olmadığında boş bırak
     },
     {
       title: 'Devam Eden İşlemler',
-      value: '4',
-      subtitle: '2 tanesi bugün başladı',
+      // value: '4', // Mock
+      // Varsayım: Kabul edilen teklifler devam eden işlemlerdir.
+      value: offerStats.loading ? '...' : offerStats.acceptedOffers.toString(), // Canlı veri (accepted offers)
+      // subtitle: '2 tanesi bugün başladı', // Mock (şimdilik detaylı canlı veri yok)
+      subtitle: offerStats.loading ? '' : '', // Şimdilik boş
       icon: Clock,
       color: 'amber',
-      trend: '+8%'
+      // trend: '+8%' // Mock (şimdilik canlı veri yok)
+      trend: '' // Canlı veri olmadığında boş bırak
     },
     {
       title: 'Tamamlanan İşlemler',
-      value: '27',
-      subtitle: 'Bu ay 15 işlem',
+      // value: '27', // Mock
+      // Varsayım: Teklif tablosunda 'completed' status'u olanlar. Eğer yoksa burası 0 veya farklı bir kaynaktan gelmeli.
+      value: offerStats.loading ? '...' : offerStats.completedOffers.toString(), // Canlı veri (completed offers - varsayımsal)
+      // subtitle: 'Bu ay 15 işlem', // Mock (şimdilik detaylı canlı veri yok)
+      subtitle: offerStats.loading ? '' : '', // Şimdilik boş
       icon: CheckCheck,
       color: 'purple',
-      trend: '+18%'
+      // trend: '+18%' // Mock (şimdilik canlı veri yok)
+      trend: '' // Canlı veri olmadığında boş bırak
     }
   ];
 
-  const activities = [
-    {
-      title: 'İstanbul-Ankara Tekstil Yükü ilanınıza yeni bir teklif geldi',
-      time: 'Bugün, 14:32',
-      icon: Tag,
-      color: 'blue'
-    },
-    {
-      title: 'Bursa-İzmir Mobilya Taşıma işlemi tamamlandı',
-      time: 'Dün, 18:45',
-      icon: CheckCheck,
-      color: 'green'
-    },
-    {
-      title: 'Mehmet Kaya size yeni bir mesaj gönderdi',
-      time: 'Dün, 10:15',
-      icon: MessageCircle,
-      color: 'amber'
-    },
-    {
-      title: 'Ankara-Konya Gıda Taşıma ilanınız yayınlandı',
-      time: '16.06.2025, 09:28',
-      icon: FileText,
-      color: 'purple'
-    }
-  ];
+  // Mock etkinlik verilerini kaldırıp canlı verileri kullan
+  const activities = recentActivities.loadingRecentActivities ? [] : recentActivities.recentActivities;
+
 
   const quickActions = [
     {
@@ -132,24 +133,33 @@ const OverviewSection: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <div key={index} className={`${getColorClasses(stat.color)} rounded-xl p-6 border card-hover`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-700">{stat.title}</h3>
-              <div className="w-12 h-12 rounded-full bg-white/50 flex items-center justify-center">
-                <stat.icon size={24} />
+        {/* Loading veya error durumunu göster */}
+        {(listingStats.loading || offerStats.loading) ? (
+          <div className="lg:col-span-4 text-center text-gray-600">Yükleniyor...</div>
+        ) : (listingStats.error || offerStats.error) ? (
+           <div className="lg:col-span-4 text-center text-red-600">Hata: {listingStats.error || offerStats.error}</div>
+        ) : (
+          stats.map((stat, index) => (
+            <div key={index} className={`${getColorClasses(stat.color)} rounded-xl p-6 border card-hover`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-700">{stat.title}</h3>
+                <div className="w-12 h-12 rounded-full bg-white/50 flex items-center justify-center">
+                  <stat.icon size={24} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
+                <p className="text-sm text-gray-600">{stat.subtitle}</p>
+                 {stat.trend && (
+                  <div className="flex items-center">
+                    <TrendingUp size={16} className="text-green-500 mr-1" />
+                    <span className="text-sm font-medium text-green-600">{stat.trend}</span>
+                  </div>
+                 )}
               </div>
             </div>
-            <div className="space-y-2">
-              <p className="text-3xl font-bold text-gray-800">{stat.value}</p>
-              <p className="text-sm text-gray-600">{stat.subtitle}</p>
-              <div className="flex items-center">
-                <TrendingUp size={16} className="text-green-500 mr-1" />
-                <span className="text-sm font-medium text-green-600">{stat.trend}</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -160,19 +170,27 @@ const OverviewSection: React.FC = () => {
               <Activity className="mr-2 text-primary-600" size={24} />
               Son Etkinlikler
             </h3>
-            <div className="space-y-4">
-              {activities.map((activity, index) => (
-                <div key={index} className="flex items-start p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className={`w-10 h-10 rounded-full ${getColorClasses(activity.color)} flex items-center justify-center mr-4 flex-shrink-0`}>
-                    <activity.icon size={20} />
+            {recentActivities.loadingRecentActivities ? (
+              <div className="text-center text-gray-600">Etkinlikler yükleniyor...</div>
+            ) : recentActivities.recentActivitiesError ? (
+               <div className="text-center text-red-600">Hata: {recentActivities.recentActivitiesError}</div>
+            ) : activities.length === 0 ? (
+               <div className="text-center text-gray-500">Henüz bir etkinlik bulunmamaktadır.</div>
+            ) : (
+              <div className="space-y-4">
+                {activities.map((activity, index) => (
+                  <div key={index} className="flex items-start p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className={`w-10 h-10 rounded-full ${getColorClasses(activity.color)} flex items-center justify-center mr-4 flex-shrink-0`}>
+                      <activity.icon size={20} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{activity.title}</p>
+                      <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <div className="mt-6 pt-4 border-t border-gray-200">
               <button className="text-primary-600 font-medium flex items-center hover:text-primary-700 transition-colors">
                 <span>Tüm etkinlikleri görüntüle</span>
