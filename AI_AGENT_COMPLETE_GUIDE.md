@@ -1,6 +1,6 @@
 # 📋 KargoMarket - AI Agent & Developer Handover Guide
-**Son Güncelleme**: 26 Temmuz 2025 - Reviews System Integration Update  
-**Versiyon**: v2.2 - Reviews System Complete  
+**Son Güncelleme**: 26 Temmuz 2025 - Vitrin Sayfaları ve Yorum Sistemi Geliştirmeleri
+**Versiyon**: v2.3 - Vitrin Sayfaları Canlı Veri Entegrasyonu
 **Amaç**: Projeye katılan her AI agent ve developer için complete onboarding
 
 ---
@@ -24,12 +24,16 @@ Bu dokümantasyon sistemi 3 temel amaca hizmet eder:
 - **Maps**: React-Leaflet
 - **Build**: Production ready, 7.44s build time
 
-### **Proje Durumu: %97 Tamamlandı** 🎉
+### **Proje Durumu: ~%98 Tamamlandı** 🎉
 - ✅ Core systems complete (auth, messaging, listings, offers)
 - ✅ Advanced advertising system with billing integration
 - ✅ Complete payment system with credit card interface
 - ✅ All major components exist and working
 - ✅ Critical bugs fixed (createAd, CTR generated column)
+- ✅ Vitrin sayfaları (AdsPage, ReviewsPage) canlı veriye geçirildi
+- ✅ ReviewsPage URL filtresi ile çalışıyor
+- ✅ AdsPage'den ReviewsPage'e entegrasyon tamamlandı
+- ✅ Kendi kendine yorum yapma validasyonu eklendi
 - ⚠️ Final deployment and polish required
 
 ---
@@ -51,11 +55,11 @@ kargomarkk-v2/
 │   │   │   ├── OverviewSection.tsx      # ⚠️ Mock data → Real data
 │   │   │   ├── ProfileSection.tsx       # ⚠️ Avatar upload needed
 │   │   │   └── SettingsSection.tsx      # ⚠️ Real settings integration
-│   │   ├── pages/             # Vitrin sayfaları ✅ Temel yapı hazır
+│   │   ├── pages/             # Vitrin sayfaları ✅ Canlı Veri Entegre Edildi
 │   │   │   ├── HomePage.tsx             # ⚠️ Harita + öne çıkan ilanlar
 │   │   │   ├── ListingsPage.tsx         # ✅ Full functionality
-│   │   │   ├── AdsPage.tsx              # ⚠️ Advanced filtering
-│   │   │   └── ReviewsPage.tsx          # ⚠️ Real data integration
+│   │   │   ├── AdsPage.tsx              # ✅ Canlı Veri Entegre Edildi, Yorum entegrasyonu tamamlandı
+│   │   │   └── ReviewsPage.tsx          # ✅ Canlı Veri Entegre Edildi, URL filtresi ile çalışıyor
 │   │   ├── modals/            # ✅ Complete modal system
 │   │   ├── layout/            # ✅ Layout components
 │   │   ├── auth/              # ✅ Auth components
@@ -67,7 +71,7 @@ kargomarkk-v2/
 │   │   ├── serviceOfferService.ts       # ✅ Service offers
 │   │   ├── conversationService.ts       # ✅ Enterprise messaging
 │   │   ├── messageService.ts            # ✅ Real-time ready
-│   │   ├── adsService.ts                # ✅ Complete ads CRUD with CTR fix
+│   │   ├── adsService.ts                # ✅ Complete ads CRUD with CTR fix, getActiveAds profil bilgisi ile çalışıyor
 │   │   └── billingService.ts            # ✅ Payment system with FREE_MODE
 │   ├── hooks/                 # ✅ Custom hooks ready
 │   │   └── useListings.ts               # ✅ Main data hook
@@ -156,6 +160,21 @@ kargomarkk-v2/
 **Çözüm**: Added aria-labels, placeholders, removed unused code, fixed error handling
 **Sonuç**: Zero build errors, full accessibility compliance, clean codebase
 
+### **13. Vitrin Sayfaları Canlı Veri Entegrasyonu** ✅
+**Problem**: AdsPage ve ReviewsPage mock data kullanıyordu.
+**Çözüm**: AdsService.getActiveAds ve reviewService.getAllPublicReviews fonksiyonları kullanılarak canlı veri entegrasyonu yapıldı.
+**Sonuç**: Vitrin sayfaları gerçek reklam ve yorum verilerini gösteriyor.
+
+### **14. ReviewsPage URL Filtreleme ve AdsPage Entegrasyonu** ✅
+**Problem**: AdsPage'deki "Yorumları Gör" butonu ReviewsPage'de ilgili firma yorumlarını filtrelemiyordu.
+**Çözüm**: ReviewsPage useSearchParams ile URL'den revieweeId parametresini alarak yorumları filtreleyecek şekilde güncellendi. AdsPage'deki buton navigate hook'u ile ilgili revieweeId parametresini içeren URL'ye yönlendirme yapacak şekilde entegre edildi.
+**Sonuç**: Reklam detayından ilgili firmanın yorumlarına yönlendirme başarılı.
+
+### **15. Kendi Kendine Yorum Yapma Validasyonu** ✅
+**Problem**: Kullanıcılar dashboard yorum sisteminde kendilerine yorum yapabiliyordu.
+**Çözüm**: reviewService.createReview fonksiyonuna reviewer_id ve reviewee_id eşitliği kontrolü eklenerek validasyon yapıldı.
+**Sonuç**: Kullanıcıların kendilerine yorum yapması engellendi.
+
 ---
 
 ## 📊 **MEVCUT DURUM ANALİZİ**
@@ -172,11 +191,16 @@ kargomarkk-v2/
 9. **Bug Fixes & Optimization** - %100 (Critical createAd bug fixed)
 10. **Reviews System** - %100 (Real Supabase integration, two-tab system, CRUD operations)
 11. **Accessibility & Code Quality** - %100 (All form labels, zero build errors)
+12. **Vitrin Sayfaları Canlı Veri Entegrasyonu** - %100
+13. **ReviewsPage URL Filtreleme ve AdsPage Entegrasyonu** - %100
+14. **Kendi Kendine Yorum Yapma Validasyonu** - %100
 
-### **⚠️ KALAN İŞLER (Toplam %5)**
+### **⚠️ KALAN İŞLER (Toplam ~%2)**
 1. **Final Deployment** - GitHub upload, production setup (1 gün)
-2. **Documentation Finalization** - README.md, CHANGELOG.md (tamamlandı)
-3. **Performance Optimization** - Bundle optimization (1 gün)
+2. **Performance Optimization** - Bundle optimization (1 gün)
+3. **OverviewSection ve SettingsSection Gerçek Veri Entegrasyonu** (Opsiyonel - Mock data kullanılıyor)
+4. **ProfileSection Avatar Upload Tamamlama** (Opsiyonel - Partial)
+5. **HomePage Harita ve Öne Çıkan İlanlar** (Opsiyonel - Basic)
 
 ---
 
@@ -217,11 +241,11 @@ Her session'da şu kontrolleri yap:
 ## 🎯 **HANGİ MODÜLDEN BAŞLANMALI**
 
 ### **Öncelik Sırası**:
-1. **MyAdsSection** → Real listings integration (en kritik)
-2. **OverviewSection** → Dynamic statistics
-3. **ProfileSection** → Avatar upload completion
-4. **HomePage** → Maps + featured listings
-5. **Navigation** → UX flow fixes
+1. **Final Deployment** → GitHub upload, production setup (en kritik)
+2. **Performance Optimization**
+3. **OverviewSection** → Dynamic statistics
+4. **ProfileSection** → Avatar upload completion
+5. **HomePage** → Maps + featured listings
 
 ### **Her Modül İçin Gereken İşler**:
 ```typescript
@@ -254,10 +278,8 @@ const { getAdStats } = useListingStats()
 ✅ advertisements (reklam metadataları)
 ✅ user_balances (kullanıcı bakiyeleri)
 ✅ billing_transactions (ödeme işlemleri)
-
--- Eksik tablolar
-⚠️ reviews (yorumlar) - Oluşturulması gerekiyor
-⚠️ ratings (puanlar) - Oluşturulması gerekiyor
+✅ reviews (yorumlar) - Oluşturuldu ve kullanılıyor
+✅ ratings (puanlar) - reviews tablosu içinde birleştirildi
 ⚠️ favorites (favoriler) - Opsiyonel
 ```
 
@@ -278,9 +300,9 @@ npx supabase gen types typescript --project-id YOUR_ID
 - `offerService.ts` - Offer management ✅
 - `conversationService.ts` - Messaging ✅
 - `authService.ts` - Authentication ✅
-- `adsService.ts` - Complete ads CRUD with CTR fix ✅
+- `adsService.ts` - Complete ads CRUD with CTR fix, getActiveAds profil bilgisi ile çalışıyor ✅
 - `billingService.ts` - Payment system with FREE_MODE ✅
-- `reviewService.ts` - Reviews CRUD with manual JOIN for profiles ✅
+- `reviewService.ts` - Reviews CRUD, getAllPublicReviews ve kendi kendine yorum yapma validasyonu eklendi ✅
 
 ---
 
@@ -293,7 +315,9 @@ npx supabase gen types typescript --project-id YOUR_ID
 - ✅ Advertising system fully functional
 - ✅ Payment & billing system implemented
 - ✅ Critical bugs fixed (createAd, CTR issues)
-- ✅ Documentation updated (README.md, CHANGELOG.md)
+- ✅ Documentation updated (README.md, CHANGELOG.md, AI_AGENT_COMPLETE_GUIDE.md)
+- ✅ Vitrin sayfaları canlı veriye entegre edildi
+- ✅ Kendi kendine yorum yapma validasyonu eklendi
 - ⚠️ GitHub upload and deployment needed
 
 ### **Timeline**
@@ -322,10 +346,12 @@ npm run dev
 - Browser'da http://localhost:5177 aç
 
 ### **4. İlk Task** (15 dakika)
-- Sistem %95 tamamlandı, kritik buglar çözüldü
-- Advertising sistem fully functional
+- Sistem ~%98 tamamlandı, kritik buglar çözüldü
+- Advertising system fully functional
 - Payment system working with FREE_MODE
-- GitHub upload ve deployment hazırlığı yapılabilir
+- Vitrin sayfaları canlı veri entegrasyonu tamamlandı
+- Kendi kendine yorum yapma validasyonu eklendi
+- GitHub upload ve deployment hazırlığı yapılabilir.
 
 ---
 
@@ -341,25 +367,25 @@ npm run dev
 8. **Billing Integration**: FREE_MODE with welcome bonus works better than complex payment flows
 9. **Accessibility First**: All form elements need labels, aria-labels, and proper titles
 10. **Clean Code**: Remove unused imports, variables, and functions to maintain code quality
+11. **Veri Tutarlılığı**: Frontend/Backend entegrasyonunda veritabanındaki verinin beklenen yapıda olması kritik öneme sahiptir.
 
 ---
 
 ## 🎉 **SONUÇ**
 
-KargoMarket %95 tamamlanmış, production-ready platform. Advertising system, billing integration, ve critical bug fixes tamamlandı.
+KargoMarket ~%98 tamamlanmış, production-ready platform. Advertising system, billing integration, vitrin sayfaları canlı veri entegrasyonu ve kritik bug fixler tamamlandı.
 
 **Major Achievements This Session**:
-- ✅ Fixed MyReviewsSection demo data issue (Mock data → Real Supabase integration)
-- ✅ Implemented complete reviews system with two-tab navigation
-- ✅ Added user search functionality for new reviews
-- ✅ Created manual JOIN solution for missing foreign key relationships
-- ✅ Resolved reviews RLS policies and database relationship issues
-- ✅ Added debug system for review data troubleshooting
-- ✅ Prepared SQL scripts for foreign key constraint optimization
+- ✅ ReviewsPage (Yorumlar Vitrin Sayfası) canlı veriye entegre edildi.
+- ✅ ReviewsPage URL parametresi (revieweeId) ile ilgili firma yorumlarını filtreleyebiliyor.
+- ✅ AdsPage'deki "Yorumları Gör" butonu ReviewsPage'e doğru yönlendirme yapacak şekilde entegre edildi.
+- ✅ AdsService.getActiveAds fonksiyonu profil bilgisi ile reklamları çekiyor.
+- ✅ reviewService.createReview fonksiyonuna kullanıcının kendi kendine yorum yapmasını engelleyen validasyon eklendi.
+- ✅ AdsService.ts'teki geçici filtreler (status, tarih) geri getirildi.
 
-**Son %5**: GitHub upload ve production deployment.
+**Kalan İşler**: Final Deployment ve performans optimizasyonu gibi son dokunuşlar.
 
-**Bir sonraki AI agent veya developer için**: Sistem fully functional, sadece deployment kaldı! 🚀
+**Bir sonraki AI agent veya developer için**: Sistem neredeyse tam! Sadece kalan birkaç küçük task ve deployment kaldı! 🚀
 
 ---
 

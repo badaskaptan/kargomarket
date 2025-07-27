@@ -34,6 +34,16 @@ export interface Ad {
   billing_status?: string;
 }
 
+// Interface for Ad combined with advertiser's profile
+export interface AdWithProfile extends Ad {
+  profile?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+    company_name?: string;
+  }
+}
+
 export interface CreateAdData {
   title: string;
   description: string;
@@ -60,7 +70,7 @@ export class AdsService {
   /**
    * Kullanıcının tüm reklamlarını getirir
    */
-  static async getUserAds(): Promise<{ data: Ad[] | null; error: string | null }> {
+  static async getUserAds(): Promise<{ data: AdWithProfile[] | null; error: string | null }> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -77,8 +87,19 @@ export class AdsService {
         console.error('Get user ads error:', error);
         return { data: null, error: 'Reklamlar yüklenirken bir hata oluştu.' };
       }
+      
+      // Attach profile info
+      const adsWithProfile = data.map(ad => ({
+        ...ad,
+        profile: {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+          company_name: user.user_metadata?.company_name || ''
+        }
+      }));
 
-      return { data: data as Ad[], error: null };
+      return { data: adsWithProfile, error: null };
     } catch (error) {
       console.error('Get user ads error:', error);
       return { data: null, error: 'Beklenmeyen bir hata oluştu.' };
@@ -103,8 +124,7 @@ export class AdsService {
           spent: 0,
           impressions: 0,
           clicks: 0,
-          // ctr kaldırıldı - generated column olduğu için otomatik hesaplanır
-          status: 'pending' // Yeni reklamlar pending durumunda başlar
+          status: 'pending'
         }])
         .select()
         .single();
@@ -140,7 +160,7 @@ export class AdsService {
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
-        .eq('user_id', user.id) // Kullanıcı sadece kendi reklamlarını güncelleyebilir
+        .eq('user_id', user.id)
         .select()
         .single();
 
@@ -170,7 +190,7 @@ export class AdsService {
         .from('ads')
         .delete()
         .eq('id', adId)
-        .eq('user_id', user.id); // Kullanıcı sadece kendi reklamlarını silebilir
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Delete ad error:', error);
@@ -221,30 +241,55 @@ export class AdsService {
   }
 
   /**
-   * Aktif reklamları getirir (public - tüm kullanıcılar için)
+   * Aktif reklamları getirir (public - tüm kullanıcılar için) - PROFİL BİLGİLERİYLE
    */
-  static async getActiveAds(placement?: string): Promise<{ data: Ad[] | null; error: string | null }> {
+  static async getActiveAds(placement?: string): Promise<{ data: AdWithProfile[] | null; error: string | null }> {
     try {
       let query = supabase
         .from('ads')
         .select('*')
-        .eq('status', 'active')
-        .lte('start_date', new Date().toISOString())
-        .gte('end_date', new Date().toISOString())
+        .eq('status', 'active') // Filtre geri getirildi
+        .lte('start_date', new Date().toISOString()) // Filtre geri getirildi
+        .gte('end_date', new Date().toISOString()) // Filtre geri getirildi
         .order('created_at', { ascending: false });
 
       if (placement) {
         query = query.eq('placement', placement);
       }
 
-      const { data, error } = await query;
+      const { data: ads, error } = await query;
 
       if (error) {
         console.error('Get active ads error:', error);
         return { data: null, error: 'Aktif reklamlar yüklenirken bir hata oluştu.' };
       }
+      
+      if (!ads || ads.length === 0) {
+        return { data: [], error: null };
+      }
+      
+      // Get unique user IDs from ads
+      const userIds = [...new Set(ads.map(ad => ad.user_id))];
 
-      return { data: data as Ad[], error: null };
+      // Fetch profiles for these users
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, company_name, avatar_url')
+        .in('id', userIds);
+
+      if (profileError) {
+        console.error('Error fetching profiles for ads:', profileError);
+        // Continue without profile data if it fails
+        return { data: ads.map(ad => ({...ad})), error: null };
+      }
+
+      // Map profiles to ads
+      const adsWithProfiles = ads.map(ad => ({
+        ...ad,
+        profile: profiles?.find(p => p.id === ad.user_id)
+      }));
+
+      return { data: adsWithProfiles, error: null };
     } catch (error) {
       console.error('Get active ads error:', error);
       return { data: null, error: 'Beklenmeyen bir hata oluştu.' };
@@ -256,15 +301,9 @@ export class AdsService {
    */
   static async recordAdClick(adId: bigint): Promise<{ success: boolean; error: string | null }> {
     try {
-      // ad_clicks tablosuna kayıt ekle (trigger otomatik olarak ad tablosunu güncelleyecek)
       const { error } = await supabase
         .from('ad_clicks')
-        .insert([{
-          ad_id: adId,
-          clicked_at: new Date().toISOString(),
-          ip_address: '', // Frontend'de IP alınamaz, backend'de set edilebilir
-          user_agent: navigator.userAgent
-        }]);
+        .insert([{ ad_id: adId }]);
 
       if (error) {
         console.error('Record ad click error:', error);
@@ -283,15 +322,9 @@ export class AdsService {
    */
   static async recordAdImpression(adId: bigint): Promise<{ success: boolean; error: string | null }> {
     try {
-      // ad_impressions tablosuna kayıt ekle (trigger otomatik olarak ad tablosunu güncelleyecek)
       const { error } = await supabase
         .from('ad_impressions')
-        .insert([{
-          ad_id: adId,
-          viewed_at: new Date().toISOString(),
-          ip_address: '', // Frontend'de IP alınamaz, backend'de set edilebilir
-          user_agent: navigator.userAgent
-        }]);
+        .insert([{ ad_id: adId }]);
 
       if (error) {
         console.error('Record ad impression error:', error);

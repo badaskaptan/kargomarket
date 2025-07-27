@@ -74,7 +74,7 @@ export interface ReviewWithProfile {
   created_at: string
   updated_at: string
   title?: string | null
-  review_type: 'buyer_to_carrier' | 'carrier_to_buyer' | 'general'
+  review_type: 'buyer' | 'carrier' | 'general' // Simplified types based on recent review structure
   service_quality?: number | null
   communication?: number | null
   timeliness?: number | null
@@ -99,6 +99,58 @@ export interface ReviewWithProfile {
 }
 
 class ReviewService {
+
+  // Herkese açık tüm yorumları getir (Vitrin sayfası için)
+  async getAllPublicReviews(): Promise<{ data: ReviewWithProfile[] | null; error: unknown }> {
+    try {
+      // Herkese açık ve aktif olan tüm yorumları çek
+      const { data: reviews, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('is_public', true)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all public reviews:', error);
+        return { data: null, error };
+      }
+
+      if (!reviews || reviews.length === 0) {
+        return { data: [], error: null };
+      }
+
+      // Yorum yapanların ve yorum alanların ID'lerini topla
+      const reviewerIds = [...new Set(reviews.map(r => r.reviewer_id))];
+      const revieweeIds = [...new Set(reviews.map(r => r.reviewee_id))];
+      const allProfileIds = [...new Set([...reviewerIds, ...revieweeIds])];
+
+      // Tüm ilgili profilleri tek seferde çek
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, company_name, avatar_url')
+        .in('id', allProfileIds);
+
+      if (profileError) {
+        console.error('Error fetching profiles for reviews:', profileError);
+        // Profilsiz de devam edebiliriz ama loglamak önemli
+        return { data: reviews.map(r => ({...r})), error: null };
+      }
+
+      // Yorumları profil bilgileriyle birleştir
+      const reviewsWithProfiles = reviews.map(review => ({
+        ...review,
+        reviewer_profile: profiles?.find(p => p.id === review.reviewer_id) || null,
+        reviewee_profile: profiles?.find(p => p.id === review.reviewee_id) || null,
+      }));
+
+      return { data: reviewsWithProfiles, error: null };
+    } catch (error) {
+      console.error('An unexpected error occurred in getAllPublicReviews:', error);
+      return { data: null, error };
+    }
+  }
+
 
   // Kullanıcının yaptığı yorumları getir
   async getGivenReviews(userId: string): Promise<{ data: ReviewWithProfile[] | null; error: unknown }> {
@@ -209,6 +261,13 @@ class ReviewService {
   // Yeni yorum ekle
   async createReview(review: ReviewInsert): Promise<{ data: Review | null; error: unknown }> {
     try {
+      // Validasyon: Kullanıcı kendine yorum yapamaz
+      if (review.reviewer_id === review.reviewee_id) {
+        const errorMessage = 'Kendinize yorum yapamazsınız.';
+        console.warn(errorMessage);
+        return { data: null, error: errorMessage };
+      }
+
       const { data, error } = await supabase
         .from('reviews')
         .insert([{
