@@ -248,9 +248,7 @@ export class AdsService {
       let query = supabase
         .from('ads')
         .select('*')
-        .eq('status', 'active') // Filtre geri getirildi
-        .lte('start_date', new Date().toISOString()) // Filtre geri getirildi
-        .gte('end_date', new Date().toISOString()) // Filtre geri getirildi
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (placement) {
