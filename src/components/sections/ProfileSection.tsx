@@ -1,5 +1,158 @@
 import React, { useState } from 'react';
-import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe } from 'lucide-react';
+import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe, FileText, CreditCard, Shield, AlertTriangle, ExternalLink } from 'lucide-react';
+            {/* Yasal Bilgiler ve Sorumluluk Reddi - Detaylı Metin */}
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                <Shield className="mr-2 text-primary-600" size={20} />
+                Yasal Bilgiler ve Sorumluluk Reddi
+              </h3>
+              <div className="space-y-6">
+                {/* Platform Disclaimer */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <AlertTriangle className="text-red-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Platform Sorumluluk Reddi</h4>
+                  </div>
+                  <div className="space-y-4 text-sm text-gray-700">
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                      <h5 className="font-semibold text-red-800 mb-2">Önemli Uyarı</h5>
+                      <p className="text-red-700">
+                        Bu platform yalnızca ilan ve reklam hizmeti sunar. Kullanıcılar arasındaki tüm ticari işlemler,
+                        anlaşmalar ve sorumluluklar tamamen kullanıcılara aittir. Platform hiçbir ticari işlemin tarafı değildir.
+                      </p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Gelir Modeli</h5>
+                      <p>
+                        Platformumuzun gelirleri yalnızca üyelik ücretleri ve reklam/ilan yayınlama bedellerinden elde edilmektedir.
+                        Kullanıcılar arasındaki hiçbir finansal işlemde aracı değiliz.
+                      </p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Sorumluluk Sınırları</h5>
+                      <p>
+                        Platform; dolandırıcılık, kalitesiz hizmet, gecikme, kayıp, hasar, sözleşme ihlali ve benzeri
+                        durumlardan sorumlu değildir. Tüm işlemler kullanıcıların kendi risk ve sorumluluğundadır.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <button className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                      <FileText size={16} className="mr-2" />
+                      Tam Metni Oku
+                      <ExternalLink size={14} className="ml-2" />
+                    </button>
+                    <button className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                      <Globe size={16} className="mr-2" />
+                      English Version
+                    </button>
+                  </div>
+                </div>
+                {/* KVKK Bilgilendirme */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <Lock className="text-green-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Kişisel Verilerin Korunması (KVKK)</h4>
+                  </div>
+                  <div className="space-y-3 text-sm text-gray-700">
+                    <p>
+                      Kişisel verileriniz yalnızca platform işleyişini sağlamak ve yasal yükümlülükler çerçevesinde işlenir.
+                      Verileriniz üçüncü şahıslarla paylaşılmaz.
+                    </p>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <h5 className="font-semibold text-green-800 mb-2">Veri İşleme Amaçları</h5>
+                      <ul className="text-green-700 space-y-1">
+                        <li>• Platform hizmetlerinin sunulması</li>
+                        <li>• Kullanıcı güvenliğinin sağlanması</li>
+                        <li>• Yasal yükümlülüklerin yerine getirilmesi</li>
+                        <li>• İletişim ve destek hizmetleri</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                      <Shield size={16} className="mr-2" />
+                      KVKK Aydınlatma Metni
+                      <ExternalLink size={14} className="ml-2" />
+                    </button>
+                  </div>
+                </div>
+                {/* Kullanıcı Hakları */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <User className="text-blue-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Kullanıcı Hakları</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <h5 className="font-semibold text-gray-900">Veri Hakları</h5>
+                      <ul className="text-gray-700 space-y-1">
+                        <li>• Verilerinizi görme hakkı</li>
+                        <li>• Düzeltme talep etme hakkı</li>
+                        <li>• Silme talep etme hakkı</li>
+                        <li>• İşlemeye itiraz etme hakkı</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="font-semibold text-gray-900">Platform Hakları</h5>
+                      <ul className="text-gray-700 space-y-1">
+                        <li>• Hesap kapatma hakkı</li>
+                        <li>• Veri taşınabilirlik hakkı</li>
+                        <li>• Şikayet etme hakkı</li>
+                        <li>• Bilgi alma hakkı</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                {/* Yasal İletişim */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <FileText className="text-purple-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Yasal Konularda İletişim</h4>
+                  </div>
+                  <div className="space-y-3 text-sm text-gray-700">
+                    <p>
+                      Yasal konular, veri koruma, sorumluluk reddi veya platform kullanımı hakkında sorularınız için:
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-semibold text-gray-900 mb-2">Hukuk Departmanı</h5>
+                        <p>📧 emrahbadas@gmail.com</p>
+                        <p>📞 +905412879705</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-semibold text-gray-900 mb-2">Veri Koruma Sorumlusu</h5>
+                        <p>📧 emrahbadas@gmail.com</p>
+                        <p>📞 +905412879705</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Sözleşme Kabulü */}
+                <div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
+                  <div className="flex items-center mb-4">
+                    <AlertTriangle className="text-yellow-600 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Sözleşme Kabulü</h4>
+                  </div>
+                  <p className="text-sm text-yellow-800 mb-4">
+                    Platformu kullanmaya devam ederek, yukarıda belirtilen tüm koşulları ve sorumluluk reddi beyanını
+                    kabul etmiş sayılırsınız.
+                  </p>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="legalAcceptance"
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      defaultChecked
+                      aria-label="Yasal koşulları okudum ve kabul ediyorum"
+                    />
+                    <label htmlFor="legalAcceptance" className="ml-2 text-sm text-yellow-800">
+                      Yasal koşulları okudum ve kabul ediyorum
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -629,6 +782,207 @@ const ProfileSection: React.FC = () => {
                     <p className="text-2xl font-bold text-gray-900">{String(stat.value)}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Legal, Invoice, Payment Information */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              {/* Yasal Bilgiler */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2 text-primary-600" size={20} />
+                  Yasal Bilgiler
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li><span className="font-medium">Şirket Türü:</span> Limited Şirket</li>
+                  <li><span className="font-medium">MERSIS No:</span> 0123456789123456</li>
+                  <li><span className="font-medium">Ticaret Sicil No:</span> 123456-5</li>
+                  <li><span className="font-medium">Yetkili Kişi:</span> {profile?.full_name || '-'}</li>
+                  <li><span className="font-medium">Kuruluş Tarihi:</span> {formatDate(profile?.created_at || null)}</li>
+                  <li><span className="font-medium">Faaliyet Alanı:</span> Taşımacılık ve Lojistik</li>
+                  <li><span className="font-medium">Vergi Dairesi:</span> {profile?.tax_office || '-'}</li>
+                  <li><span className="font-medium">Vergi No:</span> {profile?.tax_number || '-'}</li>
+                  <li><span className="font-medium">Adres:</span> {profile?.address || '-'}</li>
+                </ul>
+              </div>
+              {/* Fatura Bilgileri */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <FileText className="mr-2 text-primary-600" size={20} />
+                  Fatura Bilgileri
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li><span className="font-medium">Fatura Adı:</span> {profile?.company_name || '-'}</li>
+                  <li><span className="font-medium">Vergi Dairesi:</span> {profile?.tax_office || '-'}</li>
+                  <li><span className="font-medium">Vergi No:</span> {profile?.tax_number || '-'}</li>
+                  <li><span className="font-medium">Adres:</span> {profile?.address || '-'}</li>
+                </ul>
+              </div>
+              {/* Ödeme Yöntemleri */}
+              <div className="bg-white rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <CreditCard className="mr-2 text-primary-600" size={20} />
+                  Ödeme Yöntemleri
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li><span className="font-medium">Kayıtlı Kart:</span> -</li>
+                  <li><span className="font-medium">Banka IBAN:</span> -</li>
+                  <li className="text-xs text-gray-400">Ödeme yöntemlerinizi eklemek için lütfen destek ile iletişime geçin.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Yasal Bilgiler ve Sorumluluk Reddi - Detaylı Metin */}
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                <Shield className="mr-2 text-primary-600" size={20} />
+                Yasal Bilgiler ve Sorumluluk Reddi
+              </h3>
+              <div className="space-y-6">
+                {/* Platform Disclaimer */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <AlertTriangle className="text-red-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Platform Sorumluluk Reddi</h4>
+                  </div>
+                  <div className="space-y-4 text-sm text-gray-700">
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                      <h5 className="font-semibold text-red-800 mb-2">Önemli Uyarı</h5>
+                      <p className="text-red-700">
+                        Bu platform yalnızca ilan ve reklam hizmeti sunar. Kullanıcılar arasındaki tüm ticari işlemler,
+                        anlaşmalar ve sorumluluklar tamamen kullanıcılara aittir. Platform hiçbir ticari işlemin tarafı değildir.
+                      </p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Gelir Modeli</h5>
+                      <p>
+                        Platformumuzun gelirleri yalnızca üyelik ücretleri ve reklam/ilan yayınlama bedellerinden elde edilmektedir.
+                        Kullanıcılar arasındaki hiçbir finansal işlemde aracı değiliz.
+                      </p>
+                    </div>
+                    <div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Sorumluluk Sınırları</h5>
+                      <p>
+                        Platform; dolandırıcılık, kalitesiz hizmet, gecikme, kayıp, hasar, sözleşme ihlali ve benzeri
+                        durumlardan sorumlu değildir. Tüm işlemler kullanıcıların kendi risk ve sorumluluğundadır.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <button className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                      <FileText size={16} className="mr-2" />
+                      Tam Metni Oku
+                      <ExternalLink size={14} className="ml-2" />
+                    </button>
+                    <button className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                      <Globe size={16} className="mr-2" />
+                      English Version
+                    </button>
+                  </div>
+                </div>
+                {/* KVKK Bilgilendirme */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <Lock className="text-green-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Kişisel Verilerin Korunması (KVKK)</h4>
+                  </div>
+                  <div className="space-y-3 text-sm text-gray-700">
+                    <p>
+                      Kişisel verileriniz yalnızca platform işleyişini sağlamak ve yasal yükümlülükler çerçevesinde işlenir.
+                      Verileriniz üçüncü şahıslarla paylaşılmaz.
+                    </p>
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <h5 className="font-semibold text-green-800 mb-2">Veri İşleme Amaçları</h5>
+                      <ul className="text-green-700 space-y-1">
+                        <li>• Platform hizmetlerinin sunulması</li>
+                        <li>• Kullanıcı güvenliğinin sağlanması</li>
+                        <li>• Yasal yükümlülüklerin yerine getirilmesi</li>
+                        <li>• İletişim ve destek hizmetleri</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                      <Shield size={16} className="mr-2" />
+                      KVKK Aydınlatma Metni
+                      <ExternalLink size={14} className="ml-2" />
+                    </button>
+                  </div>
+                </div>
+                {/* Kullanıcı Hakları */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <User className="text-blue-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Kullanıcı Hakları</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <h5 className="font-semibold text-gray-900">Veri Hakları</h5>
+                      <ul className="text-gray-700 space-y-1">
+                        <li>• Verilerinizi görme hakkı</li>
+                        <li>• Düzeltme talep etme hakkı</li>
+                        <li>• Silme talep etme hakkı</li>
+                        <li>• İşlemeye itiraz etme hakkı</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="font-semibold text-gray-900">Platform Hakları</h5>
+                      <ul className="text-gray-700 space-y-1">
+                        <li>• Hesap kapatma hakkı</li>
+                        <li>• Veri taşınabilirlik hakkı</li>
+                        <li>• Şikayet etme hakkı</li>
+                        <li>• Bilgi alma hakkı</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                {/* Yasal İletişim */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <div className="flex items-center mb-4">
+                    <FileText className="text-purple-500 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Yasal Konularda İletişim</h4>
+                  </div>
+                  <div className="space-y-3 text-sm text-gray-700">
+                    <p>
+                      Yasal konular, veri koruma, sorumluluk reddi veya platform kullanımı hakkında sorularınız için:
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-semibold text-gray-900 mb-2">Hukuk Departmanı</h5>
+                        <p>📧 emrahbadas@gmail.com</p>
+                        <p>📞 +905412879705</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h5 className="font-semibold text-gray-900 mb-2">Veri Koruma Sorumlusu</h5>
+                        <p>📧 emrahbadas@gmail.com</p>
+                        <p>📞 +905412879705</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* Sözleşme Kabulü */}
+                <div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
+                  <div className="flex items-center mb-4">
+                    <AlertTriangle className="text-yellow-600 mr-3" size={24} />
+                    <h4 className="text-lg font-semibold text-gray-900">Sözleşme Kabulü</h4>
+                  </div>
+                  <p className="text-sm text-yellow-800 mb-4">
+                    Platformu kullanmaya devam ederek, yukarıda belirtilen tüm koşulları ve sorumluluk reddi beyanını
+                    kabul etmiş sayılırsınız.
+                  </p>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="legalAcceptance"
+                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      defaultChecked
+                      aria-label="Yasal koşulları okudum ve kabul ediyorum"
+                    />
+                    <label htmlFor="legalAcceptance" className="ml-2 text-sm text-yellow-800">
+                      Yasal koşulları okudum ve kabul ediyorum
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

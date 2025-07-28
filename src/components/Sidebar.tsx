@@ -10,7 +10,6 @@ import {
   Megaphone, 
   Star,
   User, 
-  Settings, 
   LogOut,
   ChevronDown,
   Package,
@@ -100,12 +99,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       label: 'Profilim',
       icon: User,
       active: activeSection === 'profile'
-    },
-    {
-      id: 'settings',
-      label: 'Ayarlar',
-      icon: Settings,
-      active: activeSection === 'settings'
     },
     {
       id: 'logout',

@@ -1,7 +1,7 @@
 <!-- Last updated: 2025-07-29 -->
 # 📋 KargoMarket - AI Agent & Developer Handover Guide
-**Son Güncelleme**: 29 Temmuz 2025 - Video reklamlar Supabase video_url ile canlı oynatılıyor, AdsPage ve adsService güncellendi, lint hataları temizlendi
-**Versiyon**: v2.4 - Video Reklam Canlı Entegrasyon & Kod Temizliği
+**Son Güncelleme**: 29 Temmuz 2025 - Ayarlar modülü ve SettingsSection.tsx tamamen kaldırıldı, Sidebar sadeleştirildi, yasal metinler ProfileSection'a taşındı
+**Versiyon**: v2.5 - Dashboard Sadeleştirme & Yasal Bilgiler Modernizasyonu
 **Amaç**: Projeye katılan her AI agent ve developer için complete onboarding
 
 ---
@@ -39,6 +39,9 @@ Bu dokümantasyon sistemi 3 temel amaca hizmet eder:
 - ✅ adsService.ts ve tipler video_url desteğiyle güncellendi
 - ✅ AdsPage'de demo video yerine gerçek video gösterimi
 - ✅ Lint/type hataları temizlendi
+- ✅ Ayarlar modülü ve SettingsSection.tsx tamamen kaldırıldı
+- ✅ Sidebar'dan Ayarlar menüsü kaldırıldı
+- ✅ Yasal Bilgiler, Fatura Bilgileri, Ödeme Yöntemleri ve detaylı yasal metinler ProfileSection'a taşındı
 - ⚠️ Final deployment and polish required
 
 ---
@@ -59,7 +62,6 @@ kargomarkk-v2/
 │   │   │   ├── MyOffersSection.tsx      # ✅ Working with RLS
 │   │   │   ├── OverviewSection.tsx      # ⚠️ Mock data → Real data
 │   │   │   ├── ProfileSection.tsx       # ⚠️ Avatar upload needed
-│   │   │   └── SettingsSection.tsx      # ⚠️ Real settings integration
 │   │   ├── pages/             # Vitrin sayfaları ✅ Canlı Veri Entegre Edildi
 │   │   │   ├── HomePage.tsx             # ⚠️ Harita + öne çıkan ilanlar
 │   │   │   ├── ListingsPage.tsx         # ✅ Full functionality

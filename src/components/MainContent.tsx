@@ -11,7 +11,6 @@ import MyAdsSection from './sections/MyAdsSection';
 import CreateAdSection from './sections/CreateAdSection';
 import MyReviewsSection from './sections/MyReviewsSection';
 import ProfileSection from './sections/ProfileSection';
-import SettingsSection from './sections/SettingsSection';
 import MessagesSection from './sections/MessagesSection';
 
 const MainContent: React.FC = () => {
@@ -42,8 +41,7 @@ const MainContent: React.FC = () => {
         return <MyReviewsSection />;
       case 'profile':
         return <ProfileSection />;
-      case 'settings':
-        return <SettingsSection />;
+      // 'settings' kaldırıldı
       default:
         return <OverviewSection />;
     }
