@@ -125,7 +125,7 @@ const AdPanelPage: React.FC = () => {
         {/* Benefits */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            Neden <span className="text-primary-600">Kargo Market</span> Reklamları?
+            Neden <span className="text-primary-600">KargoMarketing</span> Reklamları?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {benefits.map((benefit, index) => (

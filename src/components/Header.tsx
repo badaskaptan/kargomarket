@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onBackToPublic }) => {
           className="font-pacifico text-primary-600 text-2xl font-bold cursor-pointer hover:text-primary-700 transition-all duration-300 transform hover:scale-110"
           onClick={() => onBackToPublic?.()}
         >
-          Kargo Market
+          KargoMarketing
         </h1>
         <span className="ml-3 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
           Dashboard

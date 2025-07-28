@@ -393,7 +393,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
               </span>
             </h1>
             <p className="text-xl lg:text-2xl mb-8 text-blue-100 leading-relaxed max-w-4xl mx-auto">
-              Alıcı, Satıcı ve Nakliyecileri Uçtan Uca Bağlayan Pazaryeri. Kargo Market ile yük alım satımı ve nakliye süreçlerinizi tek platformda yönetin.
+              Alıcı, Satıcı ve Nakliyecileri Uçtan Uca Bağlayan Pazaryeri. KargoMarketing ile yük alım satımı ve nakliye süreçlerinizi tek platformda yönetin.
             </p>
 
             {/* CTA Buttons */}
@@ -449,7 +449,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              <span className="text-primary-600">Kargo Market</span> Nasıl Çalışır?
+              <span className="text-primary-600">KargoMarketing</span> Nasıl Çalışır?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Platformumuzun sunduğu avantajları ve lojistik süreçlerinizi nasıl optimize edebileceğinizi keşfedin.
@@ -511,7 +511,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Neden <span className="text-primary-600">Kargo Market?</span>
+              Neden <span className="text-primary-600">KargoMarketing?</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Modern teknoloji ile lojistik sektörünü dönüştürüyoruz

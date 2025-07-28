@@ -156,7 +156,7 @@ const HowItWorksPage: React.FC = () => {
             <span className="text-primary-600">Nasıl</span> Çalışır?
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Kargo Market'te işlem yapmak çok kolay! Adım adım süreçlerimizi inceleyin.
+            KargoMarketing'te işlem yapmak çok kolay! Adım adım süreçlerimizi inceleyin.
           </p>
           
           {/* Role Selector */}
@@ -238,7 +238,7 @@ const HowItWorksPage: React.FC = () => {
             Video ile <span className="text-primary-600">Öğrenin</span>
           </h2>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Kargo Market'in nasıl çalıştığını detaylı olarak anlatan videomuzı izleyin.
+            KargoMarketing'in nasıl çalıştığını detaylı olarak anlatan videomuzı izleyin.
           </p>
           <div className="aspect-video bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl relative overflow-hidden max-w-4xl mx-auto cursor-pointer group">
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center group-hover:bg-black/30 transition-all duration-300">
@@ -247,7 +247,7 @@ const HowItWorksPage: React.FC = () => {
               </div>
             </div>
             <div className="absolute bottom-4 left-4 text-white">
-              <h3 className="font-bold text-lg">Kargo Market Kullanım Kılavuzu</h3>
+              <h3 className="font-bold text-lg">KargoMarketing Kullanım Kılavuzu</h3>
               <p className="text-sm text-gray-300">5 dakikada tüm özellikleri öğrenin</p>
             </div>
           </div>

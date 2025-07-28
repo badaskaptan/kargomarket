@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-// Ad type matching Supabase ads table schema
+// Ad type matching KargoMarketing ads table schema
 export interface TargetAudience {
   roles?: string[];
   demographics?: Record<string, unknown>;
@@ -34,7 +34,7 @@ export interface Ad {
   billing_status?: string;
 }
 
-// Interface for Ad combined with advertiser's profile
+// Interface for Ad combined with advertiser's KargoMarketing profile
 export interface AdWithProfile extends Ad {
   profile?: {
     id: string;
@@ -241,7 +241,7 @@ export class AdsService {
   }
 
   /**
-   * Aktif reklamları getirir (public - tüm kullanıcılar için) - PROFİL BİLGİLERİYLE
+   * Aktif reklamları getirir (public - tüm kullanıcılar için) - KargoMarketing PROFİL BİLGİLERİYLE
    */
   static async getActiveAds(placement?: string): Promise<{ data: AdWithProfile[] | null; error: string | null }> {
     try {
@@ -274,7 +274,7 @@ export class AdsService {
       // Fetch profiles for these users
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
-        .select('id, full_name, company_name, avatar_url')
+        .select('id, full_name, company_name, avatar_url, phone, email, website')
         .in('id', userIds);
 
       if (profileError) {

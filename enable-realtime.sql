@@ -1,4 +1,4 @@
--- KargoMarket - Realtime Publication Setup
+-- KargoMarketing - Realtime Publication Setup
 -- Bu komutları Supabase Dashboard > SQL Editor'da çalıştırın
 
 -- Mesajlaşma tabloları için realtime etkinleştir

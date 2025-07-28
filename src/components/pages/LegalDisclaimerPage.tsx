@@ -30,7 +30,7 @@ const LegalDisclaimerPage: React.FC = () => {
           Platform Sorumluluk Reddi ve Gelir Modeli Beyanı
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Kargo Market platformunu kullanmadan önce lütfen aşağıdaki önemli bilgileri dikkatle okuyunuz.
+          KargoMarketing platformunu kullanmadan önce lütfen aşağıdaki önemli bilgileri dikkatle okuyunuz.
         </p>
       </div>
 
@@ -176,7 +176,7 @@ const LegalDisclaimerPage: React.FC = () => {
           Platform Disclaimer and Revenue Model Statement
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Please read the following important information carefully before using the Kargo Market platform.
+          Please read the following important information carefully before using the KargoMarketing platform.
         </p>
       </div>
 

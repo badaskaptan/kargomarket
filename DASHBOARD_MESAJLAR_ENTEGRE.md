@@ -71,7 +71,7 @@ case 'messages':
 **Real-time**: ✅ **WORKING**  
 **Production Ready**: ✅ **YES**
 
-**Artık KargoMarket dashboard'ında tam özellikli mesajlaşma sistemi çalışıyor!** 🚀
+**Artık KargoMarketing dashboard'ında tam özellikli mesajlaşma sistemi çalışıyor!** 🚀
 
 ### 🎯 Test Adımları:
 1. http://localhost:5175 → Dashboard'a giriş yap

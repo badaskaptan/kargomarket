@@ -89,7 +89,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
             className="font-pacifico text-primary-600 text-2xl font-bold cursor-pointer hover:text-primary-700 transition-all duration-300 transform hover:scale-110"
             onClick={() => setActivePage('home')}
           >
-            Kargo Market
+            KargoMarketing
           </div>
 
           {/* Desktop Navigation */}

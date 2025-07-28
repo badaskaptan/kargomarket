@@ -1,4 +1,4 @@
-# 🚀 KargoMarket Development Roadmap - Kalan İşler
+# 🚀 KargoMarketing Development Roadmap - Kalan İşler
 **Updated**: 26 Temmuz 2025  
 **Focus**: Dashboard Modülleri + Vitrin Sayfaları
 

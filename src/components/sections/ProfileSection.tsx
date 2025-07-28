@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
-import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X } from 'lucide-react';
+import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { supabase } from '../../lib/supabase';
 
+type ProfileWithWebsite = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  avatar_url: string | null;
+  user_type: 'buyer_seller' | 'carrier' | 'both';
+  company_name?: string;
+  tax_office?: string;
+  tax_number?: string;
+  address?: string;
+  website?: string;
+  [key: string]: unknown;
+};
+
 const ProfileSection: React.FC = () => {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile } = useAuth() as { profile: ProfileWithWebsite; updateProfile: (data: Partial<ProfileWithWebsite>) => Promise<void> };
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [offerNotifications, setOfferNotifications] = useState(true);
@@ -18,6 +35,7 @@ const ProfileSection: React.FC = () => {
     tax_office: profile?.tax_office || '',
     tax_number: profile?.tax_number || '',
     address: profile?.address || '',
+    website: profile?.website || '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,6 +90,7 @@ const ProfileSection: React.FC = () => {
       tax_office: profile?.tax_office || '',
       tax_number: profile?.tax_number || '',
       address: profile?.address || '',
+      website: profile?.website || '',
     });
   }, [profile, editOpen]);
 
@@ -126,28 +145,31 @@ const ProfileSection: React.FC = () => {
     setPasswordLoading(false);
   };
 
-  const stats = [
+  const stats: { label: string; value: string | number; icon: React.ElementType; color: string }[] = [
     {
       label: 'Toplam İlan',
-      value: profile?.total_listings ?? '-',
+      value: profile?.total_listings !== undefined && profile?.total_listings !== null ? String(profile.total_listings) : '-',
       icon: Building,
       color: 'blue'
     },
     {
       label: 'Toplam Teklif',
-      value: profile?.total_offers ?? '-',
+      value: profile?.total_offers !== undefined && profile?.total_offers !== null ? String(profile.total_offers) : '-',
       icon: Star,
       color: 'green'
     },
     {
       label: 'Tamamlanan',
-      value: profile?.total_completed_transactions ?? '-',
+      value: profile?.total_completed_transactions !== undefined && profile?.total_completed_transactions !== null ? String(profile.total_completed_transactions) : '-',
       icon: Calendar,
       color: 'purple'
     },
     {
       label: 'Ortalama Puan',
-      value: profile?.rating !== undefined && profile?.rating !== null ? profile.rating.toFixed(1) : '-',
+      value:
+        typeof profile?.rating === 'number'
+          ? profile.rating.toFixed(1)
+          : '-',
       icon: Star,
       color: 'amber'
     }
@@ -348,6 +370,19 @@ const ProfileSection: React.FC = () => {
                   title="Adres"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Web Sitesi</label>
+                <input
+                  name="website"
+                  type="text"
+                  value={form.website}
+                  onChange={handleFormChange}
+                  placeholder="firmawebsitesi.com veya tam adres"
+                  title="Web Sitesi"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
+                />
+                <span className="text-xs text-gray-400">Başında http:// veya https:// yazmak zorunda değilsiniz.</span>
               </div>
               {error && <div className="text-red-600 text-sm">{error}</div>}
               <div className="flex justify-end gap-2 mt-6">
@@ -558,6 +593,21 @@ const ProfileSection: React.FC = () => {
                     <p className="font-medium text-gray-900">{profile?.address || '-'}</p>
                   </div>
                 </div>
+                <div className="flex items-center">
+                  <Globe className="mr-3 text-gray-400" size={16} />
+                  <div>
+                    <p className="text-sm text-gray-500">Web Sitesi</p>
+                    {profile?.website ? (
+                      <a href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                         target="_blank" rel="noopener noreferrer"
+                         className="font-medium text-primary-700 hover:underline break-all">
+                        {profile.website}
+                      </a>
+                    ) : (
+                      <p className="font-medium text-gray-900">-</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -576,7 +626,7 @@ const ProfileSection: React.FC = () => {
                         <stat.icon size={16} />
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-2xl font-bold text-gray-900">{String(stat.value)}</p>
                   </div>
                 ))}
               </div>

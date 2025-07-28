@@ -1,4 +1,4 @@
-# 🚛 KargoMarket - Nakliye ve Reklam Platformu
+# 🚛 KargoMarketing - Nakliye ve Reklam Platformu
 
 Modern nakliye hizmetleri ve reklam yönetimi için kapsamlı platform. React + TypeScript + Vite + Supabase teknolojileri ile geliştirilmiştir.
 
@@ -54,8 +54,8 @@ Modern nakliye hizmetleri ve reklam yönetimi için kapsamlı platform. React + 
 
 ```bash
 # Repository'yi klonlayın
-git clone https://github.com/badaskaptan/kargomarket.git
-cd kargomarket
+git clone https://github.com/badaskaptan/kargomarketing.git
+cd kargomarketing
 
 # Bağımlılıkları yükleyin
 npm install

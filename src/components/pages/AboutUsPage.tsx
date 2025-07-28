@@ -19,7 +19,7 @@ import {
 const AboutUsPage: React.FC = () => {
   const milestones = [
     { year: '2005', title: 'Denizcilik Başlangıcı', description: 'Emrah Badaş denizcilik sektöründe çalışmaya başladı' },
-    { year: '2023', title: 'Proje Fikri', description: 'Kargo Market fikri doğdu ve geliştirme başladı' },
+    { year: '2023', title: 'Proje Fikri', description: 'KargoMarketing fikri doğdu ve geliştirme başladı' },
     { year: '2024', title: 'Beta Lansmanı', description: 'İlk 100 kullanıcı ile beta testleri başladı' },
     { year: '2025', title: 'Resmi Lansman', description: 'Türkiye genelinde hizmete başladık' }
   ];
@@ -38,7 +38,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Geliştirme Departmanı',
       description: 'Yapay zeka destekli platform geliştirme',
       image: '💻',
-      linkedin: 'https://linkedin.com/company/kargomarket',
+      linkedin: 'https://linkedin.com/company/kargomarketing',
       specialty: 'AI & Yazılım Geliştirme'
     },
     {
@@ -46,7 +46,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Stratejik Ortaklıklar',
       description: 'Sektörel bağlantılar ve büyüme stratejileri',
       image: '📈',
-      linkedin: 'https://linkedin.com/company/kargomarket',
+      linkedin: 'https://linkedin.com/company/kargomarketing',
       specialty: 'İş Geliştirme & Strategi'
     },
     {
@@ -54,7 +54,7 @@ const AboutUsPage: React.FC = () => {
       role: 'Kullanıcı Memnuniyeti',
       description: 'Kullanıcı odaklı hizmet geliştirme',
       image: '🎯',
-      linkedin: 'https://linkedin.com/company/kargomarket',
+      linkedin: 'https://linkedin.com/company/kargomarketing',
       specialty: 'UX & Müşteri İlişkileri'
     }
   ];
@@ -384,7 +384,7 @@ const AboutUsPage: React.FC = () => {
 
         {/* CTA */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">Kargo Market'te Siz de Kazananlar Arasına Katılın!</h2>
+          <h2 className="text-3xl font-bold mb-4">KargoMarketing'te Siz de Kazananlar Arasına Katılın!</h2>
           <p className="text-xl mb-8 text-primary-100">
             Binlerce kullanıcımızla birlikte güvenli ve hızlı taşımacılık deneyimi yaşayın.
           </p>

@@ -49,11 +49,11 @@ const PublicFooter: React.FC = () => {
   ];
 
   const socialLinks = [
-    { icon: Facebook, href: 'https://facebook.com/kargomarket', color: 'hover:text-blue-600' },
-    { icon: Twitter, href: 'https://twitter.com/kargomarket', color: 'hover:text-blue-400' },
-    { icon: Instagram, href: 'https://instagram.com/kargomarket', color: 'hover:text-pink-600' },
-    { icon: Linkedin, href: 'https://linkedin.com/company/kargomarket', color: 'hover:text-blue-700' },
-    { icon: Youtube, href: 'https://youtube.com/@kargomarket', color: 'hover:text-red-600' }
+    { icon: Facebook, href: 'https://facebook.com/kargomarketing', color: 'hover:text-blue-600' },
+    { icon: Twitter, href: 'https://twitter.com/kargomarketing', color: 'hover:text-blue-400' },
+    { icon: Instagram, href: 'https://instagram.com/kargomarketing', color: 'hover:text-pink-600' },
+    { icon: Linkedin, href: 'https://linkedin.com/company/kargomarketing', color: 'hover:text-blue-700' },
+    { icon: Youtube, href: 'https://youtube.com/@kargomarketing', color: 'hover:text-red-600' }
   ];
 
   return (
@@ -88,7 +88,7 @@ const PublicFooter: React.FC = () => {
             {/* Company Info */}
             <div className="lg:col-span-2">
               <div className="font-pacifico text-primary-400 text-3xl font-bold mb-4">
-                Kargo Market
+                KargoMarketing
               </div>
               <p className="text-gray-300 mb-6 leading-relaxed">
                 Türkiye'nin en güvenilir yük ve nakliye platformu. Binlerce kullanıcı ile 
@@ -298,7 +298,7 @@ const PublicFooter: React.FC = () => {
                 ))}
               </div>
               <div className="text-gray-400 text-sm">
-                © 2025 Kargo Market. Tüm hakları saklıdır.
+                © 2025 KargoMarketing. Tüm hakları saklıdır.
               </div>
             </div>
           </div>

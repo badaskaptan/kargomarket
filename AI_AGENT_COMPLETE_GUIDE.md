@@ -1,3 +1,4 @@
+<!-- Last updated: 2025-07-28 -->
 # 📋 KargoMarket - AI Agent & Developer Handover Guide
 **Son Güncelleme**: 26 Temmuz 2025 - Reklam ve Yorum Sistemleri Canlı Veri Entegrasyonu, Kendi Kendine Yorum Engeli
 **Versiyon**: v2.3 - Vitrin Sayfaları Canlı Veri Entegrasyonu

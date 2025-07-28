@@ -15,7 +15,22 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
-import { AdsService, type AdWithProfile } from '../../services/adsService';
+import { AdsService, type AdWithProfile as OriginalAdWithProfile } from '../../services/adsService';
+
+// Profile tipini genişlet
+type ProfileWithContact = {
+  id: string;
+  full_name: string;
+  avatar_url?: string;
+  company_name?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+};
+
+type AdWithProfile = Omit<OriginalAdWithProfile, 'profile'> & {
+  profile: ProfileWithContact;
+};
 
 const AdsPage = () => {
   const navigate = useNavigate();
@@ -39,10 +54,33 @@ const AdsPage = () => {
         if (fetchError) {
           throw new Error('Reklamlar yüklenirken bir hata oluştu.');
         }
-        setAds(data || []);
+        // Profile alanı olmayanları filtrele veya varsayılan profile ile dönüştür
+        const originalAds: OriginalAdWithProfile[] = data || [];
+        const safeAds: AdWithProfile[] = originalAds
+          .filter((ad) => ad.profile)
+          .map((ad) => {
+            const profile = ad.profile! as ProfileWithContact | { id: string; full_name: string; avatar_url?: string; company_name?: string };
+            return {
+              ...ad,
+              profile: {
+                id: profile.id,
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url,
+                company_name: profile.company_name,
+                phone: (profile as ProfileWithContact).phone ?? '',
+                email: (profile as ProfileWithContact).email ?? '',
+                website: (profile as ProfileWithContact).website ?? '',
+              },
+            };
+          });
+        setAds(safeAds);
         console.log('AdsPage: Fetched ads with profiles:', data); // Debug log
-      } catch (err: any) {
-        setError(err.message || 'Bilinmeyen bir hata oluştu.');
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Bilinmeyen bir hata oluştu.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -96,11 +134,17 @@ const AdsPage = () => {
       setAuthModalOpen(true);
       return;
     }
-    
     AdsService.recordAdClick(ad.id);
-
-    if (type === 'website' && ad.target_url) {
-      window.open(ad.target_url, '_blank');
+    if (type === 'website' && ad.profile?.website) {
+      let url = ad.profile.website.trim();
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      window.open(url, '_blank');
+    } else if (type === 'phone' && ad.profile?.phone) {
+      window.open(`tel:${ad.profile.phone}`);
+    } else if (type === 'email' && ad.profile?.email) {
+      window.open(`mailto:${ad.profile.email}`);
     } else {
       alert(`Bu özellik için ${type} bilgisi reklamda mevcut değil.`);
     }
@@ -267,16 +311,50 @@ const AdsPage = () => {
 
                   <div className="space-y-3">
                     <div className="grid grid-cols-1 gap-2">
-                       <button
-                         onClick={() => handleContactClick(ad, 'website')}
-                         className="flex items-center justify-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                         title="Website"
-                       >
-                         <ExternalLink size={14} className="mr-1" />
-                         Daha Fazla Bilgi
-                       </button>
+                      <button
+                        onClick={() => handleContactClick(ad, 'website')}
+                        className={`flex items-center justify-center px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium ${!ad.profile?.website?.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title="Website"
+                        disabled={!ad.profile?.website || !ad.profile.website.trim()}
+                      >
+                        <ExternalLink size={14} className="mr-1" />
+                        Daha Fazla Bilgi
+                      </button>
                     </div>
-                    
+                    <div className="flex gap-2 mt-2">
+                      {ad.profile?.phone && (
+                        <button
+                          onClick={() => handleContactClick(ad, 'phone')}
+                          className="bg-green-100 text-green-700 rounded-full p-2"
+                          title="Telefon ile ara"
+                        >
+                          <Phone size={16} />
+                        </button>
+                      )}
+                      {ad.profile?.email && (
+                        <button
+                          onClick={() => handleContactClick(ad, 'email')}
+                          className="bg-blue-100 text-blue-700 rounded-full p-2"
+                          title="E-posta gönder"
+                        >
+                          <Mail size={16} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {/* Favorilere ekle fonksiyonu buraya */}}
+                        className="bg-pink-100 text-pink-700 rounded-full p-2"
+                        title="Favorilere ekle"
+                      >
+                        <Heart size={16} />
+                      </button>
+                      <button
+                        onClick={() => {/* Paylaş fonksiyonu buraya */}}
+                        className="bg-gray-100 text-gray-700 rounded-full p-2"
+                        title="Paylaş"
+                      >
+                        <Share2 size={16} />
+                      </button>
+                    </div>
                     <button
                       onClick={() => handleViewReviews(ad.profile?.id)}
                       className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center justify-center"
