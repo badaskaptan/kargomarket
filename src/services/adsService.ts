@@ -13,6 +13,7 @@ export interface Ad {
   title: string;
   description: string;
   image_url?: string;
+  video_url?: string;
   target_url?: string;
   placement: string;
   status: string;
@@ -36,6 +37,7 @@ export interface Ad {
 
 // Interface for Ad combined with advertiser's KargoMarketing profile
 export interface AdWithProfile extends Ad {
+  video_url?: string;
   profile?: {
     id: string;
     full_name: string;
@@ -48,6 +50,7 @@ export interface CreateAdData {
   title: string;
   description: string;
   image_url?: string;
+  video_url?: string;
   target_url?: string;
   placement: string;
   start_date: string;
@@ -63,6 +66,7 @@ export interface CreateAdData {
 }
 
 export interface UpdateAdData extends Partial<CreateAdData> {
+  video_url?: string;
   id: bigint;
 }
 

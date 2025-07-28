@@ -1,7 +1,7 @@
-<!-- Last updated: 2025-07-28 -->
+<!-- Last updated: 2025-07-29 -->
 # 📋 KargoMarket - AI Agent & Developer Handover Guide
-**Son Güncelleme**: 26 Temmuz 2025 - Reklam ve Yorum Sistemleri Canlı Veri Entegrasyonu, Kendi Kendine Yorum Engeli
-**Versiyon**: v2.3 - Vitrin Sayfaları Canlı Veri Entegrasyonu
+**Son Güncelleme**: 29 Temmuz 2025 - Video reklamlar Supabase video_url ile canlı oynatılıyor, AdsPage ve adsService güncellendi, lint hataları temizlendi
+**Versiyon**: v2.4 - Video Reklam Canlı Entegrasyon & Kod Temizliği
 **Amaç**: Projeye katılan her AI agent ve developer için complete onboarding
 
 ---
@@ -25,7 +25,7 @@ Bu dokümantasyon sistemi 3 temel amaca hizmet eder:
 - **Maps**: React-Leaflet
 - **Build**: Production ready, 7.44s build time
 
-### **Proje Durumu: ~%98 Tamamlandı** 🎉
+### **Proje Durumu: ~%99 Tamamlandı** 🎉
 - ✅ Core systems complete (auth, messaging, listings, offers)
 - ✅ Advanced advertising system with billing integration
 - ✅ Complete payment system with credit card interface
@@ -35,6 +35,10 @@ Bu dokümantasyon sistemi 3 temel amaca hizmet eder:
 - ✅ ReviewsPage URL filtresi ile çalışıyor
 - ✅ AdsPage'den ReviewsPage'e entegrasyon tamamlandı
 - ✅ Kendi kendine yorum yapma validasyonu eklendi
+- ✅ Video reklamlar Supabase video_url ile canlı oynatılıyor
+- ✅ adsService.ts ve tipler video_url desteğiyle güncellendi
+- ✅ AdsPage'de demo video yerine gerçek video gösterimi
+- ✅ Lint/type hataları temizlendi
 - ⚠️ Final deployment and polish required
 
 ---
@@ -384,7 +388,7 @@ KargoMarket ~%98 tamamlanmış, production-ready platform. Advertising system, b
 - ✅ reviewService.createReview fonksiyonuna kullanıcının kendi kendine yorum yapmasını engelleyen validasyon eklendi.
 - ✅ AdsService.ts'teki geçici filtreler (status, tarih) geri getirildi.
 
-**Kalan İşler**: Final Deployment ve performans optimizasyonu gibi son dokunuşlar.
+**Kalan İşler**: Final Deployment, performans optimizasyonu ve son testler.
 
 **Bir sonraki AI agent veya developer için**: Sistem neredeyse tam! Sadece kalan birkaç küçük task ve deployment kaldı! 🚀
 

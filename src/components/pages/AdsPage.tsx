@@ -6,7 +6,6 @@ import {
   Phone,
   Mail,
   ExternalLink,
-  Play,
   Eye,
   MessageCircle,
   Heart,
@@ -254,17 +253,19 @@ const AdsPage = () => {
                 {getTypeBadge(ad.ad_type)}
                 
                 {ad.ad_type === 'video' ? (
-                  <div className="relative h-48 bg-gray-900 overflow-hidden group cursor-pointer">
-                    <img
-                      src={ad.image_url || 'https://images.pexels.com/photos/906494/pexels-photo-906494.jpeg?auto=compress&cs=tinysrgb&w=400'}
-                      alt={ad.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/20 transition-colors">
-                      <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
-                        <Play className="text-primary-600 ml-1" size={24} />
-                      </div>
-                    </div>
+                  <div className="relative h-48 bg-black overflow-hidden group cursor-pointer flex items-center justify-center">
+                    {ad.video_url ? (
+                      <video
+                        src={ad.video_url}
+                        controls
+                        className="w-full h-full object-cover"
+                        poster={ad.image_url || undefined}
+                      >
+                        Tarayıcınız video etiketini desteklemiyor.
+                      </video>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white text-lg">Video bulunamadı</div>
+                    )}
                     <div className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
                       🎥 VİDEO
                     </div>

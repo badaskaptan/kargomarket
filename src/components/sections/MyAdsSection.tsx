@@ -66,7 +66,8 @@ const MyAdsSection = () => {
       const adData: CreateAdData = {
         title: editForm.title,
         description: editForm.description,
-        image_url: editForm.mediaUrl || undefined,
+        image_url: editForm.type === 'video' ? undefined : (editForm.mediaUrl || undefined),
+        video_url: editForm.type === 'video' ? (editForm.mediaUrl || undefined) : undefined,
         target_url: undefined,
         placement: editForm.placement,
         start_date: new Date(editForm.startDate).toISOString(),
