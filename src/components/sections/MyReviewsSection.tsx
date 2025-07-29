@@ -44,7 +44,7 @@ const MyReviewsSection: React.FC = () => {
   const [newReviewModalOpen, setNewReviewModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [reviewToDelete, setReviewToDelete] = useState<ReviewWithProfile | null>(null);
-  
+
   // Form state'leri
   const [editFormData, setEditFormData] = useState({
     rating: 5,
@@ -52,7 +52,7 @@ const MyReviewsSection: React.FC = () => {
     is_public: true,
     title: ''
   });
-  
+
   const [newReviewFormData, setNewReviewFormData] = useState<{
     reviewee_id: string;
     reviewee_name: string;
@@ -96,9 +96,8 @@ const MyReviewsSection: React.FC = () => {
             aria-label={`${star} yıldız puanı`}
           >
             <Star
-              className={`h-5 w-5 ${
-                star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-              }`}
+              className={`h-5 w-5 ${star <= rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                }`}
             />
           </button>
         ))}
@@ -114,13 +113,13 @@ const MyReviewsSection: React.FC = () => {
       hidden: 'bg-gray-100 text-gray-800',
       reported: 'bg-red-100 text-red-800'
     };
-    
+
     const labels = {
       active: 'Yayında',
       hidden: 'Gizli',
       reported: 'Bildirildi'
     };
-    
+
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles] || styles.active}`}>
         {labels[status as keyof typeof labels] || status}
@@ -265,15 +264,15 @@ const MyReviewsSection: React.FC = () => {
   // Filtreleme - Yaptığım Yorumlar
   const filteredGivenReviews = useMemo(() => {
     if (!givenReviews) return [];
-    
+
     return givenReviews.filter(review => {
-      const matchesSearch = !searchTerm || 
+      const matchesSearch = !searchTerm ||
         review.reviewee_profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         review.reviewee_profile?.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         review.comment?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesStatus = !statusFilter || review.status === statusFilter;
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [givenReviews, searchTerm, statusFilter]);
@@ -281,15 +280,15 @@ const MyReviewsSection: React.FC = () => {
   // Filtreleme - Bana Gelen Yorumlar
   const filteredReceivedReviews = useMemo(() => {
     if (!receivedReviews) return [];
-    
+
     return receivedReviews.filter(review => {
-      const matchesSearch = !searchTerm || 
+      const matchesSearch = !searchTerm ||
         review.reviewer_profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         review.reviewer_profile?.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         review.comment?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesStatus = !statusFilter || review.status === statusFilter;
-      
+
       return matchesSearch && matchesStatus;
     });
   }, [receivedReviews, searchTerm, statusFilter]);
@@ -380,11 +379,10 @@ const MyReviewsSection: React.FC = () => {
             <nav className="flex space-x-8" aria-label="Tabs">
               <button
                 onClick={() => setActiveTab('given')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'given'
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'given'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center">
                   <MessageCircle className="h-4 w-4 mr-2" />
@@ -396,11 +394,10 @@ const MyReviewsSection: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('received')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'received'
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'received'
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center">
                   <ThumbsUp className="h-4 w-4 mr-2" />
@@ -493,7 +490,7 @@ const MyReviewsSection: React.FC = () => {
                   <Building className="h-6 w-6 text-gray-400 mr-3" />
                   <div>
                     <h3 className="text-lg font-medium text-gray-900">
-                      {activeTab === 'given' 
+                      {activeTab === 'given'
                         ? (review.reviewee_profile?.company_name || review.reviewee_profile?.full_name || 'Bilinmeyen Kullanıcı')
                         : (review.reviewer_profile?.company_name || review.reviewer_profile?.full_name || 'Bilinmeyen Kullanıcı')
                       }
@@ -560,8 +557,11 @@ const MyReviewsSection: React.FC = () => {
                   )}
                 </div>
                 <span>
-                  {review.review_type === 'buyer_to_carrier' ? 'Alıcı → Taşıyıcı' :
-                   review.review_type === 'carrier_to_buyer' ? 'Taşıyıcı → Alıcı' : 'Genel'}
+                  {review.review_type === 'buyer'
+                    ? 'Alıcı → Taşıyıcı'
+                    : review.review_type === 'carrier'
+                    ? 'Taşıyıcı → Alıcı'
+                    : 'Genel'}
                 </span>
               </div>
             </div>
@@ -570,8 +570,8 @@ const MyReviewsSection: React.FC = () => {
           <div className="text-center py-8">
             <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600">
-              {activeTab === 'given' 
-                ? 'Henüz hiç yorum yapmamışsınız.' 
+              {activeTab === 'given'
+                ? 'Henüz hiç yorum yapmamışsınız.'
                 : 'Henüz size hiç yorum yapılmamış.'}
             </p>
             <p className="text-sm text-gray-500 mt-2">
@@ -712,7 +712,7 @@ const MyReviewsSection: React.FC = () => {
                       <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                     </div>
                   )}
-                  
+
                   {/* Arama Sonuçları */}
                   {searchResults.length > 0 && (
                     <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -733,7 +733,7 @@ const MyReviewsSection: React.FC = () => {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Seçilen Kullanıcı */}
                   {selectedUser && (
                     <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">

@@ -1,3 +1,5 @@
+# Last updated: 2025-07-29
+
 # 🔧 KargoMarketing - Technical Implementation Guide
 **Hedef Kitle**: Developers & Technical AI Agents  
 **Focus**: Implementation details, code samples, technical decisions  

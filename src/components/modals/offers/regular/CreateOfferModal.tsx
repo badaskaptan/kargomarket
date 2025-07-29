@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  X, 
   MapPin, 
   Package, 
   Calendar, 
@@ -113,6 +112,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -168,9 +168,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setSubmitError(null);
     if (!validateStep(currentStep)) return;
-
     setIsSubmitting(true);
     try {
       const offerData: Omit<OfferInsert, 'id' | 'created_at' | 'updated_at'> = {
@@ -204,12 +203,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
         toll_fees_included: formData.toll_fees_included,
         status: 'pending'
       };
-
       await onSubmit(offerData);
       onClose();
       resetForm();
     } catch (error) {
+      let errorMessage = 'Teklif gönderilemedi.';
+      if (error && typeof error === 'object' && 'message' in error && typeof (error as { message?: string }).message === 'string') {
+        errorMessage = (error as { message: string }).message;
+      }
       console.error('Offer submission failed:', error);
+      setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -264,15 +267,6 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
     }
   };
 
-  const getStepTitle = (step: number) => {
-    switch (step) {
-      case 1: return 'Temel Teklif Bilgileri';
-      case 2: return 'Nakliye Detayları';
-      case 3: return 'Hizmet Detayları';
-      case 4: return 'İletişim ve Şartlar';
-      default: return '';
-    }
-  };
 
   const getStepIcon = (step: number) => {
     switch (step) {
@@ -303,26 +297,16 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
     return weekFromNow.toISOString().split('T')[0];
   };
 
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-auto shadow-2xl">
         <div className="p-6 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Teklif Ver</h2>
-              <p className="text-gray-500">Adım {currentStep} / {totalSteps} - {getStepTitle(currentStep)}</p>
+          {submitError && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg border border-red-300">
+              {submitError}
             </div>
-            <button
-              onClick={() => { onClose(); resetForm(); }}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-              title="Kapat"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Progress Bar */}
+          )}
           <div className="flex items-center justify-between mb-6">
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
               <React.Fragment key={step}>

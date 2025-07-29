@@ -1,4 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import LoadListingDetailModal from '../modals/listings/detail/LoadListingDetailModal';
+import ShipmentRequestDetailModal from '../modals/listings/detail/ShipmentRequestDetailModal';
+import TransportServiceDetailModal from '../modals/listings/detail/TransportServiceDetailModal';
+import CreateOfferModal from '../modals/CreateOfferModal';
+import { OfferService } from '../../services/offerService';
+import EnhancedServiceOfferModal from '../modals/EnhancedServiceOfferModal';
+import MessageModal from '../modals/MessageModal';
 import { useNavigate } from 'react-router-dom';
 import {
   Play,
@@ -11,19 +18,75 @@ import {
   MapPin,
   Eye,
   X,
-  LogIn,
   Zap,
   Shield,
   Globe
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap';
-import { listings, type Listing } from '../../data/listings';
-import { translateLoadType } from '../../utils/translationUtils';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
+import { useListings } from '../../hooks/useListings';
+import type { ExtendedListing, TransportService } from '../../types/database-types';
 import './HomePage.pins.css';
 
 // Type definitions for HomePage
+// ListingsPage'den alınan TransportService dönüşüm fonksiyonu
+const convertToTransportService = (listing: ExtendedListing): TransportService => {
+  const transportDetails = (listing.transport_details as Record<string, unknown>) || {};
+  return {
+    id: listing.id,
+    created_at: listing.created_at,
+    updated_at: listing.updated_at,
+    user_id: listing.user_id,
+    service_number: listing.listing_number,
+    title: listing.title,
+    description: listing.description || null,
+    status: listing.status === 'active' ? 'active' : 'inactive',
+    transport_mode: listing.transport_mode || 'road',
+    vehicle_type: transportDetails?.vehicle_type || listing.vehicle_types?.[0] || null,
+    origin: listing.origin || null,
+    destination: listing.destination || null,
+    available_from_date: listing.available_from_date,
+    available_until_date: listing.available_until_date,
+    capacity_value: listing.weight_value || null,
+    capacity_unit: listing.weight_unit || 'kg',
+    contact_info: listing.owner_phone ? `Tel: ${listing.owner_phone}${listing.owner_email ? `\nE-posta: ${listing.owner_email}` : ''}${listing.owner_company ? `\nŞirket: ${listing.owner_company}` : ''}` : null,
+    company_name: listing.owner_company || transportDetails?.company_name || null,
+    plate_number: transportDetails?.plate_number || null,
+    ship_name: transportDetails?.ship_name || null,
+    imo_number: transportDetails?.imo_number || null,
+    mmsi_number: transportDetails?.mmsi_number || null,
+    dwt: transportDetails?.dwt || null,
+    gross_tonnage: transportDetails?.gross_tonnage || null,
+    net_tonnage: transportDetails?.net_tonnage || null,
+    ship_dimensions: transportDetails?.ship_dimensions || null,
+    freight_type: transportDetails?.freight_type || null,
+    charterer_info: transportDetails?.charterer_info || null,
+    ship_flag: transportDetails?.ship_flag || null,
+    home_port: transportDetails?.home_port || null,
+    year_built: transportDetails?.year_built || null,
+    speed_knots: transportDetails?.speed_knots || null,
+    fuel_consumption: transportDetails?.fuel_consumption || null,
+    ballast_capacity: transportDetails?.ballast_capacity || null,
+    flight_number: transportDetails?.flight_number || null,
+    aircraft_type: transportDetails?.aircraft_type || null,
+    max_payload: transportDetails?.max_payload || null,
+    cargo_volume: transportDetails?.cargo_volume || null,
+    train_number: transportDetails?.train_number || null,
+    wagon_count: transportDetails?.wagon_count || null,
+    wagon_types: transportDetails?.wagon_types || null,
+    required_documents: transportDetails?.required_documents || null,
+    document_urls: transportDetails?.document_urls || null,
+    rating: transportDetails?.rating || 0,
+    rating_count: transportDetails?.rating_count || 0,
+    view_count: listing.view_count || 0,
+    last_updated_by: listing.user_id,
+    is_featured: transportDetails?.is_featured || listing.is_urgent || false,
+    featured_until: transportDetails?.featured_until || null,
+    created_by_user_type: null,
+    last_activity_at: listing.updated_at
+  } as unknown as TransportService;
+};
 interface MapUser {
   id: number;
   name: string;
@@ -43,9 +106,16 @@ interface HomePageProps {
   onShowListings?: () => void;
 }
 
+// Coordinate type for LiveMap
+type Coordinate = { lat: number; lng: number };
+
+// stats: array of { label: string, number: number, icon?: React.ElementType }
+type Stat = { label: string; number: number; icon?: React.ElementType };
+
 const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) => {
+  const auth = useAuth();
   const navigate = useNavigate();
-  const { isLoggedIn, login, register, googleLogin } = useAuth();
+  const { isLoggedIn, login, register, googleLogin, user } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedMapUser, setSelectedMapUser] = useState<MapUser | null>(null);
@@ -55,24 +125,53 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
     carriers: true
   });
   // Geri eklenen state'ler:
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
+  // Sekme ve filtreleme için state
+  const [activeTab, setActiveTab] = useState<'all' | 'load' | 'shipment' | 'transport'>('all');
+  const [filterText, setFilterText] = useState('');
+  // Canlı veri
+  const { listings, refetch } = useListings();
+  // Dashboard stats için state
+  const [stats, setStats] = useState<Stat[] | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setStatsLoading(true);
+      try {
+        // Supabase'den dashboard stats çekimi (örnek: get_user_dashboard_stats fonksiyonu ile)
+        // NOT: user id'yi auth context'ten alın
+        const userId = (typeof window !== 'undefined' && window.localStorage.getItem('user_id')) || null;
+        if (!userId) {
+          setStats([]);
+          setStatsLoading(false);
+          return;
+        }
+        // Supabase importu
+        const { supabase } = await import('../../lib/supabase');
+        const { data, error } = await supabase.rpc('get_user_dashboard_stats', { user_id: userId });
+        if (error) {
+          setStats([]);
+        } else {
+          // data: [{ label, number, icon }] formatında olmalı
+          setStats(data || []);
+        }
+      } catch {
+        setStats([]);
+      }
+      setStatsLoading(false);
+    };
+    fetchStats();
+  }, []);
 
   // Teklif Ver Modalı için state
-  const [showNewOfferModal, setShowNewOfferModal] = useState(false);
-  const [newOfferForm, setNewOfferForm] = useState({
-    listingId: '',
-    price: '',
-    description: '',
-    transportResponsible: '',
-    origin: '',
-    destination: '',
-    files: [] as File[]
-  });
+  const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
+  const [showCreateServiceOfferModal, setShowCreateServiceOfferModal] = useState(false);
+  const [selectedOfferListing, setSelectedOfferListing] = useState<ExtendedListing | null>(null);
 
   // Mesaj modalı için state
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const [messageText, setMessageText] = useState('');
-  const [messageTarget, setMessageTarget] = useState<Listing | null>(null);
+  const [messageTarget, setMessageTarget] = useState<ExtendedListing | null>(null);
 
   const features = [
     {
@@ -136,120 +235,14 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
     }, 3000);
     return () => clearInterval(interval);
   }, [steps.length]);
-
-  const mapUsers = [
-    {
-      id: 1,
-      name: 'Mehmet Yılmaz',
-      type: 'buyer',
-      title: 'İstanbul-Ankara Tekstil Yükü',
-      location: 'İstanbul',
-      route: 'İstanbul → Ankara',
-      coordinates: { lat: 41.0082, lng: 28.9784 },
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&h=150&fit=crop',
-      lastActive: '5 dk önce',
-      price: '₺4.500'
-    },
-    {
-      id: 2,
-      name: 'Ayşe Demir',
-      type: 'seller',
-      title: 'Bursa Tekstil Ürünleri Satışı',
-      location: 'Bursa',
-      route: 'Bursa → Tüm Türkiye',
-      coordinates: { lat: 40.1826, lng: 29.0665 },
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=200&h=150&fit=crop',
-      lastActive: '12 dk önce',
-      price: '₺125.000'
-    },
-    {
-      id: 3,
-      name: 'Ali Kaya',
-      type: 'carrier',
-      title: 'İzmir-Ankara Frigorifik Taşıma',
-      location: 'İzmir',
-      route: 'İzmir → Ankara',
-      coordinates: { lat: 38.4192, lng: 27.1287 },
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=200&h=150&fit=crop',
-      lastActive: '3 dk önce',
-      price: '₺8.500'
-    },
-    {
-      id: 4,
-      name: 'Fatma Özkan',
-      type: 'buyer',
-      title: 'Ankara-İzmir Elektronik Alımı',
-      location: 'Ankara',
-      route: 'Ankara → İzmir',
-      coordinates: { lat: 39.9334, lng: 32.8597 },
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=150&fit=crop',
-      lastActive: '8 dk önce',
-      price: '₺65.000'
-    },
-    {
-      id: 5,
-      name: 'Hasan Yıldız',
-      type: 'seller',
-      title: 'Adana Organik Ürünler',
-      location: 'Adana',
-      route: 'Adana → İstanbul',
-      coordinates: { lat: 37.0000, lng: 35.3213 },
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&h=150&fit=crop',
-      lastActive: '15 dk önce',
-      price: '₺45.000'
-    },
-    {
-      id: 6,
-      name: 'Zeynep Akar',
-      type: 'carrier',
-      title: 'İstanbul-Antalya Karayolu',
-      location: 'İstanbul',
-      route: 'İstanbul → Antalya',
-      coordinates: { lat: 41.0082, lng: 28.9784 },
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=200&h=150&fit=crop',
-      lastActive: '1 dk önce',
-      price: '₺12.000'
-    },
-    {
-      id: 7,
-      name: 'Murat Şen',
-      type: 'buyer',
-      title: 'Antalya-Mersin Gıda Alımı',
-      location: 'Antalya',
-      route: 'Antalya → Mersin',
-      coordinates: { lat: 36.8969, lng: 30.7133 },
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1567306301408-9b74779a11af?w=200&h=150&fit=crop',
-      lastActive: '20 dk önce',
-      price: '₺28.000'
-    },
-    {
-      id: 8,
-      name: 'Elif Kara',
-      type: 'seller',
-      title: 'Trabzon Fındık Üretimi',
-      location: 'Trabzon',
-      route: 'Trabzon → Tüm Türkiye',
-      coordinates: { lat: 41.0015, lng: 39.7178 },
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
-      productImage: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=200&h=150&fit=crop',
-      lastActive: '6 dk önce',
-      price: '₺85.000'
-    }
-  ];
-
-  const stats: { number: string; label: string; icon: React.ElementType }[] = [
-    { number: '50,000+', label: 'Aktif Kullanıcı', icon: Users },
-    { number: '1M+', label: 'Taşınan Yük', icon: Package },
-    { number: '5,000+', label: 'Nakliyeci', icon: Truck },
-    { number: '99.8%', label: 'Müşteri Memnuniyeti', icon: CheckCircle }
-  ];
+  // Sekme filtreleme fonksiyonu
+  const filteredListings = listings.filter(listing => {
+    if (activeTab === 'load' && listing.listing_type !== 'load_listing') return false;
+    if (activeTab === 'shipment' && listing.listing_type !== 'shipment_request') return false;
+    if (activeTab === 'transport' && listing.listing_type !== 'transport_service') return false;
+    if (filterText && !listing.title?.toLowerCase().includes(filterText.toLowerCase())) return false;
+    return true;
+  });
 
   const getUserTypeColor = (type: string) => {
     switch (type) {
@@ -269,20 +262,27 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
     }
   };
 
-  const filteredMapUsers = mapUsers.filter(user => {
-    if (user.type === 'buyer' && !mapFilters.buyers) return false;
-    if (user.type === 'seller' && !mapFilters.sellers) return false;
-    if (user.type === 'carrier' && !mapFilters.carriers) return false;
-    return true;
-  });
-
   const openGoogleMaps = (user: MapUser) => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${user.coordinates[0]},${user.coordinates[1]}`;
-    window.open(url, '_blank');
+    if (user.coordinates && user.coordinates[0] != null && user.coordinates[1] != null) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${user.coordinates[0]},${user.coordinates[1]}`;
+      window.open(url, '_blank');
+    }
   };
 
   // Kullanıcı adı örneği (gerçek uygulamada auth'dan alınır)
   const currentUserName = 'Mehmet Yılmaz'; // Örnek, değiştirilebilir
+
+  // Mock map users (gerçek veri ile değiştirilebilir)
+  const mapUsers: MapUser[] = [
+    { id: 1, name: 'Ali Veli', type: 'buyer', coordinates: [39.9, 32.85], details: 'Ankara', avatar: '', title: 'Yük Sahibi', route: 'Ankara - İstanbul', lastActive: '2 saat önce', price: '₺5000', productImage: '' },
+    { id: 2, name: 'Ayşe Demir', type: 'seller', coordinates: [41.0, 29.0], details: 'İstanbul', avatar: '', title: 'Satıcı', route: 'İstanbul - İzmir', lastActive: '1 saat önce', price: '₺7000', productImage: '' },
+    { id: 3, name: 'Mehmet Kargo', type: 'transport', coordinates: [38.4, 27.1], details: 'İzmir', avatar: '', title: 'Nakliyeci', route: 'İzmir - Antalya', lastActive: '10 dakika önce', price: '₺3000', productImage: '' },
+  ];
+  const filteredMapUsers = mapUsers.filter(u =>
+    (mapFilters.buyers && u.type === 'buyer') ||
+    (mapFilters.sellers && u.type === 'seller') ||
+    (mapFilters.carriers && u.type === 'transport')
+  );
 
   // Auth handlers
   const handleLogin = async (email: string, password: string) => {
@@ -312,12 +312,12 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
     }
   };
 
-  const isOwnListing = (listing: Listing) => {
-    if (!listing || !listing.contact) return false;
-    return listing.contact.name === currentUserName;
+  const isOwnListing = (listing: ExtendedListing) => {
+    if (!listing || !user?.id) return false;
+    return listing.user_id === user.id;
   };
 
-  const handleShowOffer = (listing: Listing) => {
+  const handleShowOffer = (listing: ExtendedListing) => {
     if (!isLoggedIn) {
       setAuthModalOpen(true);
       return;
@@ -326,47 +326,21 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
       alert('Kendi ilanınıza teklif veremezsiniz!');
       return;
     }
-    setNewOfferForm({
-      listingId: listing.ilanNo || '', // Sadece ilanNo kullanılacak
-      price: '',
-      description: '',
-      transportResponsible: '',
-      origin: '',
-      destination: '',
-      files: []
-    });
-    setShowNewOfferModal(true);
+    setSelectedOfferListing(listing);
+    if (listing.listing_type === 'transport_service') {
+      setShowCreateServiceOfferModal(true);
+    } else {
+      setShowCreateOfferModal(true);
+    }
   };
 
   // Dosya yükleme değişikliği
-  const handleNewOfferFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNewOfferForm(f => ({ ...f, files: Array.from(e.target.files ?? []) }));
-    }
-  };
 
   // Teklif formu submit
-  const handleNewOfferSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validasyon örneği
-    if (!newOfferForm.price || !newOfferForm.transportResponsible || !newOfferForm.origin || !newOfferForm.destination) {
-      alert('Lütfen tüm alanları doldurun!');
-      return;
-    }
-    // API çağrısı simülasyonu
-    alert('Teklif gönderildi!');
-    setShowNewOfferModal(false);
-  };
 
   // Detay modalı içindeki mesaj butonu için
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!messageText.trim()) return;
-    // Burada API çağrısı yapılabilir
-    alert('Mesaj gönderildi!');
-    setShowMessageModal(false);
-    setMessageText('');
-  };
+
+  // Type guard for ExtendedListing
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -430,15 +404,26 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              {stats.map((stat) => (
-                <div key={stat.label} className="text-center group cursor-pointer">
-                  <div className="flex justify-center mb-2 transform group-hover:scale-125 transition-transform duration-300">
-                    <stat.icon className="text-yellow-300 group-hover:text-yellow-200" size={24} />
+              {statsLoading ? (
+                <div className="col-span-4 text-center py-8 text-blue-300 animate-pulse">Yükleniyor...</div>
+              ) : stats && stats.length > 0 ? (
+                stats.map((stat) => (
+                  <div key={stat.label} className="text-center group cursor-pointer">
+                    <div className="flex justify-center mb-2 transform group-hover:scale-125 transition-transform duration-300">
+                      {/* Icon dinamik gelmiyorsa varsayılan ikon kullan */}
+                      {stat.icon ? (
+                        <stat.icon className="text-yellow-300 group-hover:text-yellow-200" size={24} />
+                      ) : (
+                        <Users className="text-yellow-300 group-hover:text-yellow-200" size={24} />
+                      )}
+                    </div>
+                    <div className="text-2xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300">{stat.number}</div>
+                    <div className="text-sm text-blue-200 group-hover:text-blue-100 transition-colors duration-300">{stat.label}</div>
                   </div>
-                  <div className="text-2xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300">{stat.number}</div>
-                  <div className="text-sm text-blue-200 group-hover:text-blue-100 transition-colors duration-300">{stat.label}</div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="col-span-4 text-center py-8 text-red-300">İstatistik bulunamadı.</div>
+              )}
             </div>
           </div>
         </div>
@@ -566,14 +551,6 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     <step.icon className="text-gray-400 mx-auto group-hover:text-primary-600 group-hover:scale-125 transition-all duration-300" size={40} />
                   </div>
 
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary-600 transition-colors duration-300">{step.title}</h3>
-                  <p className="text-gray-600 group-hover:text-gray-700 transition-colors duration-300">{step.description}</p>
-
-                  {/* Active Indicator */}
-                  {currentStep === index && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-2xl"></div>
-                  )}
-
                   {/* Connection Line */}
                   {index < steps.length - 1 && (
                     <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-primary-300 to-primary-500"></div>
@@ -600,7 +577,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
       {/* --- REFACTORED FEATURED LISTINGS SECTION START --- */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Öne Çıkan <span className="text-primary-600">İlanlar</span>
             </h2>
@@ -608,10 +585,19 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
               En güncel yük, nakliye ve taşıma ilanlarını keşfedin. Binlerce ilan arasından size uygun olanı hemen bulun.
             </p>
           </div>
-
-          {/* Listings Grid - Copied from ListingsPage */}
+          {/* Sekme ve filtreleme */}
+          <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
+            <div className="flex gap-2">
+              <button onClick={() => setActiveTab('all')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Tüm İlanlar</button>
+              <button onClick={() => setActiveTab('load')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'load' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Yük İlanları</button>
+              <button onClick={() => setActiveTab('shipment')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'shipment' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Nakliye Talebi</button>
+              <button onClick={() => setActiveTab('transport')} className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'transport' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-600'}`}>Nakliye Hizmeti</button>
+            </div>
+            <input type="text" value={filterText} onChange={e => setFilterText(e.target.value)} placeholder="İlan ara..." className="px-4 py-2 rounded-lg border border-gray-300" />
+          </div>
+          {/* Listings Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {listings.map((listing) => (
+            {filteredListings.map((listing) => (
               <div key={listing.id} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
                 {/* Header */}
                 <div className="p-6 pb-4">
@@ -619,15 +605,16 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-semibold" title="İlan No">
-                          {listing.ilanNo}
+                          {listing.listing_number}
                         </span>
-                        {listing.urgent && (
+                        {listing.is_urgent && (
                           <div className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-semibold">
                             <Clock size={12} className="mr-1" />
                             Acil
                           </div>
                         )}
-                        {isOwnListing(listing) && (
+                        {/* Kendi ilanı kontrolü için owner bilgisi kullanılmalı */}
+                        {listing.owner_name === currentUserName && (
                           <div className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-semibold">
                             Sizin İlanınız
                           </div>
@@ -638,19 +625,21 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                       </h3>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-primary-600">{listing.price}</div>
-                      <div className="text-xs text-gray-500">{listing.offers} teklif</div>
+                      <div className="text-2xl font-bold text-primary-600">
+                        {listing.price_amount ? `${listing.price_amount} ${listing.price_currency || '₺'}` : 'Fiyat Yok'}
+                      </div>
+                      <div className="text-xs text-gray-500">{listing.offer_count || 0} teklif</div>
                     </div>
                   </div>
 
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-gray-600">
                       <MapPin size={14} className="mr-2 text-primary-500" />
-                      <span className="text-sm">{listing.route}</span>
+                      <span className="text-sm">{listing.origin} → {listing.destination}</span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Package size={14} className="mr-2 text-primary-500" />
-                      <span className="text-sm">{translateLoadType(listing.loadType)} • {listing.weight}</span>
+                      <span className="text-sm">{listing.load_type} • {listing.weight_value} {listing.weight_unit}</span>
                     </div>
                   </div>
 
@@ -660,13 +649,13 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                       <div className="flex items-center">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3">
                           <span className="text-white text-xs font-medium">
-                            {listing.contact.name.split(' ').map(n => n[0]).join('')}
+                            {listing.owner_name ? listing.owner_name.split(' ').map(n => n[0]).join('') : '?'}
                           </span>
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900 text-sm">{listing.contact.name}</div>
-                          <div className="text-xs text-gray-500">{listing.contact.company}</div>
-                          <div className="text-xs text-gray-500">{listing.contact.phone}</div>
+                          <div className="font-medium text-gray-900 text-sm">{listing.owner_name}</div>
+                          <div className="text-xs text-gray-500">{listing.owner_company}</div>
+                          <div className="text-xs text-gray-500">{listing.owner_phone}</div>
                         </div>
                       </div>
                     </div>
@@ -682,7 +671,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 {/* Mini Map */}
                 <div className="h-32 border-t border-gray-100">
                   <LiveMap
-                    coordinates={[listing.coordinates]}
+                    coordinates={Array.isArray(listing.route_waypoints) ? (listing.route_waypoints as Coordinate[]) : []}
                     height="128px"
                     onClick={() => setSelectedListing(listing)}
                     className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -692,27 +681,18 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 {/* Actions */}
                 <div className="p-6 pt-4 border-t border-gray-100">
                   <div className="flex gap-2">
+                    {/* Teklif Ver Butonu */}
                     <button
                       onClick={() => handleShowOffer(listing)}
                       className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${isOwnListing(listing)
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                          : 'bg-primary-600 text-white hover:bg-primary-700'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary-600 text-white hover:bg-primary-700'
                         }`}
                       disabled={isOwnListing(listing)}
                     >
-                      {isLoggedIn
-                        ? isOwnListing(listing)
-                          ? 'Kendi İlanınız'
-                          : 'Teklif Ver'
-                        : 'Giriş Yap'}
+                      {isOwnListing(listing) ? 'Kendi İlanınız' : (isLoggedIn ? 'Teklif Ver' : 'Giriş Yap')}
                     </button>
-                    <button
-                      onClick={() => setSelectedListing(listing)}
-                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
-                      title="Detayları Görüntüle"
-                    >
-                      <Eye size={16} />
-                    </button>
+                    {/* Mesaj Gönder Butonu */}
                     <button
                       onClick={() => {
                         if (!isLoggedIn) {
@@ -727,8 +707,8 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                         setShowMessageModal(true);
                       }}
                       className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(listing)
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       disabled={isOwnListing(listing)}
                     >
@@ -738,15 +718,31 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                           : 'Mesaj Gönder'
                         : 'Giriş Yap'}
                     </button>
+                    {/* Detayları Görüntüle Butonu */}
+                    <button
+                      onClick={() => setSelectedListing(listing)}
+                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
+                      title="Detayları Görüntüle"
+                    >
+                      <Eye size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
+          {/* MessageModal sadece bir kez, gridin dışında render edilir */}
+          {showMessageModal && messageTarget && (
+            <MessageModal
+              isOpen={showMessageModal}
+              onClose={() => setShowMessageModal(false)}
+              target={messageTarget}
+              currentUserId={user?.id || null}
+            />
+          )}
           {/* Load More */}
           <div className="text-center mt-12">
-            <button className="bg-primary-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 shadow-lg hover:shadow-xl">
+            <button onClick={refetch} className="bg-primary-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 shadow-lg hover:shadow-xl">
               Daha Fazla İlan Yükle
             </button>
           </div>
@@ -805,7 +801,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     />
                     <div className={`w-5 h-5 rounded-full mr-3 transition-all duration-300 ${mapFilters.carriers ? 'bg-orange-500 scale-110' : 'bg-gray-300'}`}></div>
                     <span className={`font-medium transition-colors duration-300 ${mapFilters.carriers ? 'text-orange-600' : 'text-gray-500'} group-hover:text-orange-600`}>
-                      Nakliyeciler ({mapUsers.filter(u => u.type === 'carrier').length})
+                      Nakliyeciler ({mapUsers.filter(u => u.type === 'transport').length})
                     </span>
                   </label>
                 </div>
@@ -819,7 +815,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
             {/* Map Container */}
             <div className="relative h-[600px] bg-gradient-to-br from-blue-50 to-green-50">
               <LiveMap
-                coordinates={filteredMapUsers.map(u => ({ lat: u.coordinates.lat, lng: u.coordinates.lng }))}
+                coordinates={filteredMapUsers.map(u => ({ lat: u.coordinates[0], lng: u.coordinates[1] }))}
                 height="600px"
               />
               {/* İsteğe bağlı: üstteki svg, legend, butonlar burada kalabilir veya haritanın üstüne overlay olarak eklenebilir */}
@@ -855,8 +851,8 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMapUser.name}</h3>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedMapUser.type === 'buyer' ? 'bg-blue-100 text-blue-800' :
-                  selectedMapUser.type === 'seller' ? 'bg-green-100 text-green-800' :
-                    'bg-orange-100 text-orange-800'
+                selectedMapUser.type === 'seller' ? 'bg-green-100 text-green-800' :
+                  'bg-orange-100 text-orange-800'
                 }`}>
                 {getUserTypeLabel(selectedMapUser.type)}
               </span>
@@ -905,337 +901,69 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
       )}
 
       {/* Listing Detail Modal (Önizleme) - ListingsPage ile birebir aynı yapı */}
-      {selectedListing && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setSelectedListing(null)}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold transform hover:scale-110 transition-all duration-200"
-              title="Kapat"
-              aria-label="Kapat"
-            >
-              <X size={24} />
-            </button>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Sol Kolon */}
-              <div>
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    {selectedListing.urgent && (
-                      <div className="inline-flex items-center bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        <Clock size={16} className="mr-1" />
-                        Acil İlan
-                      </div>
-                    )}
-                    <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                      {translateLoadType(selectedListing.loadType)}
-                    </div>
-                    {isOwnListing(selectedListing) && (
-                      <div className="inline-flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                        Sizin İlanınız
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-3">{selectedListing.title}</h3>
-                  <div className="flex items-center text-gray-600 mb-2">
-                    <MapPin size={18} className="mr-2 text-primary-500" />
-                    <span className="text-lg">{selectedListing.route}</span>
-                  </div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-4">Yük Detayları</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Yük Tipi:</span>
-                      <div className="font-medium">{translateLoadType(selectedListing.loadType)}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Ağırlık:</span>
-                      <div className="font-medium">{selectedListing.weight}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Fiyat:</span>
-                      <div className="font-medium">{selectedListing.price}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Teklif:</span>
-                      <div className="font-medium">{selectedListing.offers} teklif</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Açıklama</h4>
-                  <p className="text-gray-700">{selectedListing.description || 'Açıklama bulunamadı.'}</p>
-                </div>
-                {/* İletişim Bilgileri - Sadece giriş yapan kullanıcılar için */}
-                {isLoggedIn ? (
-                  <div className="bg-primary-50 rounded-lg p-6 border border-primary-200">
-                    <div className="flex items-center mb-4">
-                      <h4 className="font-semibold text-gray-900">İletişim Bilgileri</h4>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      <div><strong>İsim:</strong> {selectedListing.contact?.name}</div>
-                      <div><strong>Firma:</strong> {selectedListing.contact?.company}</div>
-                      <div><strong>Telefon:</strong> {selectedListing.contact?.phone}</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-yellow-50 rounded-lg p-6 border border-yellow-200">
-                    <div className="flex items-center text-yellow-800 mb-3">
-                      <LogIn size={20} className="mr-2" />
-                      <h4 className="font-semibold">İletişim Bilgileri</h4>
-                    </div>
-                    <p className="text-yellow-700 text-sm mb-4">
-                      İletişim bilgilerini görmek ve teklif vermek için giriş yapmanız gerekiyor.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Sağ Kolon - Büyük Harita ve Diğer Kutular Dikey Hizalı */}
-              <div className="hidden lg:flex flex-col items-stretch gap-6">
-                {/* Büyük Harita */}
-                <div className="h-80 rounded-lg overflow-hidden border border-gray-200 mb-0">
-                  <LiveMap
-                    coordinates={[selectedListing.coordinates, selectedListing.destination]}
-                    height="320px"
-                    showRoute={true}
-                  />
-                </div>
-                {/* Fiyat ve Teklifler */}
-                <div className="bg-white border-2 border-primary-200 rounded-lg p-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-primary-600 mb-2">{selectedListing.price}</div>
-                    <div className="text-gray-600 mb-4">{selectedListing.offers} teklif alındı</div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleShowOffer(selectedListing)}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : 'bg-primary-600 text-white hover:bg-primary-700'
-                          }`}
-                        disabled={isOwnListing(selectedListing)}
-                      >
-                        {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Teklif Ver'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!isLoggedIn) {
-                            setAuthModalOpen(true);
-                            return;
-                          }
-                          if (isOwnListing(selectedListing)) {
-                            alert('Kendi ilanınıza mesaj gönderemezsiniz!');
-                            return;
-                          }
-                          setMessageTarget(selectedListing);
-                          setShowMessageModal(true);
-                        }}
-                        className={`flex-1 py-3 rounded-lg font-semibold transition-colors transform hover:scale-105 ${isOwnListing(selectedListing)
-                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        disabled={isOwnListing(selectedListing)}
-                      >
-                        {isOwnListing(selectedListing) ? 'Kendi İlanınız' : 'Mesaj Gönder'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {/* Güvenlik Bilgileri */}
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Güvenlik Bilgileri</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      Doğrulanmış üye
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      Sigorta güvencesi
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      Güvenli ödeme sistemi
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {selectedListing && selectedListing.listing_type === 'load_listing' && (
+        <LoadListingDetailModal
+          listing={selectedListing}
+          isOpen={true}
+          onClose={() => setSelectedListing(null)}
+        />
+      )}
+      {selectedListing && selectedListing.listing_type === 'shipment_request' && (
+        <ShipmentRequestDetailModal
+          listing={selectedListing}
+          isOpen={true}
+          onClose={() => setSelectedListing(null)}
+        />
+      )}
+      {selectedListing && selectedListing.listing_type === 'transport_service' && (
+        <TransportServiceDetailModal
+          service={convertToTransportService(selectedListing)}
+          isOpen={true}
+          onClose={() => setSelectedListing(null)}
+        />
       )}
 
       {/* Teklif Ver Modalı */}
-      {showNewOfferModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-8 shadow-lg w-full max-w-md relative">
-            <button onClick={() => setShowNewOfferModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
-              <X size={24} />
-            </button>
-            <h3 className="text-xl font-bold mb-6">Yeni Teklif Ver</h3>
-            <form onSubmit={handleNewOfferSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-1">İlan Numarası</label>
-                <input
-                  className="w-full border rounded-lg px-3 py-2 bg-gray-100"
-                  value={newOfferForm.listingId}
-                  disabled
-                  readOnly
-                  title="İlan Numarası"
-                  placeholder="İlan Numarası"
-                  aria-label="İlan Numarası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Nakliye Kime Ait</label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.transportResponsible}
-                  onChange={e => setNewOfferForm(f => ({ ...f, transportResponsible: e.target.value }))}
-                  required
-                  title="Nakliye Kime Ait"
-                  aria-label="Nakliye Kime Ait"
-                >
-                  <option value="">Seçiniz</option>
-                  <option value="Alıcı">Alıcı</option>
-                  <option value="Satıcı">Satıcı</option>
-                  <option value="Nakliye Gerekmiyor">Nakliye Gerekmiyor</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Kalkış Noktası</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.origin}
-                  onChange={e => setNewOfferForm(f => ({ ...f, origin: e.target.value }))}
-                  required
-                  title="Kalkış Noktası"
-                  placeholder="Kalkış Noktası"
-                  aria-label="Kalkış Noktası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Varış Noktası</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.destination}
-                  onChange={e => setNewOfferForm(f => ({ ...f, destination: e.target.value }))}
-                  required
-                  title="Varış Noktası"
-                  placeholder="Varış Noktası"
-                  aria-label="Varış Noktası"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Teklif Tutarı</label>
-                <input
-                  type="number"
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.price}
-                  onChange={e => setNewOfferForm(f => ({ ...f, price: e.target.value }))}
-                  required
-                  min="0"
-                  title="Teklif Tutarı"
-                  placeholder="Teklif Tutarı"
-                  aria-label="Teklif Tutarı"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Açıklama</label>
-                <textarea
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={newOfferForm.description}
-                  onChange={e => setNewOfferForm(f => ({ ...f, description: e.target.value }))}
-                  rows={3}
-                  title="Açıklama"
-                  placeholder="Açıklama"
-                  aria-label="Açıklama"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Evrak ve Resim Yükle</label>
-                <input
-                  type="file"
-                  className="w-full border rounded-lg px-3 py-2"
-                  multiple
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                  onChange={handleNewOfferFileChange}
-                  title="Evrak ve Resim Yükle"
-                  aria-label="Evrak ve Resim Yükle"
-                />
-                {newOfferForm.files && newOfferForm.files.length > 0 && (
-                  <ul className="mt-2 text-xs text-gray-600 list-disc list-inside">
-                    {newOfferForm.files.map((file, idx) => (
-                      <li key={idx}>{file.name}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <button type="submit" className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
-                Teklif Ver
-              </button>
-            </form>
-          </div>
-        </div>
+
+      {/* CreateOfferModal - Yük İlanı ve Nakliye Talebi için */}
+      {selectedOfferListing && showCreateOfferModal && (
+        <CreateOfferModal
+          listing={selectedOfferListing}
+          isOpen={showCreateOfferModal}
+          onClose={() => { setShowCreateOfferModal(false); setSelectedOfferListing(null); }}
+          onSubmit={async (offerData) => {
+            try {
+              await OfferService.createOffer({ ...offerData });
+              setShowCreateOfferModal(false);
+              setSelectedOfferListing(null);
+            } catch {
+              // Hata modalında zaten gösteriliyor
+            }
+          }}
+          currentUserId={auth?.user?.id || ''}
+        />
       )}
 
-      {/* Mesaj Gönder Modalı */}
-      {showMessageModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm relative">
-            <button onClick={() => setShowMessageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
-              <X size={24} />
-            </button>
-            <h3 className="text-lg font-bold mb-4">Mesaj Gönder</h3>
-            <div className="mb-2 text-sm font-semibold uppercase text-gray-500">
-              Alıcı: <span className="text-primary-600 font-bold underline cursor-pointer">{messageTarget?.contact?.name || ''}</span>
-            </div>
-            <form onSubmit={handleSendMessage} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Alıcı</label>
-                <input
-                  className="w-full border rounded-lg px-3 py-2 bg-gray-100 font-semibold text-gray-900"
-                  value={messageTarget?.contact?.name || ''}
-                  disabled
-                  readOnly
-                  title="Alıcı"
-                  aria-label="Alıcı"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Mesajınız</label>
-                <textarea
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={messageText}
-                  onChange={e => setMessageText(e.target.value)}
-                  rows={3}
-                  required
-                  title="Mesajınız"
-                  placeholder="Mesajınızı yazın..."
-                  aria-label="Mesajınız"
-                />
-              </div>
-              <button type="submit" className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors transform hover:scale-105 flex items-center justify-center gap-2">
-                Gönder
-              </button>
-            </form>
-          </div>
-        </div>
+      {/* EnhancedServiceOfferModal - Nakliye Hizmeti için */}
+      {selectedOfferListing && showCreateServiceOfferModal && (
+        <EnhancedServiceOfferModal
+          transportService={selectedOfferListing}
+          isOpen={showCreateServiceOfferModal}
+          onClose={() => { setShowCreateServiceOfferModal(false); setSelectedOfferListing(null); }}
+          onSuccess={() => { setShowCreateServiceOfferModal(false); setSelectedOfferListing(null); }}
+        />
       )}
 
-      {/* AuthModal */}
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        onGoogleLogin={handleGoogleLogin}
-      />
-    </div>
-  );
-};
+    {/* AuthModal */}
+    <AuthModal
+      isOpen={authModalOpen}
+      onClose={() => setAuthModalOpen(false)}
+      onLogin={handleLogin}
+      onRegister={handleRegister}
+      onGoogleLogin={handleGoogleLogin}
+    />
+  </div>
+);
+}
 
 export default HomePage;

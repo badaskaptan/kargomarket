@@ -3,18 +3,16 @@ import { OfferService } from '../services/offerService';
 import { ServiceOfferService } from '../services/serviceOfferService';
 import { conversationService } from '../services/conversationService';
 import { messageService } from '../services/messageService'; // Okunmamış mesaj sayısı için
-import type { ExtendedOffer } from '../types/database-types';
-import type { ExtendedServiceOffer, ExtendedConversation } from '../types/messaging-types';
-import { Tag, MessageCircle, CheckCheck } from 'lucide-react'; // İkonlar için
+import { Tag, MessageCircle } from 'lucide-react'; // İkonlar için
 import { formatDistanceToNow, parseISO } from 'date-fns'; // Zaman formatlama için
 import { tr } from 'date-fns/locale'; // Türkçe dil desteği için
 
 interface Activity {
   title: string;
   time: string;
-  icon: any; // React component tipi, Lucide iconları için uygun
+  icon: React.ElementType;
   color: string;
-  createdAt: Date; // Sıralama için zaman damgası
+  createdAt: Date;
 }
 export const useRecentActivities = (userId: string | undefined) => {
   const [activities, setActivities] = useState<Activity[]>([]);

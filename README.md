@@ -87,7 +87,7 @@ Detaylı kurulum için: [SUPABASE_BILLING_SETUP.md](./SUPABASE_BILLING_SETUP.md)
 ### Nakliye Yönetimi
 - **İlan Verme**: Yeni nakliye talebi oluşturma
 - **İlan Arama**: Filtreleme ve arama özellikleri
-- **Teklif Sistemi**: Nakliyeci teklifleri ve karşılaştırma
+ - **Teklif Sistemi**: Yük ve nakliye ilanlarında HomePage ve ListingsPage üzerinden tam teklif akışı, CreateOfferModal ile eksiksiz modal entegrasyonu, tüm build/type hataları giderildi, testler geçti
 
 ### Reklam Yönetimi
 - **Reklam Oluşturma**: Banner, video ve metin reklamları
@@ -105,7 +105,7 @@ Detaylı kurulum için: [SUPABASE_BILLING_SETUP.md](./SUPABASE_BILLING_SETUP.md)
 
 ```bash
 npm run dev          # Development server (localhost:5173)
-npm run build        # Production build
+npm run build        # Production build (HomePage ve CreateOfferModal'da teklif sistemi ve modal entegrasyonu hatasız)
 npm run preview      # Preview production build
 npm run lint         # ESLint kontrolü
 npm run type-check   # TypeScript kontrolü

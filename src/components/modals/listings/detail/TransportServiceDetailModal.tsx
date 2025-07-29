@@ -115,8 +115,11 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                   <Ship className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">{service.title}</h2>
+                  <h2 className="text-2xl font-bold text-white">Nakliye Hizmeti Detayı</h2>
                   <p className="text-blue-100 text-sm mt-1">Servis No: {service.service_number}</p>
+                  {service.title && (
+                    <span className="text-blue-200 text-xs mt-1 block">{service.title}</span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center space-x-3">

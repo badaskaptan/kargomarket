@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.1] - 2025-07-29
+
+### 🛠️ Teklif Sistemi ve Modal Entegrasyonu
+- **HomePage ve ListingsPage'de yük ve nakliye ilanlarına tam teklif akışı**
+- **CreateOfferModal tam entegre ve hatasız**
+- **Build/type hataları tamamen giderildi**
+- **Tüm testler başarıyla geçti**
+
 Tüm önemli değişiklikler bu dosyada dokumentlanmıştır.
 
 ## [2.0.0] - 2025-07-26

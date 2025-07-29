@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { OfferService } from '../services/offerService';
 import { ServiceOfferService } from '../services/serviceOfferService';
-import type { ExtendedOffer } from '../types/database-types';
 import type { ExtendedServiceOffer } from '../types/service-offer-types';
+import type { ExtendedOffer } from '../services/offerService';
 
 // Tarih karşılaştırması için basit bir utility fonksiyonu (Eğer src/utils/dateUtils.ts yoksa)
 const isWithinLastHours = (dateString: string, hours: number): boolean => {
@@ -39,7 +39,8 @@ const calculateOfferStats = (offers: Array<ExtendedOffer | ExtendedServiceOffer>
     // Eğer işlem tamamlama ayrı bir yerden takip ediliyorsa burası güncellenmeli.
     // Şimdilik accepted teklifleri devam eden kabul edebiliriz.
     // Tamamlanan işlemler için farklı bir veri kaynağı gerekebilir.
-    completedOffers: offers.filter(offer => offer.status === 'completed').length, // Varsayımsal 'completed' status
+    // offers tablosunda 'completed' status yok, sadece mevcut statusler kullanılmalı
+    completedOffers: 0,
     newLast24Hours: offers.filter(offer =>
       offer.created_at ? isWithinLastHours(offer.created_at, 24) : false
     ).length,
