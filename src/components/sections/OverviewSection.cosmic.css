@@ -1,0 +1,798 @@
+/* Next-level Cosmic Space Theme */
+.galaxy-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 60% 40%, #23234a 0%, #0a0a0a 100%);
+    opacity: 0.7;
+    z-index: 0;
+}
+
+.status-icon {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    animation: heartbeat 1.5s ease-in-out infinite;
+    z-index: 10;
+}
+
+@keyframes heartbeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    25% {
+        transform: scale(1.1);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+
+    75% {
+        transform: scale(1.05);
+    }
+}
+
+.username {
+    font-weight: 900;
+    color: #ff6b6b;
+    text-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+    0% {
+        text-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+    }
+
+    100% {
+        text-shadow: 0 0 25px rgba(255, 107, 107, 1);
+    }
+}
+
+.cosmic-header {
+    min-height: 200px;
+    border-radius: 0 0 30px 30px;
+    box-shadow: 0 10px 40px rgba(15, 52, 96, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.header-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+}
+
+.welcome-title {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+    font-size: 18px;
+}
+
+.cosmic-bg {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: 100vh;
+}
+
+.cosmic-stars,
+.stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.cosmic-star,
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: cosmic-twinkle 2s infinite ease-in-out alternate;
+}
+
+.cosmic-star-1,
+.star:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    width: 4px;
+    height: 4px;
+    animation-delay: 0s;
+    animation-duration: 1.2s;
+}
+
+.cosmic-star-2,
+.star:nth-child(2) {
+    top: 60%;
+    left: 30%;
+    width: 3px;
+    height: 3px;
+    animation-delay: 0.5s;
+    animation-duration: 1.4s;
+}
+
+.cosmic-star-3,
+.star:nth-child(3) {
+    top: 30%;
+    left: 70%;
+    width: 5px;
+    height: 5px;
+    animation-delay: 1s;
+    animation-duration: 1.1s;
+}
+
+.cosmic-star-4,
+.star:nth-child(4) {
+    top: 80%;
+    left: 80%;
+    width: 3px;
+    height: 3px;
+    animation-delay: 1.5s;
+    animation-duration: 1.3s;
+}
+
+.cosmic-star-5,
+.star:nth-child(5) {
+    top: 40%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    animation-delay: 2s;
+    animation-duration: 1.2s;
+}
+
+.cosmic-star-6,
+.star:nth-child(6) {
+    top: 70%;
+    left: 15%;
+    width: 3px;
+    height: 3px;
+    animation-delay: 0.8s;
+    animation-duration: 1.5s;
+}
+
+@keyframes cosmic-twinkle {
+    0% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(2.2);
+    }
+}
+
+.cosmic-neon-line,
+.neon-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, #00ffff, #0099ff, #00ffff, transparent);
+    height: 2px;
+    border-radius: 1px;
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+.cosmic-line1,
+.line1 {
+    top: 25%;
+    width: 150px;
+    animation: cosmic-neon-flow 4s infinite ease-in-out;
+}
+
+.cosmic-line2,
+.line2 {
+    top: 75%;
+    width: 200px;
+    animation: cosmic-neon-flow-reverse 3.5s infinite ease-in-out;
+    animation-delay: 1s;
+}
+
+@keyframes cosmic-neon-flow {
+    0% {
+        left: -200px;
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+@keyframes cosmic-neon-flow-reverse {
+    0% {
+        right: -200px;
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        right: 100%;
+        opacity: 0;
+    }
+}
+
+.cosmic-particle,
+.particle {
+    position: absolute;
+    background: radial-gradient(circle, #ff6b6b, transparent);
+    border-radius: 50%;
+    width: 4px;
+    height: 4px;
+    animation: cosmic-float 6s infinite ease-in-out;
+}
+
+.cosmic-particle-1,
+.particle:nth-child(1) {
+    left: 20%;
+    animation-delay: 0s;
+    animation-duration: 5s;
+}
+
+.cosmic-particle-2,
+.particle:nth-child(2) {
+    left: 60%;
+    animation-delay: 1s;
+    animation-duration: 7s;
+}
+
+.cosmic-particle-3,
+.particle:nth-child(3) {
+    left: 80%;
+    animation-delay: 2s;
+    animation-duration: 6s;
+}
+
+@keyframes cosmic-float {
+
+    0%,
+    100% {
+        top: 100%;
+        opacity: 0;
+        transform: translateX(0px) scale(0.5);
+    }
+
+    50% {
+        top: 20%;
+        opacity: 1;
+        transform: translateX(20px) scale(1);
+    }
+}
+
+.cosmic-gradient-text {
+    background: linear-gradient(45deg, #fff, #00ffff, #fff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: cosmic-gradient-shift 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    letter-spacing: 1px;
+}
+
+@keyframes cosmic-gradient-shift {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.welcome-subtitle {
+    opacity: 0.8;
+    animation: cosmic-glow-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes cosmic-glow-pulse {
+    0% {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+
+    100% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+}
+
+.cosmic-card {
+    background: linear-gradient(135deg, #1e1e2e, #2d2d44);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    animation: cosmic-card-entrance 0.8s ease-out;
+    transition: all 0.4s ease;
+}
+
+.cosmic-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+    background-size: 400% 400%;
+    border-radius: 22px;
+    z-index: -1;
+    animation: cosmic-border-glow 4s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cosmic-card:hover::before {
+    opacity: 1;
+}
+
+.cosmic-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 50px rgba(0, 255, 255, 0.2);
+}
+
+@keyframes cosmic-border-glow {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes cosmic-card-entrance {
+    from {
+        opacity: 0;
+        transform: translateY(50px) rotateX(20deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+.cosmic-activities,
+.cosmic-quick-actions,
+.cosmic-quick-links {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.activities-title {
+    color: #00ffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.activity-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    transition: color 0.3s ease;
+    animation: cosmic-fade-in-up 0.8s ease-out;
+}
+
+.activity-item:hover {
+    color: #00ffff;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+@keyframes cosmic-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cosmic-header {
+        padding: 25px 20px;
+        min-height: 150px;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .welcome-title {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+        font-size: 16px;
+    }
+
+    .cosmic-card {
+        padding: 20px 15px;
+        border-radius: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cosmic-header {
+        padding: 20px 15px;
+        min-height: 120px;
+    }
+
+    .welcome-title {
+        font-size: 20px;
+    }
+
+    .welcome-subtitle {
+        font-size: 14px;
+    }
+
+    .cosmic-card {
+        padding: 15px;
+    }
+}
+
+/* Cosmic Space Theme Styles for OverviewSection */
+.cosmic-bg {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: 100vh;
+}
+
+.cosmic-stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.cosmic-star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: cosmic-twinkle 2s infinite ease-in-out alternate;
+}
+
+.cosmic-star-1 {
+    top: 20%;
+    left: 10%;
+    width: 2px;
+    height: 2px;
+    animation-delay: 0s;
+    animation-duration: 1.5s;
+}
+
+.cosmic-star-2 {
+    top: 60%;
+    left: 30%;
+    width: 1px;
+    height: 1px;
+    animation-delay: 0.5s;
+    animation-duration: 2s;
+}
+
+.cosmic-star-3 {
+    top: 30%;
+    left: 70%;
+    width: 3px;
+    height: 3px;
+    animation-delay: 1s;
+    animation-duration: 1.8s;
+}
+
+.cosmic-star-4 {
+    top: 80%;
+    left: 80%;
+    width: 1px;
+    height: 1px;
+    animation-delay: 1.5s;
+    animation-duration: 2.2s;
+}
+
+.cosmic-star-5 {
+    top: 40%;
+    left: 50%;
+    width: 2px;
+    height: 2px;
+    animation-delay: 2s;
+    animation-duration: 1.6s;
+}
+
+.cosmic-star-6 {
+    top: 70%;
+    left: 15%;
+    width: 1px;
+    height: 1px;
+    animation-delay: 0.8s;
+    animation-duration: 1.9s;
+}
+
+@keyframes cosmic-twinkle {
+    0% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+}
+
+.cosmic-neon-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, #00ffff, #0099ff, #00ffff, transparent);
+    height: 2px;
+    border-radius: 1px;
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+.cosmic-line1 {
+    top: 25%;
+    width: 150px;
+    animation: cosmic-neon-flow 4s infinite ease-in-out;
+}
+
+.cosmic-line2 {
+    top: 75%;
+    width: 200px;
+    animation: cosmic-neon-flow-reverse 3.5s infinite ease-in-out;
+    animation-delay: 1s;
+}
+
+@keyframes cosmic-neon-flow {
+    0% {
+        left: -200px;
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        left: 100%;
+        opacity: 0;
+    }
+}
+
+@keyframes cosmic-neon-flow-reverse {
+    0% {
+        right: -200px;
+        opacity: 0;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        right: 100%;
+        opacity: 0;
+    }
+}
+
+.cosmic-particle {
+    position: absolute;
+    background: radial-gradient(circle, #ff6b6b, transparent);
+    border-radius: 50%;
+    width: 4px;
+    height: 4px;
+    animation: cosmic-float 6s infinite ease-in-out;
+}
+
+.cosmic-particle-1 {
+    left: 20%;
+    animation-delay: 0s;
+    animation-duration: 5s;
+}
+
+.cosmic-particle-2 {
+    left: 60%;
+    animation-delay: 1s;
+    animation-duration: 7s;
+}
+
+.cosmic-particle-3 {
+    left: 80%;
+    animation-delay: 2s;
+    animation-duration: 6s;
+}
+
+@keyframes cosmic-float {
+
+    0%,
+    100% {
+        top: 100%;
+        opacity: 0;
+        transform: translateX(0px) scale(0.5);
+    }
+
+    50% {
+        top: 20%;
+        opacity: 1;
+        transform: translateX(20px) scale(1);
+    }
+}
+
+.cosmic-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    box-shadow: 0 10px 40px rgba(15, 52, 96, 0.4);
+}
+
+.cosmic-gradient-text {
+    background: linear-gradient(45deg, #fff, #00ffff, #fff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: cosmic-gradient-shift 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    letter-spacing: 1px;
+}
+
+@keyframes cosmic-gradient-shift {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.welcome-subtitle {
+    opacity: 0.8;
+    animation: cosmic-glow-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes cosmic-glow-pulse {
+    0% {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+
+    100% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    }
+}
+
+.cosmic-card {
+    background: linear-gradient(135deg, #1e1e2e, #2d2d44);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    animation: cosmic-card-entrance 0.8s ease-out;
+    transition: all 0.4s ease;
+}
+
+.cosmic-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+    background-size: 400% 400%;
+    border-radius: 22px;
+    z-index: -1;
+    animation: cosmic-border-glow 4s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cosmic-card:hover::before {
+    opacity: 1;
+}
+
+.cosmic-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 15px 50px rgba(0, 255, 255, 0.2);
+}
+
+@keyframes cosmic-border-glow {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes cosmic-card-entrance {
+    from {
+        opacity: 0;
+        transform: translateY(50px) rotateX(20deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+.cosmic-activities,
+.cosmic-quick-actions,
+.cosmic-quick-links {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.activities-title {
+    color: #00ffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.activity-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    transition: color 0.3s ease;
+    animation: cosmic-fade-in-up 0.8s ease-out;
+}
+
+.activity-item:hover {
+    color: #00ffff;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+@keyframes cosmic-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
