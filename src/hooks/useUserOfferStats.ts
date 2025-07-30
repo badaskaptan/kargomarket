@@ -104,7 +104,7 @@ export const useUserOfferStats = (userId: string | undefined): UserOfferStats =>
         error: err instanceof Error ? err.message : 'Kullanıcı teklif istatistikleri getirilemedi.',
       }));
     } finally {
-       setStats((prev) => ({ ...prev, loading: false }));
+      setStats((prev) => ({ ...prev, loading: false }));
     }
   }, [userId]);
 

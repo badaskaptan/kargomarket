@@ -59,7 +59,7 @@ export const useRecentActivities = (userId: string | undefined) => {
           icon: Tag,
           color: 'green',
           createdAt: offer.created_at ? parseISO(offer.created_at) : new Date(0),
-           // Gerekirse navigasyon bilgisi eklenebilir
+          // Gerekirse navigasyon bilgisi eklenebilir
         })),
         // Kabul edilen/Reddedilen/Geri çekilen teklifler de buraya eklenebilir
       ];
@@ -71,32 +71,32 @@ export const useRecentActivities = (userId: string | undefined) => {
       const messageActivities: Activity[] = [];
       for (const conversation of conversations) {
         if (conversation.last_message_at) {
-           // Okunmamış mesaj sayısını al (performans için optimize edilebilir)
-           const unreadCount = await messageService.getUnreadCount(conversation.id, userId);
-           if (unreadCount > 0) {
-              // Son mesajı çekip başlıkta gösterebiliriz veya sadece genel bir mesaj bırakabiliriz.
-              // Şimdilik sadece okunmamış mesaj sayısını belirten genel bir aktivite ekleyelim.
-             messageActivities.push({
-                title: `${conversation.title || 'Bir konuşmada'} ${unreadCount} okunmamış mesajınız var.`,
-                time: formatDistanceToNow(parseISO(conversation.last_message_at), { addSuffix: true, locale: tr }),
-                icon: MessageCircle,
-                color: 'blue',
-                createdAt: parseISO(conversation.last_message_at),
-                 // Gerekirse navigasyon bilgisi (konuşma ID'si) eklenebilir
-             });
-           } else {
-             // Okunmuş olsa bile son mesaj aktivitesini göstermek istersek buraya ekleyebiliriz.
-             // Şimdilik sadece okunmamışları alalım.
-           }
-        } else if (conversation.created_at) {
-           // Henüz mesajlaşma olmamış ama yeni başlayan bir konuşma varsa
-           messageActivities.push({
-              title: `${conversation.title || 'Yeni bir konuşma'} başladı.`,
-              time: formatDistanceToNow(parseISO(conversation.created_at), { addSuffix: true, locale: tr }),
+          // Okunmamış mesaj sayısını al (performans için optimize edilebilir)
+          const unreadCount = await messageService.getUnreadCount(conversation.id, userId);
+          if (unreadCount > 0) {
+            // Son mesajı çekip başlıkta gösterebiliriz veya sadece genel bir mesaj bırakabiliriz.
+            // Şimdilik sadece okunmamış mesaj sayısını belirten genel bir aktivite ekleyelim.
+            messageActivities.push({
+              title: `${conversation.title || 'Bir konuşmada'} ${unreadCount} okunmamış mesajınız var.`,
+              time: formatDistanceToNow(parseISO(conversation.last_message_at), { addSuffix: true, locale: tr }),
               icon: MessageCircle,
               color: 'blue',
-              createdAt: parseISO(conversation.created_at),
-           });
+              createdAt: parseISO(conversation.last_message_at),
+              // Gerekirse navigasyon bilgisi (konuşma ID'si) eklenebilir
+            });
+          } else {
+            // Okunmuş olsa bile son mesaj aktivitesini göstermek istersek buraya ekleyebiliriz.
+            // Şimdilik sadece okunmamışları alalım.
+          }
+        } else if (conversation.created_at) {
+          // Henüz mesajlaşma olmamış ama yeni başlayan bir konuşma varsa
+          messageActivities.push({
+            title: `${conversation.title || 'Yeni bir konuşma'} başladı.`,
+            time: formatDistanceToNow(parseISO(conversation.created_at), { addSuffix: true, locale: tr }),
+            icon: MessageCircle,
+            color: 'blue',
+            createdAt: parseISO(conversation.created_at),
+          });
         }
       }
 
@@ -105,16 +105,16 @@ export const useRecentActivities = (userId: string | undefined) => {
       // Şimdilik mock bir tamamlama aktivitesi ekleyelim.
 
       const otherActivities: Activity[] = [];
-       // Örnek (canlı veriden çekilmediği için yoruma alındı):
-       // if (Math.random() > 0.8) { // Rastgele göstermek için
-       //    otherActivities.push({
-       //     title: 'Son işleminiz başarıyla tamamlandı!',
-       //     time: formatDistanceToNow(new Date(), { addSuffix: true, locale: tr }),
-       //     icon: CheckCheck,
-       //     color: 'purple',
-       //     createdAt: new Date(),
-       //    });
-       // }
+      // Örnek (canlı veriden çekilmediği için yoruma alındı):
+      // if (Math.random() > 0.8) { // Rastgele göstermek için
+      //    otherActivities.push({
+      //     title: 'Son işleminiz başarıyla tamamlandı!',
+      //     time: formatDistanceToNow(new Date(), { addSuffix: true, locale: tr }),
+      //     icon: CheckCheck,
+      //     color: 'purple',
+      //     createdAt: new Date(),
+      //    });
+      // }
 
 
       // --- Tüm Aktiviteleri Birleştir ve Sırala ---

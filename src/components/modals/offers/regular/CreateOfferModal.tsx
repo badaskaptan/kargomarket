@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  MapPin, 
-  Package, 
-  Calendar, 
-  Truck, 
+import {
+  MapPin,
+  Package,
+  Calendar,
+  Truck,
   Check,
   ArrowLeft,
   ArrowRight,
@@ -30,7 +30,7 @@ interface FormData {
   price_amount: string;
   price_currency: 'TRY' | 'USD' | 'EUR';
   price_per: 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle';
-  
+
   // Step 2: Nakliye Detayları  
   transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
   cargo_type: 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery';
@@ -38,7 +38,7 @@ interface FormData {
   pickup_date_preferred: string;
   delivery_date_preferred: string;
   transit_time_estimate: string;
-  
+
   // Step 3: Hizmet Detayları
   customs_handling_included: boolean;
   documentation_handling_included: boolean;
@@ -48,7 +48,7 @@ interface FormData {
   weekend_service: boolean;
   fuel_surcharge_included: boolean;
   toll_fees_included: boolean;
-  
+
   // Step 4: İletişim ve Şartlar
   contact_person: string;
   contact_phone: string;
@@ -56,7 +56,7 @@ interface FormData {
   payment_method: string;
   special_conditions: string;
   message: string;
-  
+
   // Geçerlilik
   expires_at: string;
   valid_until: string;
@@ -71,14 +71,14 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
-  
+
   const [formData, setFormData] = useState<FormData>({
     // Step 1: Temel Teklif Bilgileri
     offer_type: 'bid',
     price_amount: '',
     price_currency: 'TRY',
     price_per: 'total',
-    
+
     // Step 2: Nakliye Detayları
     transport_mode: 'road',
     cargo_type: 'general_cargo',
@@ -86,7 +86,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
     pickup_date_preferred: '',
     delivery_date_preferred: '',
     transit_time_estimate: '',
-    
+
     // Step 3: Hizmet Detayları
     customs_handling_included: false,
     documentation_handling_included: false,
@@ -96,7 +96,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
     weekend_service: false,
     fuel_surcharge_included: false,
     toll_fees_included: false,
-    
+
     // Step 4: İletişim ve Şartlar
     contact_person: '',
     contact_phone: '',
@@ -104,7 +104,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
     payment_method: '',
     special_conditions: '',
     message: '',
-    
+
     // Geçerlilik
     expires_at: '',
     valid_until: ''
@@ -226,7 +226,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
       price_amount: '',
       price_currency: 'TRY',
       price_per: 'total',
-      
+
       // Step 2: Nakliye Detayları
       transport_mode: 'road',
       cargo_type: 'general_cargo',
@@ -234,7 +234,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
       pickup_date_preferred: '',
       delivery_date_preferred: '',
       transit_time_estimate: '',
-      
+
       // Step 3: Hizmet Detayları
       customs_handling_included: false,
       documentation_handling_included: false,
@@ -244,7 +244,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
       weekend_service: false,
       fuel_surcharge_included: false,
       toll_fees_included: false,
-      
+
       // Step 4: İletişim ve Şartlar
       contact_person: '',
       contact_phone: '',
@@ -252,7 +252,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
       payment_method: '',
       special_conditions: '',
       message: '',
-      
+
       // Geçerlilik
       expires_at: '',
       valid_until: ''
@@ -310,17 +310,15 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
           <div className="flex items-center justify-between mb-6">
             {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
               <React.Fragment key={step}>
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                  step <= currentStep 
-                    ? 'bg-blue-600 border-blue-600 text-white' 
-                    : 'bg-white border-gray-300 text-gray-400'
-                }`}>
+                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${step <= currentStep
+                  ? 'bg-blue-600 border-blue-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-400'
+                  }`}>
                   {step < currentStep ? <Check className="w-5 h-5" /> : step}
                 </div>
                 {step < totalSteps && (
-                  <div className={`h-1 flex-1 mx-2 rounded transition-colors ${
-                    step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                  }`} />
+                  <div className={`h-1 flex-1 mx-2 rounded transition-colors ${step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                    }`} />
                 )}
               </React.Fragment>
             ))}
@@ -335,7 +333,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                 <MapPin className="w-4 h-4 mr-2" />
                 <span>{listing.origin} → {listing.destination}</span>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 {listing.weight_value && (
                   <div className="flex items-center">
@@ -367,7 +365,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
 
           {/* Form Steps */}
           <form onSubmit={currentStep === totalSteps ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="space-y-6">
-            
+
             {/* Step 1: Temel Teklif Bilgileri */}
             {currentStep === 1 && (
               <div className="space-y-6">
@@ -376,7 +374,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                     {getStepIcon(1)}
                     <h3 className="text-lg font-semibold text-gray-900">Temel Teklif Bilgileri</h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Teklif Türü */}
                     <div>
@@ -429,9 +427,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                           step="0.01"
                           value={formData.price_amount}
                           onChange={(e) => updateFormData('price_amount', e.target.value)}
-                          className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors.price_amount ? 'border-red-300' : 'border-gray-300'
-                          }`}
+                          className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.price_amount ? 'border-red-300' : 'border-gray-300'
+                            }`}
                           placeholder="0,00"
                         />
                         <select
@@ -461,7 +458,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                     {getStepIcon(2)}
                     <h3 className="text-lg font-semibold text-gray-900">Nakliye Detayları</h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Taşıma Türü */}
                     <div>
@@ -536,9 +533,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         min={getMinDate()}
                         value={formData.pickup_date_preferred}
                         onChange={(e) => updateFormData('pickup_date_preferred', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.pickup_date_preferred ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.pickup_date_preferred ? 'border-red-300' : 'border-gray-300'
+                          }`}
                         title="Tercih edilen alış tarihini seçin"
                         aria-label="Tercih edilen alış tarihini seçin"
                       />
@@ -570,9 +566,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         type="text"
                         value={formData.transit_time_estimate}
                         onChange={(e) => updateFormData('transit_time_estimate', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.transit_time_estimate ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.transit_time_estimate ? 'border-red-300' : 'border-gray-300'
+                          }`}
                         placeholder="örn: 2-3 gün, 1 hafta"
                       />
                       {errors.transit_time_estimate && <p className="mt-1 text-sm text-red-600">{errors.transit_time_estimate}</p>}
@@ -590,7 +585,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                     {getStepIcon(3)}
                     <h3 className="text-lg font-semibold text-gray-900">Dahil Edilen Hizmetler</h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Gümrük İşlemleri */}
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
@@ -756,7 +751,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                     {getStepIcon(4)}
                     <h3 className="text-lg font-semibold text-gray-900">İletişim ve Şartlar</h3>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* İletişim Kişisi */}
                     <div>
@@ -824,9 +819,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         min={getMinDate()}
                         value={formData.expires_at || getDefaultExpiryDate()}
                         onChange={(e) => updateFormData('expires_at', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.expires_at ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.expires_at ? 'border-red-300' : 'border-gray-300'
+                          }`}
                         title="Teklifin geçerlilik tarihi"
                         aria-label="Teklifin geçerlilik tarihi"
                       />
@@ -872,9 +866,8 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                         rows={6}
                         value={formData.message}
                         onChange={(e) => updateFormData('message', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${
-                          errors.message ? 'border-red-300' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none ${errors.message ? 'border-red-300' : 'border-gray-300'
+                          }`}
                         placeholder="Teklifinizle ilgili detayları, özel durumları ve avantajlarınızı belirtiniz..."
                       />
                       {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
@@ -907,7 +900,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                 >
                   İptal
                 </button>
-                
+
                 {currentStep < totalSteps ? (
                   <button
                     type="submit"

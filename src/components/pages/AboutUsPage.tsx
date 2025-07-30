@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  Users, 
-  Target, 
-  Award, 
+import {
+  Users,
+  Target,
+  Award,
   TrendingUp,
   Heart,
   Shield,
@@ -109,7 +109,7 @@ const AboutUsPage: React.FC = () => {
           <h2 className="text-3xl lg:text-4xl font-bold text-primary-600 mb-8">
             Hepimiz Kazanalım!
           </h2>
-          
+
           {/* Founder Story */}
           <div className="max-w-4xl mx-auto mb-12">
             <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
@@ -122,7 +122,7 @@ const AboutUsPage: React.FC = () => {
                   <p className="text-primary-600 font-semibold">Kurucu & CEO - Uzakyol Gemi Kaptanı</p>
                 </div>
               </div>
-              
+
               <div className="text-lg text-gray-700 leading-relaxed space-y-4">
                 <p>
                   <strong>2005 yılından bu yana denizcilik sektöründe çalışıyor</strong>, okyanusları aşan ticaretin zorluklarını ve fırsatlarını bizzat yaşıyorum. Uzakyol kaptanlığıyla başlayan yolculuğum, kimyasal tankerlerde edindiğim birikim ve deniz ticaret hukukundaki deneyimimle birleşti.
@@ -165,7 +165,7 @@ const AboutUsPage: React.FC = () => {
               <h3 className="text-2xl font-bold text-gray-900">Vizyonumuz</h3>
             </div>
             <p className="text-gray-700 leading-relaxed text-lg">
-              Sektöre yenilik ve şeffaflık getiren, teknoloji ve etik değerleri birleştiren bir platform olarak, 
+              Sektöre yenilik ve şeffaflık getiren, teknoloji ve etik değerleri birleştiren bir platform olarak,
               <strong> Türkiye'den dünyaya uzanan global bir yolculuğa çıkmak</strong>.
             </p>
           </div>
@@ -179,7 +179,7 @@ const AboutUsPage: React.FC = () => {
               <h3 className="text-2xl font-bold text-gray-900">Misyonumuz</h3>
             </div>
             <p className="text-gray-700 leading-relaxed text-lg">
-              Kullanıcı odaklı, güvenli ve adil bir ortam sunmak; 
+              Kullanıcı odaklı, güvenli ve adil bir ortam sunmak;
               <strong> herkesin emeğinin karşılığını aldığı, hepimizin kazandığı sürdürülebilir bir ekosistem oluşturmak</strong>.
             </p>
           </div>
@@ -194,7 +194,7 @@ const AboutUsPage: React.FC = () => {
             <div className="relative">
               {/* Timeline Line */}
               <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-primary-200"></div>
-              
+
               {milestones.map((milestone, index) => (
                 <div key={index} className={`relative flex items-center mb-12 ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
                   <div className={`w-1/2 ${index % 2 === 0 ? 'pr-8 text-right' : 'pl-8 text-left'}`}>
@@ -204,7 +204,7 @@ const AboutUsPage: React.FC = () => {
                       <p className="text-gray-600">{milestone.description}</p>
                     </div>
                   </div>
-                  
+
                   {/* Timeline Dot */}
                   <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary-600 rounded-full border-4 border-white shadow-lg"></div>
                 </div>
@@ -244,7 +244,7 @@ const AboutUsPage: React.FC = () => {
                 <p className="text-primary-600 font-semibold mb-2">{member.role}</p>
                 <p className="text-gray-600 text-sm mb-2">{member.description}</p>
                 <p className="text-xs text-gray-500 mb-4">{member.specialty}</p>
-                <a 
+                <a
                   href={member.linkedin}
                   className="inline-flex items-center text-primary-600 hover:text-primary-700 transition-colors"
                   target="_blank"
@@ -289,7 +289,7 @@ const AboutUsPage: React.FC = () => {
                 Nilüfer / Bursa
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="text-primary-600" size={32} />
@@ -299,7 +299,7 @@ const AboutUsPage: React.FC = () => {
                 +905412879705
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="text-primary-600" size={32} />
@@ -337,11 +337,11 @@ const AboutUsPage: React.FC = () => {
               About Us - English
             </h2>
           </div>
-          
+
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-xl p-8 shadow-lg">
               <h3 className="text-2xl font-bold text-primary-600 mb-6 text-center">Let's All Win!</h3>
-              
+
               <div className="text-gray-700 leading-relaxed space-y-4">
                 <p>
                   <strong>Since 2005, I have been working in the maritime industry</strong>, experiencing firsthand the challenges and opportunities of global trade. My journey as an ocean-going captain, combined with expertise on chemical tankers and maritime law, inspired me to envision a fair and innovative digital marketplace—where truly, everyone can win.
@@ -353,7 +353,7 @@ const AboutUsPage: React.FC = () => {
                   "How can we all win together?"
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                 <div className="bg-primary-50 p-6 rounded-lg">
                   <h4 className="font-bold text-primary-800 mb-3">Our Vision</h4>
@@ -361,7 +361,7 @@ const AboutUsPage: React.FC = () => {
                     To pioneer a new era of innovation and transparency in logistics, merging technology and ethics, and to grow from Turkey into a truly global platform.
                   </p>
                 </div>
-                
+
                 <div className="bg-green-50 p-6 rounded-lg">
                   <h4 className="font-bold text-green-800 mb-3">Our Mission</h4>
                   <p className="text-gray-700">
@@ -369,7 +369,7 @@ const AboutUsPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              
+
               <div className="text-center mt-8">
                 <blockquote className="text-lg font-semibold text-gray-800 italic">
                   "Today, we take a small step—tomorrow, together, we'll achieve great things."

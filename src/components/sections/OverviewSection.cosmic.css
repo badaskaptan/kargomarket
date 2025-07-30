@@ -1,3 +1,8 @@
+/* Animation delay classes for stats cards */
+.cosmic-delay-1 { animation-delay: 0.2s !important; }
+.cosmic-delay-2 { animation-delay: 0.3s !important; }
+.cosmic-delay-3 { animation-delay: 0.4s !important; }
+.cosmic-delay-4 { animation-delay: 0.5s !important; }
 /* Next-level Cosmic Space Theme */
 .galaxy-bg {
     position: absolute;

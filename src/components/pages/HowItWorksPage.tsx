@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  UserPlus, 
-  FileText, 
-  Search, 
-  MessageCircle, 
-  CheckCircle, 
+import {
+  UserPlus,
+  FileText,
+  Search,
+  MessageCircle,
+  CheckCircle,
   Truck,
   Play,
   Phone,
@@ -158,27 +158,25 @@ const HowItWorksPage: React.FC = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             KargoMarketing'te işlem yapmak çok kolay! Adım adım süreçlerimizi inceleyin.
           </p>
-          
+
           {/* Role Selector */}
           <div className="flex justify-center mb-12">
             <div className="bg-white rounded-xl p-2 shadow-lg">
               <button
                 onClick={() => setActiveRole('buyer')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  activeRole === 'buyer'
-                    ? 'bg-primary-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-primary-600'
-                }`}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${activeRole === 'buyer'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-primary-600'
+                  }`}
               >
                 Yük Sahibi / Alıcı
               </button>
               <button
                 onClick={() => setActiveRole('carrier')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  activeRole === 'carrier'
-                    ? 'bg-primary-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-primary-600'
-                }`}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${activeRole === 'carrier'
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-primary-600'
+                  }`}
               >
                 Nakliyeci
               </button>
@@ -196,17 +194,17 @@ const HowItWorksPage: React.FC = () => {
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {index + 1}
                   </div>
-                  
+
                   {/* Icon */}
                   <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6 mt-4">
                     <step.icon className="text-primary-600" size={32} />
                   </div>
-                  
+
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
                   <p className="text-gray-600 mb-4">{step.description}</p>
                   <p className="text-sm text-gray-500">{step.details}</p>
                 </div>
-                
+
                 {/* Connection Line */}
                 {index < steps[activeRole as keyof typeof steps].length - 1 && (
                   <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-0.5 bg-primary-300"></div>
@@ -288,7 +286,7 @@ const HowItWorksPage: React.FC = () => {
           <p className="text-xl mb-8 text-primary-100">
             Herhangi bir sorunuz mu var? 7/24 destek ekibimiz size yardımcı olmaya hazır!
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <MessageSquare className="mx-auto mb-4 text-white" size={32} />
@@ -298,7 +296,7 @@ const HowItWorksPage: React.FC = () => {
                 Sohbet Başlat
               </button>
             </div>
-            
+
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <Phone className="mx-auto mb-4 text-white" size={32} />
               <h3 className="font-bold mb-2">Telefon Desteği</h3>
@@ -307,7 +305,7 @@ const HowItWorksPage: React.FC = () => {
                 Hemen Ara
               </button>
             </div>
-            
+
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <Mail className="mx-auto mb-4 text-white" size={32} />
               <h3 className="font-bold mb-2">E-posta Desteği</h3>

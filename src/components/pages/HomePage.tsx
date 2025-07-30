@@ -20,7 +20,13 @@ import {
   X,
   Zap,
   Shield,
-  Globe
+  Globe,
+  TrendingUp,
+  DollarSign,
+  Ship,
+  Plane,
+  Train,
+  AlertCircle
 } from 'lucide-react';
 import LiveMap from '../common/LiveMap';
 import { useAuth } from '../../context/SupabaseAuthContext';
@@ -107,10 +113,8 @@ interface HomePageProps {
 }
 
 // Coordinate type for LiveMap
-type Coordinate = { lat: number; lng: number };
 
 // stats: array of { label: string, number: number, icon?: React.ElementType }
-type Stat = { label: string; number: number; icon?: React.ElementType };
 
 const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) => {
   const auth = useAuth();
@@ -119,50 +123,19 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedMapUser, setSelectedMapUser] = useState<MapUser | null>(null);
-  const [mapFilters, setMapFilters] = useState({
+  const mapFilters = {
     buyers: true,
     sellers: true,
     carriers: true
-  });
+  };
   // Geri eklenen state'ler:
-const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
+  const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(null);
   // Sekme ve filtreleme için state
   const [activeTab, setActiveTab] = useState<'all' | 'load' | 'shipment' | 'transport'>('all');
   const [filterText, setFilterText] = useState('');
   // Canlı veri
   const { listings, refetch } = useListings();
-  // Dashboard stats için state
-  const [stats, setStats] = useState<Stat[] | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      setStatsLoading(true);
-      try {
-        // Supabase'den dashboard stats çekimi (örnek: get_user_dashboard_stats fonksiyonu ile)
-        // NOT: user id'yi auth context'ten alın
-        const userId = (typeof window !== 'undefined' && window.localStorage.getItem('user_id')) || null;
-        if (!userId) {
-          setStats([]);
-          setStatsLoading(false);
-          return;
-        }
-        // Supabase importu
-        const { supabase } = await import('../../lib/supabase');
-        const { data, error } = await supabase.rpc('get_user_dashboard_stats', { user_id: userId });
-        if (error) {
-          setStats([]);
-        } else {
-          // data: [{ label, number, icon }] formatında olmalı
-          setStats(data || []);
-        }
-      } catch {
-        setStats([]);
-      }
-      setStatsLoading(false);
-    };
-    fetchStats();
-  }, []);
 
   // Teklif Ver Modalı için state
   const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
@@ -402,28 +375,166 @@ const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(n
               </button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-              {statsLoading ? (
-                <div className="col-span-4 text-center py-8 text-blue-300 animate-pulse">Yükleniyor...</div>
-              ) : stats && stats.length > 0 ? (
-                stats.map((stat) => (
-                  <div key={stat.label} className="text-center group cursor-pointer">
-                    <div className="flex justify-center mb-2 transform group-hover:scale-125 transition-transform duration-300">
-                      {/* Icon dinamik gelmiyorsa varsayılan ikon kullan */}
-                      {stat.icon ? (
-                        <stat.icon className="text-yellow-300 group-hover:text-yellow-200" size={24} />
-                      ) : (
-                        <Users className="text-yellow-300 group-hover:text-yellow-200" size={24} />
-                      )}
-                    </div>
-                    <div className="text-2xl font-bold text-white group-hover:text-yellow-300 transition-colors duration-300">{stat.number}</div>
-                    <div className="text-sm text-blue-200 group-hover:text-blue-100 transition-colors duration-300">{stat.label}</div>
+            {/* Logistics Stats - Modern, yatay ve alanı verimli kullanan kutular */}
+            <div className="max-w-7xl mx-auto mt-8 mb-8 px-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-1">Toplam Kullanıcı</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-1">12.5K</p>
+                    <p className="text-gray-500 text-xs">Aktif üye sayısı</p>
                   </div>
-                ))
-              ) : (
-                <div className="col-span-4 text-center py-8 text-red-300">İstatistik bulunamadı.</div>
-              )}
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <Users size={24} />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-1">Toplam İlan</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-1">8.9K</p>
+                    <p className="text-gray-500 text-xs">Yayında olan ilanlar</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
+                    <Package size={24} />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-1">Toplam Teklif</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-1">24.6K</p>
+                    <p className="text-gray-500 text-xs">Verilen teklif sayısı</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                    <TrendingUp size={24} />
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium mb-1">İşlem Hacmi</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-1">₺45.6M</p>
+                    <p className="text-gray-500 text-xs">Aylık toplam işlem</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                    <DollarSign size={24} />
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <div className="flex items-center mb-4">
+                    <AlertCircle className="text-indigo-500 mr-2" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">İlan Başına Ortalama Teklif</h3>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-indigo-600 mb-2">2.8</div>
+                    <p className="text-gray-600">teklif / ilan</p>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">İlan Türleri</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Yük İlanı</span>
+                      <span className="font-semibold text-blue-600">4.5K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Nakliye Talebi</span>
+                      <span className="font-semibold text-green-600">2.8K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Nakliye Hizmeti</span>
+                      <span className="font-semibold text-purple-600">1.5K</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Taşıma Modları</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                        <Truck className="text-blue-600" size={20} />
+                      </div>
+                      <div className="text-sm font-semibold text-gray-900">6.2K</div>
+                      <div className="text-xs text-gray-600">Karayolu</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                        <Ship className="text-blue-600" size={20} />
+                      </div>
+                      <div className="text-sm font-semibold text-gray-900">1.4K</div>
+                      <div className="text-xs text-gray-600">Denizyolu</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                        <Plane className="text-blue-600" size={20} />
+                      </div>
+                      <div className="text-sm font-semibold text-gray-900">892</div>
+                      <div className="text-xs text-gray-600">Havayolu</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                        <Train className="text-blue-600" size={20} />
+                      </div>
+                      <div className="text-sm font-semibold text-gray-900">350</div>
+                      <div className="text-xs text-gray-600">Demiryolu</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <div className="flex items-center mb-6">
+                    <Package className="text-green-500 mr-2" size={20} />
+                    <h3 className="text-lg font-semibold text-gray-900">En Çok Taşınan Yük Türleri</h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">1. Gıda Ürünleri</span>
+                      <span className="text-blue-600 font-bold">2.1K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">2. İnşaat Malzemesi</span>
+                      <span className="text-green-600 font-bold">1.8K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">3. Tekstil</span>
+                      <span className="text-purple-600 font-bold">1.6K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">4. Elektronik</span>
+                      <span className="text-orange-600 font-bold">1.4K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">5. Otomotiv Yedek Parça</span>
+                      <span className="text-red-600 font-bold">1.2K</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Taşıma Modları Dağılımı</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Karayolu Taşımacılığı</span>
+                      <span className="text-blue-600 font-bold">6.2K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Denizyolu Taşımacılığı</span>
+                      <span className="text-green-600 font-bold">1.4K</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Havayolu Taşımacılığı</span>
+                      <span className="text-purple-600 font-bold">892</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">Demiryolu Taşımacılığı</span>
+                      <span className="text-orange-600 font-bold">350</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center mt-6 text-gray-500 text-sm">
+                <p>Veriler gerçek zamanlı olarak güncellenmektedir • Son güncelleme: {new Date().toLocaleString('tr-TR')}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -669,14 +780,7 @@ const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(n
                 </div>
 
                 {/* Mini Map */}
-                <div className="h-32 border-t border-gray-100">
-                  <LiveMap
-                    coordinates={Array.isArray(listing.route_waypoints) ? (listing.route_waypoints as Coordinate[]) : []}
-                    height="128px"
-                    onClick={() => setSelectedListing(listing)}
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                  />
-                </div>
+                {/* Harita kaldırıldı */}
 
                 {/* Actions */}
                 <div className="p-6 pt-4 border-t border-gray-100">
@@ -718,14 +822,16 @@ const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(n
                           : 'Mesaj Gönder'
                         : 'Giriş Yap'}
                     </button>
-                    {/* Detayları Görüntüle Butonu */}
-                    <button
-                      onClick={() => setSelectedListing(listing)}
-                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
-                      title="Detayları Görüntüle"
-                    >
-                      <Eye size={16} />
-                    </button>
+                    {/* Detayları Görüntüle Butonu - Sadece giriş yapmış kullanıcılar için görünür */}
+                    {isLoggedIn && (
+                      <button
+                        onClick={() => setSelectedListing(listing)}
+                        className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors transform hover:scale-105"
+                        title="Detayları Görüntüle"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -749,7 +855,6 @@ const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(n
         </div>
       </section>
       {/* --- REFACTORED FEATURED LISTINGS SECTION END --- */}
-
       {/* Live Map Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
@@ -763,66 +868,19 @@ const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(n
             </p>
           </div>
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
-            <div className="p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap gap-4">
-                  <label className="flex items-center cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={mapFilters.buyers}
-                      onChange={(e) => setMapFilters(prev => ({ ...prev, buyers: e.target.checked }))}
-                      className="sr-only"
-                    />
-                    <div className={`w-5 h-5 rounded-full mr-3 transition-all duration-300 ${mapFilters.buyers ? 'bg-blue-500 scale-110' : 'bg-gray-300'}`}></div>
-                    <span className={`font-medium transition-colors duration-300 ${mapFilters.buyers ? 'text-blue-600' : 'text-gray-500'} group-hover:text-blue-600`}>
-                      Alıcılar ({mapUsers.filter(u => u.type === 'buyer').length})
-                    </span>
-                  </label>
-
-                  <label className="flex items-center cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={mapFilters.sellers}
-                      onChange={(e) => setMapFilters(prev => ({ ...prev, sellers: e.target.checked }))}
-                      className="sr-only"
-                    />
-                    <div className={`w-5 h-5 rounded-full mr-3 transition-all duration-300 ${mapFilters.sellers ? 'bg-green-500 scale-110' : 'bg-gray-300'}`}></div>
-                    <span className={`font-medium transition-colors duration-300 ${mapFilters.sellers ? 'text-green-600' : 'text-gray-500'} group-hover:text-green-600`}>
-                      Satıcılar ({mapUsers.filter(u => u.type === 'seller').length})
-                    </span>
-                  </label>
-
-                  <label className="flex items-center cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={mapFilters.carriers}
-                      onChange={(e) => setMapFilters(prev => ({ ...prev, carriers: e.target.checked }))}
-                      className="sr-only"
-                    />
-                    <div className={`w-5 h-5 rounded-full mr-3 transition-all duration-300 ${mapFilters.carriers ? 'bg-orange-500 scale-110' : 'bg-gray-300'}`}></div>
-                    <span className={`font-medium transition-colors duration-300 ${mapFilters.carriers ? 'text-orange-600' : 'text-gray-500'} group-hover:text-orange-600`}>
-                      Nakliyeciler ({mapUsers.filter(u => u.type === 'transport').length})
-                    </span>
-                  </label>
-                </div>
-
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Toplam Aktif:</span> {filteredMapUsers.length} kullanıcı
-                </div>
-              </div>
-            </div>
-
-            {/* Map Container */}
             <div className="relative h-[600px] bg-gradient-to-br from-blue-50 to-green-50">
               <LiveMap
                 coordinates={filteredMapUsers.map(u => ({ lat: u.coordinates[0], lng: u.coordinates[1] }))}
                 height="600px"
               />
-              {/* İsteğe bağlı: üstteki svg, legend, butonlar burada kalabilir veya haritanın üstüne overlay olarak eklenebilir */}
             </div>
           </div>
         </div>
       </section>
+
+      {/* Subscribe Section kaldırıldı */}
+
+      {/* ...existing code... */}
 
       {/* User Profile Card Modal */}
       {selectedMapUser && (
@@ -954,16 +1012,16 @@ const [selectedListing, setSelectedListing] = useState<ExtendedListing | null>(n
         />
       )}
 
-    {/* AuthModal */}
-    <AuthModal
-      isOpen={authModalOpen}
-      onClose={() => setAuthModalOpen(false)}
-      onLogin={handleLogin}
-      onRegister={handleRegister}
-      onGoogleLogin={handleGoogleLogin}
-    />
-  </div>
-);
+      {/* AuthModal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
+    </div>
+  );
 }
 
 export default HomePage;

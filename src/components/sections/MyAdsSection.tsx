@@ -87,9 +87,9 @@ const MyAdsSection = () => {
 
       // Reklam oluştur
       const { data: newAd, error: adError } = await AdsService.createAd(adData);
-      
+
       console.log('AdsService.createAd sonucu:', { newAd, adError });
-      
+
       if (adError) {
         setError(adError);
         return;
@@ -118,10 +118,10 @@ const MyAdsSection = () => {
       // UI güncellemeleri
       setInfoMessage(`Reklam başarıyla oluşturuldu! ${BILLING_CONFIG.FREE_MODE ? '(Ücretsiz mod)' : `Ücret: ${totalCost} TL`}`);
       setIsCreateModalOpen(false);
-      
+
       // Reklamları yeniden yükle
       await loadAds();
-      
+
       setTimeout(() => setInfoMessage(''), 5000);
 
       console.log('=== REKLAM OLUŞTURMA TAMAMLANDI ===');
@@ -137,15 +137,15 @@ const MyAdsSection = () => {
   const loadAds = async () => {
     setLoading(true);
     setError(null);
-    
+
     const { data, error: apiError } = await AdsService.getUserAds();
-    
+
     if (apiError) {
       setError(apiError);
     } else {
       setAds(data || []);
     }
-    
+
     setLoading(false);
   };
 
@@ -180,31 +180,31 @@ const MyAdsSection = () => {
 
   const handleDelete = async (id: bigint | number) => {
     const adId = typeof id === 'bigint' ? id : BigInt(id);
-    
+
     const { success, error: apiError } = await AdsService.deleteAd(adId);
-    
+
     if (success) {
       setInfoMessage('Reklam başarıyla silindi.');
       await loadAds(); // Listeyi yenile
     } else {
       setInfoMessage(apiError || 'Reklam silinirken bir hata oluştu.');
     }
-    
+
     setTimeout(() => setInfoMessage(''), 3000);
   };
 
   const handleStatusChange = async (id: bigint | number, newStatus: string) => {
     const adId = typeof id === 'bigint' ? id : BigInt(id);
-    
+
     const { success, error: apiError } = await AdsService.updateAdStatus(adId, newStatus);
-    
+
     if (success) {
       setInfoMessage(`Reklam durumu "${getStatusLabel(newStatus)}" olarak güncellendi.`);
       await loadAds(); // Listeyi yenile
     } else {
       setInfoMessage(apiError || 'Durum güncellenirken bir hata oluştu.');
     }
-    
+
     setTimeout(() => setInfoMessage(''), 3000);
   };
 
@@ -364,7 +364,7 @@ const MyAdsSection = () => {
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Reklamlarım</h2>
-        <button 
+        <button
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
           onClick={handleCreateNew}
         >
@@ -383,8 +383,8 @@ const MyAdsSection = () => {
           <div className="bg-blue-50 rounded-lg p-6 mb-4">
             <p className="text-gray-700 mb-2">🎯 Henüz reklam oluşturmadınız.</p>
             <p className="text-sm text-gray-600 mb-4">
-              {BILLING_CONFIG.FREE_MODE ? 
-                'Reklamlarınızla daha fazla müşteriye ulaşın! Beta sürümde sınırsız reklam oluşturabilirsiniz.' : 
+              {BILLING_CONFIG.FREE_MODE ?
+                'Reklamlarınızla daha fazla müşteriye ulaşın! Beta sürümde sınırsız reklam oluşturabilirsiniz.' :
                 'Reklamlarınızla daha fazla müşteriye ulaşın ve işinizi büyütün!'
               }
             </p>
@@ -398,7 +398,7 @@ const MyAdsSection = () => {
               )}
             </div>
           </div>
-          <button 
+          <button
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
             onClick={handleCreateNew}
           >
@@ -460,40 +460,40 @@ const MyAdsSection = () => {
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex space-x-2">
-                        <button 
-                          className="text-blue-600 hover:text-blue-900 transition-colors" 
-                          title="Görüntüle" 
+                        <button
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          title="Görüntüle"
                           onClick={() => handleView(ad.id)}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button 
-                          className="text-blue-600 hover:text-blue-900 transition-colors" 
-                          title="Düzenle" 
+                        <button
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          title="Düzenle"
                           onClick={() => handleEdit(ad.id)}
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         {ad.status === 'active' ? (
-                          <button 
-                            className="text-orange-600 hover:text-orange-900 transition-colors" 
-                            title="Duraklat" 
+                          <button
+                            className="text-orange-600 hover:text-orange-900 transition-colors"
+                            title="Duraklat"
                             onClick={() => handlePause(ad.id)}
                           >
                             <Pause className="h-4 w-4" />
                           </button>
                         ) : (
-                          <button 
-                            className="text-green-600 hover:text-green-900 transition-colors" 
-                            title="Başlat" 
+                          <button
+                            className="text-green-600 hover:text-green-900 transition-colors"
+                            title="Başlat"
                             onClick={() => handleActivate(ad.id)}
                           >
                             <Play className="h-4 w-4" />
                           </button>
                         )}
-                        <button 
-                          className="text-red-600 hover:text-red-900 transition-colors" 
-                          title="Sil" 
+                        <button
+                          className="text-red-600 hover:text-red-900 transition-colors"
+                          title="Sil"
                           onClick={() => handleDelete(ad.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -519,7 +519,7 @@ const MyAdsSection = () => {
                     {getStatusBadge(ad.status)}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                   <div>
                     <div className="text-gray-500">Bütçe</div>
@@ -535,41 +535,41 @@ const MyAdsSection = () => {
 
                 <div className="flex justify-between">
                   <div className="flex space-x-3">
-                    <button 
-                      className="text-blue-600 hover:text-blue-900 transition-colors" 
-                      title="Görüntüle" 
+                    <button
+                      className="text-blue-600 hover:text-blue-900 transition-colors"
+                      title="Görüntüle"
                       onClick={() => handleView(ad.id)}
                     >
                       <Eye className="h-5 w-5" />
                     </button>
-                    <button 
-                      className="text-blue-600 hover:text-blue-900 transition-colors" 
-                      title="Düzenle" 
+                    <button
+                      className="text-blue-600 hover:text-blue-900 transition-colors"
+                      title="Düzenle"
                       onClick={() => handleEdit(ad.id)}
                     >
                       <Edit2 className="h-5 w-5" />
                     </button>
                     {ad.status === 'active' ? (
-                      <button 
-                        className="text-orange-600 hover:text-orange-900 transition-colors" 
-                        title="Duraklat" 
+                      <button
+                        className="text-orange-600 hover:text-orange-900 transition-colors"
+                        title="Duraklat"
                         onClick={() => handlePause(ad.id)}
                       >
                         <Pause className="h-5 w-5" />
                       </button>
                     ) : (
-                      <button 
-                        className="text-green-600 hover:text-green-900 transition-colors" 
-                        title="Başlat" 
+                      <button
+                        className="text-green-600 hover:text-green-900 transition-colors"
+                        title="Başlat"
                         onClick={() => handleActivate(ad.id)}
                       >
                         <Play className="h-5 w-5" />
                       </button>
                     )}
                   </div>
-                  <button 
-                    className="text-red-600 hover:text-red-900 transition-colors" 
-                    title="Sil" 
+                  <button
+                    className="text-red-600 hover:text-red-900 transition-colors"
+                    title="Sil"
                     onClick={() => handleDelete(ad.id)}
                   >
                     <Trash2 className="h-5 w-5" />
@@ -669,7 +669,7 @@ const MyAdsSection = () => {
                 ×
               </button>
             </div>
-            
+
             <form className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -684,7 +684,7 @@ const MyAdsSection = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -695,10 +695,10 @@ const MyAdsSection = () => {
                     onChange={(e) => {
                       const newType = e.target.value;
                       const newDailyRate = BillingService.getDailyRate(newType);
-                      setEditForm({ 
-                        ...editForm, 
-                        type: newType, 
-                        budget: newDailyRate.toString() 
+                      setEditForm({
+                        ...editForm,
+                        type: newType,
+                        budget: newDailyRate.toString()
                       });
                     }}
                     aria-label="Reklam Türü"
@@ -709,7 +709,7 @@ const MyAdsSection = () => {
                     <option value="text">Metin</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Hedef Kitle
@@ -727,7 +727,7 @@ const MyAdsSection = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -742,7 +742,7 @@ const MyAdsSection = () => {
                     placeholder={`Minimum: ${BillingService.getDailyRate(editForm.type)} TL`}
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Yerleşim
@@ -760,7 +760,7 @@ const MyAdsSection = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Reklam Medyası
@@ -773,7 +773,7 @@ const MyAdsSection = () => {
                   onUploadError={(error) => setInfoMessage(error)}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Açıklama
@@ -787,7 +787,7 @@ const MyAdsSection = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
@@ -821,7 +821,7 @@ const MyAdsSection = () => {
                 ×
               </button>
             </div>
-            
+
             <form className="space-y-4" onSubmit={async (e) => {
               e.preventDefault();
               await handleCreateAd();
@@ -839,7 +839,7 @@ const MyAdsSection = () => {
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -857,7 +857,7 @@ const MyAdsSection = () => {
                     <option value="text">Metin</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Hedef Kitle
@@ -876,7 +876,7 @@ const MyAdsSection = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -892,7 +892,7 @@ const MyAdsSection = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Yerleşim
@@ -911,7 +911,7 @@ const MyAdsSection = () => {
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Reklam Medyası
@@ -924,7 +924,7 @@ const MyAdsSection = () => {
                   onUploadError={(error) => setInfoMessage(error)}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Açıklama
@@ -938,7 +938,7 @@ const MyAdsSection = () => {
                   required
                 />
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"

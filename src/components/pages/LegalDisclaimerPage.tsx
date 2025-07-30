@@ -42,7 +42,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">1. Platformun Gelir Modeli ve Ticari Tarafsızlığı</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             Bu platformun tüm gelirleri yalnızca <strong>üyelik ücretleri</strong> ve <strong>reklam/ilan yayınlama bedellerinden</strong> elde edilmektedir.
@@ -53,7 +53,7 @@ const LegalDisclaimerPage: React.FC = () => {
           <p>
             Kullanıcılar arasındaki tüm ticari ve hukuki ilişki, münhasıran ilgili kullanıcılar arasında geçerlidir; platform bu ilişkilerin hiçbir aşamasında aracı, kefil, garantör veya temsilci olarak hareket etmez.
           </p>
-          
+
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-6">
             <div className="flex items-center text-blue-800 mb-2">
               <Info size={20} className="mr-2" />
@@ -74,12 +74,12 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">2. Sorumluluk Reddi</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             Platformda yer alan ilan, teklif, yorum, mesaj, içerik ve tüm kullanıcı işlemleri, <strong>ilgili kullanıcıların kendi beyan ve sorumluluğundadır</strong>.
           </p>
-          
+
           <div className="bg-red-50 p-6 rounded-lg border border-red-200">
             <h3 className="font-semibold text-red-800 mb-3">Platform aşağıdaki durumlardan kesinlikle sorumlu değildir:</h3>
             <ul className="space-y-2 text-red-700">
@@ -105,7 +105,7 @@ const LegalDisclaimerPage: React.FC = () => {
               </li>
             </ul>
           </div>
-          
+
           <p className="font-semibold">
             Platform, yalnızca bir ilan ve reklam/üyelik hizmeti sunar; hiçbir ticari anlaşmanın, ödemenin, teslimatın veya taahhüdün doğrudan tarafı değildir. Kullanıcılar, tüm işlemleri kendi risk ve sorumluluklarında yürütür.
           </p>
@@ -120,7 +120,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">3. Danışmanlık ve Hukuki Yönlendirme</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             Platformda sunulan bilgiler, tavsiyeler veya yönlendirmeler <strong>hiçbir şekilde hukuki, mali, ticari veya profesyonel tavsiye teşkil etmez</strong>.
@@ -139,7 +139,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">4. Kişisel Veriler ve KVKK</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             Kişisel verileriniz yalnızca platform işleyişini sağlamak ve yasal yükümlülükler çerçevesinde <strong>KVKK kapsamında işlenir</strong>. Üçüncü şahıslarla paylaşılmaz, gizliliğiniz korunur.
@@ -155,7 +155,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">5. Kabul ve Yürürlülük</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p className="font-semibold text-lg">
             Platformu kullanan tüm kullanıcılar, bu açıklamaları ve yukarıda belirtilen koşulları <strong>peşinen kabul etmiş sayılır</strong>.
@@ -188,7 +188,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">1. Platform Revenue Model and Commercial Neutrality</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             All revenues of this platform are derived solely from <strong>membership fees</strong> and <strong>advertising/listing publication fees</strong>.
@@ -199,7 +199,7 @@ const LegalDisclaimerPage: React.FC = () => {
           <p>
             All commercial and legal relationships between users are exclusively between the relevant users; the platform does not act as an intermediary, guarantor, surety, or representative at any stage of these relationships.
           </p>
-          
+
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-6">
             <div className="flex items-center text-blue-800 mb-2">
               <Info size={20} className="mr-2" />
@@ -220,12 +220,12 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">2. Disclaimer of Liability</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             All listings, offers, comments, messages, content, and all user transactions on the platform are <strong>the sole responsibility and declaration of the respective users</strong>.
           </p>
-          
+
           <div className="bg-red-50 p-6 rounded-lg border border-red-200">
             <h3 className="font-semibold text-red-800 mb-3">The platform shall not be liable for and accepts no responsibility for:</h3>
             <ul className="space-y-2 text-red-700">
@@ -251,7 +251,7 @@ const LegalDisclaimerPage: React.FC = () => {
               </li>
             </ul>
           </div>
-          
+
           <p className="font-semibold">
             The platform solely provides listing and advertising/membership services; it is not a direct party to any commercial agreement, payment, delivery, or commitment. Users carry out all transactions at their own risk and responsibility.
           </p>
@@ -266,7 +266,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">3. Advisory and Legal Guidance</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             Any information, advice, or guidance provided on the platform <strong>does not constitute legal, financial, commercial, or professional advice</strong>.
@@ -285,7 +285,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">4. Personal Data and Privacy</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p>
             Your personal data is processed only to ensure the operation of the platform and within the scope of legal obligations in accordance with <strong>data protection laws</strong>. It is not shared with third parties, and your privacy is protected.
@@ -301,7 +301,7 @@ const LegalDisclaimerPage: React.FC = () => {
           </div>
           <h2 className="text-2xl font-bold text-gray-900">5. Acceptance and Enforcement</h2>
         </div>
-        
+
         <div className="space-y-4 text-gray-700 leading-relaxed">
           <p className="font-semibold text-lg">
             All users who use the platform are <strong>deemed to have accepted these statements and the above-mentioned conditions in advance</strong>.
@@ -321,11 +321,10 @@ const LegalDisclaimerPage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center ${
-                  activeTab === tab.id
-                    ? 'bg-primary-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:text-primary-600'
-                }`}
+                className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center ${activeTab === tab.id
+                  ? 'bg-primary-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-primary-600'
+                  }`}
               >
                 <span className="mr-2 text-lg">{tab.flag}</span>
                 {tab.label}
@@ -343,7 +342,7 @@ const LegalDisclaimerPage: React.FC = () => {
           <p className="text-xl mb-8 text-primary-100">
             Yasal konularda destek almak için bizimle iletişime geçin.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <Phone className="mx-auto mb-4 text-white" size={32} />
@@ -353,7 +352,7 @@ const LegalDisclaimerPage: React.FC = () => {
                 Hemen Ara
               </button>
             </div>
-            
+
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <Mail className="mx-auto mb-4 text-white" size={32} />
               <h3 className="font-bold mb-2">E-posta Desteği</h3>

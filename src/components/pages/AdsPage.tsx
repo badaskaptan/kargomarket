@@ -36,7 +36,7 @@ const AdsPage = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  
+
   const [ads, setAds] = useState<AdWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +92,7 @@ const AdsPage = () => {
     const transportCount = ads.filter(ad => ad.placement === 'transport').length;
     const insuranceCount = ads.filter(ad => ad.placement === 'insurance').length;
     const logisticsCount = ads.filter(ad => ad.placement === 'logistics').length;
-    
+
     return [
       { id: 'all', label: 'Tümü', count: ads.length },
       { id: 'transport', label: 'Kargo', count: transportCount },
@@ -154,7 +154,7 @@ const AdsPage = () => {
     if (!revieweeId) {
       console.warn('AdsPage: revieweeId is missing or null, cannot navigate to reviews page for specific company.');
       // Navigate to general reviews page if revieweeId is missing
-      navigate('/reviews'); 
+      navigate('/reviews');
       return;
     }
     navigate(`/reviews?revieweeId=${revieweeId}`);
@@ -176,7 +176,7 @@ const AdsPage = () => {
     }
     return null;
   };
-  
+
   const filteredAds = useMemo(() => {
     return ads.filter(ad => {
       const companyName = ad.profile?.company_name || ad.profile?.full_name || '';
@@ -209,8 +209,8 @@ const AdsPage = () => {
                 key={category.id}
                 onClick={() => setCategoryFilter(category.id)}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border-2 ${categoryFilter === category.id
-                    ? 'bg-primary-600 text-white border-primary-600 shadow-lg'
-                    : 'bg-white text-gray-700 border-gray-200 hover:border-primary-300 hover:text-primary-600 hover:shadow-md'
+                  ? 'bg-primary-600 text-white border-primary-600 shadow-lg'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-primary-300 hover:text-primary-600 hover:shadow-md'
                   }`}
               >
                 <span>{category.label}</span>
@@ -251,7 +251,7 @@ const AdsPage = () => {
             {filteredAds.map((ad) => (
               <div key={ad.id.toString()} className={`rounded-2xl overflow-hidden transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl relative ${getTypeStyle(ad.ad_type)}`}>
                 {getTypeBadge(ad.ad_type)}
-                
+
                 {ad.ad_type === 'video' ? (
                   <div className="relative h-48 bg-black overflow-hidden group cursor-pointer flex items-center justify-center">
                     {ad.video_url ? (
@@ -273,9 +273,9 @@ const AdsPage = () => {
                 ) : (
                   <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
                     {ad.image_url ? (
-                        <img src={ad.image_url} alt={ad.title} className="w-full h-full object-cover" />
+                      <img src={ad.image_url} alt={ad.title} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="text-6xl">{ad.profile?.company_name?.charAt(0) || 'A'}</div>
+                      <div className="text-6xl">{ad.profile?.company_name?.charAt(0) || 'A'}</div>
                     )}
                   </div>
                 )}
@@ -285,9 +285,9 @@ const AdsPage = () => {
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center mr-3 shadow-lg">
                         {ad.profile?.avatar_url ? (
-                            <img src={ad.profile.avatar_url} alt={ad.profile.company_name} className="w-full h-full rounded-full object-cover" />
+                          <img src={ad.profile.avatar_url} alt={ad.profile.company_name} className="w-full h-full rounded-full object-cover" />
                         ) : (
-                            <span className="text-white text-lg">{ad.profile?.company_name?.charAt(0) || 'A'}</span>
+                          <span className="text-white text-lg">{ad.profile?.company_name?.charAt(0) || 'A'}</span>
                         )}
                       </div>
                       <div>
@@ -298,7 +298,7 @@ const AdsPage = () => {
 
                   <h4 className="text-xl font-bold text-gray-900 mb-3">{ad.title}</h4>
                   <p className="text-gray-600 mb-4 leading-relaxed">{ad.description}</p>
-                  
+
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                     <div className="flex items-center">
                       <Eye size={14} className="mr-1" />
@@ -342,14 +342,14 @@ const AdsPage = () => {
                         </button>
                       )}
                       <button
-                        onClick={() => {/* Favorilere ekle fonksiyonu buraya */}}
+                        onClick={() => {/* Favorilere ekle fonksiyonu buraya */ }}
                         className="bg-pink-100 text-pink-700 rounded-full p-2"
                         title="Favorilere ekle"
                       >
                         <Heart size={16} />
                       </button>
                       <button
-                        onClick={() => {/* Paylaş fonksiyonu buraya */}}
+                        onClick={() => {/* Paylaş fonksiyonu buraya */ }}
                         className="bg-gray-100 text-gray-700 rounded-full p-2"
                         title="Paylaş"
                       >

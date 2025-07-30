@@ -1,15 +1,15 @@
 import React from 'react';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Plus, 
-  Truck, 
-  Ship, 
-  Tag, 
-  MessageCircle, 
-  Megaphone, 
+import {
+  LayoutDashboard,
+  FileText,
+  Plus,
+  Truck,
+  Ship,
+  Tag,
+  MessageCircle,
+  Megaphone,
   Star,
-  User, 
+  User,
   LogOut,
   ChevronDown,
   Package,
@@ -121,12 +121,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <aside className={clsx(
         "bg-gray-800 text-white w-64 flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out custom-scrollbar",
@@ -148,8 +148,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   onClick={() => handleMenuClick(item.id)}
                   className={clsx(
                     "flex items-center justify-between w-full p-3 rounded-lg transition-all duration-200",
-                    item.active 
-                      ? "bg-primary-600 text-white shadow-lg" 
+                    item.active
+                      ? "bg-primary-600 text-white shadow-lg"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   )}
                 >
@@ -164,8 +164,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       </span>
                     )}
                     {item.hasSubmenu && (
-                      <ChevronDown 
-                        size={16} 
+                      <ChevronDown
+                        size={16}
                         className={clsx(
                           "transition-transform duration-200",
                           newListingOpen ? "rotate-180" : ""
@@ -174,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
                 </button>
-                
+
                 {item.hasSubmenu && (
                   <ul className={clsx(
                     "ml-8 mt-1 space-y-1 overflow-hidden transition-all duration-300",
@@ -186,8 +186,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           onClick={() => handleMenuClick(subItem.id)}
                           className={clsx(
                             "flex items-center w-full p-2 rounded-lg transition-all duration-200",
-                            subItem.active 
-                              ? "bg-primary-600 text-white" 
+                            subItem.active
+                              ? "bg-primary-600 text-white"
                               : "text-gray-300 hover:bg-gray-700 hover:text-white"
                           )}
                         >
@@ -211,8 +211,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   onClick={() => handleMenuClick(item.id)}
                   className={clsx(
                     "flex items-center w-full p-3 rounded-lg transition-all duration-200",
-                    item.active 
-                      ? "bg-primary-600 text-white" 
+                    item.active
+                      ? "bg-primary-600 text-white"
                       : "text-gray-300 hover:bg-gray-700 hover:text-white"
                   )}
                 >

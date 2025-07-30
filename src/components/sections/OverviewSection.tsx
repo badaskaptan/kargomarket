@@ -120,12 +120,12 @@ const OverviewSection: React.FC = () => {
       {/* Cosmic Animations */}
       <div className="cosmic-stars absolute inset-0 pointer-events-none z-0">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className={`cosmic-star cosmic-star-${i+1}`}></div>
+          <div key={i} className={`cosmic-star cosmic-star-${i + 1}`}></div>
         ))}
         <div className="cosmic-neon-line cosmic-line1"></div>
         <div className="cosmic-neon-line cosmic-line2"></div>
         {[...Array(3)].map((_, i) => (
-          <div key={i} className={`cosmic-particle cosmic-particle-${i+1}`}></div>
+          <div key={i} className={`cosmic-particle cosmic-particle-${i + 1}`}></div>
         ))}
       </div>
 
@@ -133,7 +133,7 @@ const OverviewSection: React.FC = () => {
       <div className="cosmic-header relative rounded-2xl p-10 text-white shadow-2xl overflow-hidden z-10">
         <div className="galaxy-bg"></div>
         <svg className="status-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="#ff6b6b" stroke="#fff" strokeWidth="1"/>
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="#ff6b6b" stroke="#fff" strokeWidth="1" />
         </svg>
         <div className="header-content text-center">
           <h1 className="welcome-title cosmic-gradient-text text-4xl font-bold mb-2 animate-gradient-shift">
@@ -148,13 +148,12 @@ const OverviewSection: React.FC = () => {
         {(listingStats.loading || offerStats.loading) ? (
           <div className="lg:col-span-4 text-center text-gray-400">Yükleniyor...</div>
         ) : (listingStats.error || offerStats.error) ? (
-           <div className="lg:col-span-4 text-center text-red-500">Hata: {listingStats.error || offerStats.error}</div>
+          <div className="lg:col-span-4 text-center text-red-500">Hata: {listingStats.error || offerStats.error}</div>
         ) : (
           stats.map((stat, index) => (
             <div
               key={index}
-              className={`cosmic-card ${getColorClasses(stat.color)} rounded-2xl p-8 border relative overflow-hidden shadow-xl transition-all duration-500 animate-card-entrance`}
-              style={{ animationDelay: `${0.1 + index * 0.1}s` }}
+              className={`cosmic-card cosmic-delay-${index + 1} ${getColorClasses(stat.color)} rounded-2xl p-8 border relative overflow-hidden shadow-xl transition-all duration-500 animate-card-entrance`}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold cosmic-card-title">{stat.title}</h3>
@@ -165,12 +164,12 @@ const OverviewSection: React.FC = () => {
               <div className="space-y-2">
                 <p className="text-4xl font-bold text-white cosmic-card-number">{stat.value}</p>
                 <p className="text-sm text-cyan-200 cosmic-card-subtitle">{stat.subtitle}</p>
-                 {stat.trend && (
+                {stat.trend && (
                   <div className="flex items-center">
                     <TrendingUp size={16} className="text-green-400 mr-1" />
                     <span className="text-sm font-medium text-green-400">{stat.trend}</span>
                   </div>
-                 )}
+                )}
               </div>
             </div>
           ))
@@ -188,9 +187,9 @@ const OverviewSection: React.FC = () => {
             {recentActivities.loadingRecentActivities ? (
               <div className="text-center text-gray-400">Etkinlikler yükleniyor...</div>
             ) : recentActivities.recentActivitiesError ? (
-               <div className="text-center text-red-500">Hata: {recentActivities.recentActivitiesError}</div>
+              <div className="text-center text-red-500">Hata: {recentActivities.recentActivitiesError}</div>
             ) : activities.length === 0 ? (
-               <div className="text-center text-gray-500">Henüz bir etkinlik bulunmamaktadır.</div>
+              <div className="text-center text-gray-500">Henüz bir etkinlik bulunmamaktadır.</div>
             ) : (
               <div className="space-y-4">
                 {activities.map((activity, index) => (
@@ -224,11 +223,10 @@ const OverviewSection: React.FC = () => {
                 <button
                   key={index}
                   onClick={action.action}
-                  className={`w-full flex items-center justify-center p-4 rounded-xl font-medium transition-all duration-300 cosmic-quick-btn cosmic-card-hover ${
-                    action.primary
-                      ? 'bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg hover:shadow-xl'
-                      : 'bg-[#181828] text-cyan-400 border-2 border-cyan-400 hover:bg-[#23234a]'
-                  }`}
+                  className={`w-full flex items-center justify-center p-4 rounded-xl font-medium transition-all duration-300 cosmic-quick-btn cosmic-card-hover ${action.primary
+                    ? 'bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg hover:shadow-xl'
+                    : 'bg-[#181828] text-cyan-400 border-2 border-cyan-400 hover:bg-[#23234a]'
+                    }`}
                 >
                   <action.icon size={20} className="mr-2" />
                   <span>{action.title}</span>

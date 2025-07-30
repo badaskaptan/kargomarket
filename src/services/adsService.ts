@@ -91,7 +91,7 @@ export class AdsService {
         console.error('Get user ads error:', error);
         return { data: null, error: 'Reklamlar yüklenirken bir hata oluştu.' };
       }
-      
+
       // Attach profile info
       const adsWithProfile = data.map(ad => ({
         ...ad,
@@ -225,7 +225,7 @@ export class AdsService {
 
       const { error } = await supabase
         .from('ads')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
@@ -265,11 +265,11 @@ export class AdsService {
         console.error('Get active ads error:', error);
         return { data: null, error: 'Aktif reklamlar yüklenirken bir hata oluştu.' };
       }
-      
+
       if (!ads || ads.length === 0) {
         return { data: [], error: null };
       }
-      
+
       // Get unique user IDs from ads
       const userIds = [...new Set(ads.map(ad => ad.user_id))];
 
@@ -282,7 +282,7 @@ export class AdsService {
       if (profileError) {
         console.error('Error fetching profiles for ads:', profileError);
         // Continue without profile data if it fails
-        return { data: ads.map(ad => ({...ad})), error: null };
+        return { data: ads.map(ad => ({ ...ad })), error: null };
       }
 
       // Map profiles to ads

@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin, 
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
   Youtube,
   Mail,
   Phone,
@@ -91,10 +91,10 @@ const PublicFooter: React.FC = () => {
                 KargoMarketing
               </div>
               <p className="text-gray-300 mb-6 leading-relaxed">
-                Türkiye'nin en güvenilir yük ve nakliye platformu. Binlerce kullanıcı ile 
+                Türkiye'nin en güvenilir yük ve nakliye platformu. Binlerce kullanıcı ile
                 güvenli, hızlı ve kolay taşımacılık çözümleri sunuyoruz.
               </p>
-              
+
               {/* Contact Info */}
               <div className="space-y-3">
                 <div className="flex items-center text-gray-300">
@@ -121,11 +121,11 @@ const PublicFooter: React.FC = () => {
                     title={social.icon.displayName || social.icon.name || 'Sosyal Medya'}
                     aria-label={
                       social.icon === Facebook ? 'Facebook' :
-                      social.icon === Twitter ? 'Twitter' :
-                      social.icon === Instagram ? 'Instagram' :
-                      social.icon === Linkedin ? 'Linkedin' :
-                      social.icon === Youtube ? 'Youtube' :
-                      'Sosyal Medya'
+                        social.icon === Twitter ? 'Twitter' :
+                          social.icon === Instagram ? 'Instagram' :
+                            social.icon === Linkedin ? 'Linkedin' :
+                              social.icon === Youtube ? 'Youtube' :
+                                'Sosyal Medya'
                     }
                     target="_blank"
                     rel="noopener noreferrer"
@@ -200,7 +200,7 @@ const PublicFooter: React.FC = () => {
                 <AlertTriangle className="text-yellow-400 mr-3" size={24} />
                 <h4 className="text-xl font-semibold text-white">Platform Sorumluluk Reddi ve Gelir Modeli Beyanı</h4>
               </div>
-              
+
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Turkish Version */}
                 <div>
@@ -208,7 +208,7 @@ const PublicFooter: React.FC = () => {
                     <Shield className="mr-2" size={18} />
                     Türkçe Açıklama
                   </h5>
-                  
+
                   <div className="space-y-4 text-sm text-gray-300">
                     <div>
                       <h6 className="font-semibold text-white mb-2">1. Platformun Gelir Modeli ve Ticari Tarafsızlığı</h6>
@@ -217,7 +217,7 @@ const PublicFooter: React.FC = () => {
                         Platform, kullanıcılar arasında gerçekleştirilen herhangi bir mal, hizmet veya finansal işlemde doğrudan ya da dolaylı olarak hiçbir şekilde ticari taraf değildir.
                       </p>
                     </div>
-                    
+
                     <div>
                       <h6 className="font-semibold text-white mb-2">2. Sorumluluk Reddi</h6>
                       <p className="leading-relaxed">
@@ -226,7 +226,7 @@ const PublicFooter: React.FC = () => {
                         her türlü hukuki, mali, cezai, idari veya diğer doğabilecek sonuç ve ihtilaflardan kesinlikle sorumlu değildir.
                       </p>
                     </div>
-                    
+
                     <div>
                       <h6 className="font-semibold text-white mb-2">3. Kişisel Veriler ve KVKK</h6>
                       <p className="leading-relaxed">
@@ -242,7 +242,7 @@ const PublicFooter: React.FC = () => {
                     <FileText className="mr-2" size={18} />
                     English Statement
                   </h5>
-                  
+
                   <div className="space-y-4 text-sm text-gray-300">
                     <div>
                       <h6 className="font-semibold text-white mb-2">1. Platform Revenue Model and Commercial Neutrality</h6>
@@ -251,7 +251,7 @@ const PublicFooter: React.FC = () => {
                         The platform is in no way, directly or indirectly, a commercial party to any goods, services, or financial transaction between users.
                       </p>
                     </div>
-                    
+
                     <div>
                       <h6 className="font-semibold text-white mb-2">2. Disclaimer of Liability</h6>
                       <p className="leading-relaxed">
@@ -259,7 +259,7 @@ const PublicFooter: React.FC = () => {
                         The platform shall not be liable for, and accepts no responsibility including but not limited to: money laundering, fraud, fictitious transactions, low quality of service, delays, loss, theft, defective goods, breach of contract, material or moral damages.
                       </p>
                     </div>
-                    
+
                     <div>
                       <h6 className="font-semibold text-white mb-2">3. Personal Data and Privacy</h6>
                       <p className="leading-relaxed">
@@ -269,14 +269,14 @@ const PublicFooter: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 p-4 bg-yellow-900/30 rounded-lg border border-yellow-600/30">
                 <div className="flex items-center text-yellow-300">
                   <AlertTriangle size={16} className="mr-2" />
                   <span className="font-semibold text-sm">Önemli Uyarı / Important Notice</span>
                 </div>
                 <p className="text-xs text-yellow-200 mt-2">
-                  Platformu kullanan tüm kullanıcılar, bu açıklamaları ve yukarıda belirtilen koşulları peşinen kabul etmiş sayılır. 
+                  Platformu kullanan tüm kullanıcılar, bu açıklamaları ve yukarıda belirtilen koşulları peşinen kabul etmiş sayılır.
                   All users who use the platform are deemed to have accepted these statements and the above-mentioned conditions in advance.
                 </p>
               </div>

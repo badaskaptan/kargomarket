@@ -9,10 +9,10 @@ interface PublicHeaderProps {
   onShowDashboard: () => void;
 }
 
-const PublicHeader: React.FC<PublicHeaderProps> = ({ 
-  activePage, 
-  setActivePage, 
-  onShowDashboard 
+const PublicHeader: React.FC<PublicHeaderProps> = ({
+  activePage,
+  setActivePage,
+  onShowDashboard
 }) => {
   const { user, profile, loading, login, register, googleLogin, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -85,7 +85,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div 
+          <div
             className="font-pacifico text-primary-600 text-2xl font-bold cursor-pointer hover:text-primary-700 transition-all duration-300 transform hover:scale-110"
             onClick={() => setActivePage('home')}
           >
@@ -98,11 +98,10 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
               <button
                 key={item.id}
                 onClick={() => setActivePage(item.id)}
-                className={`px-3 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-110 ${
-                  activePage === item.id
-                    ? 'text-primary-600 bg-primary-50 shadow-md hover:shadow-lg'
-                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                }`}
+                className={`px-3 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-110 ${activePage === item.id
+                  ? 'text-primary-600 bg-primary-50 shadow-md hover:shadow-lg'
+                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                  }`}
               >
                 {item.label}
               </button>
@@ -113,14 +112,14 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
           <div className="hidden md:flex items-center space-x-4">
             {!user ? (
               <>
-                <button 
+                <button
                   onClick={() => setAuthModalOpen(true)}
                   className="text-gray-700 hover:text-primary-600 transition-all duration-300 font-medium transform hover:scale-110"
                   disabled={loading}
                 >
                   Giriş Yap
                 </button>
-                <button 
+                <button
                   onClick={() => setAuthModalOpen(true)}
                   className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition-all duration-300 transform hover:scale-110 hover:rotate-1 shadow-lg hover:shadow-xl"
                   disabled={loading}
@@ -144,11 +143,10 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                       {profile?.user_type === 'buyer_seller' ? 'Alıcı/Satıcı' : profile?.user_type === 'carrier' ? 'Nakliyeci' : profile?.user_type === 'both' ? 'Her İkisi' : 'Kullanıcı'}
                     </div>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-gray-400 transition-transform duration-200 ${
-                      userMenuOpen ? 'rotate-180' : ''
-                    }`} 
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
@@ -176,21 +174,19 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                       <div className="space-y-1">
                         <button
                           onClick={() => handleRoleChange('buyer_seller')}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            userRole === 'buyer_seller'
-                              ? 'bg-primary-100 text-primary-800 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${userRole === 'buyer_seller'
+                            ? 'bg-primary-100 text-primary-800 font-medium'
+                            : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                           🛒 Alıcı/Satıcı
                         </button>
                         <button
                           onClick={() => handleRoleChange('carrier')}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            userRole === 'carrier'
-                              ? 'bg-primary-100 text-primary-800 font-medium'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${userRole === 'carrier'
+                            ? 'bg-primary-100 text-primary-800 font-medium'
+                            : 'text-gray-700 hover:bg-gray-100'
+                            }`}
                         >
                           🚛 Nakliyeci
                         </button>
@@ -262,21 +258,20 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                     setActivePage(item.id);
                     setMobileMenuOpen(false);
                   }}
-                  className={`text-left px-4 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
-                    activePage === item.id
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-                  }`}
+                  className={`text-left px-4 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${activePage === item.id
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                    }`}
                 >
                   {item.label}
                 </button>
               ))}
-              
+
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200 space-y-2">
                 {!user ? (
                   <>
-                    <button 
+                    <button
                       onClick={() => {
                         setAuthModalOpen(true);
                         setMobileMenuOpen(false);
@@ -285,7 +280,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                     >
                       Giriş Yap
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setAuthModalOpen(true);
                         setMobileMenuOpen(false);
@@ -310,7 +305,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Mobile Role Selection */}
                       <div className="space-y-2 mb-3">
                         <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -319,21 +314,19 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleRoleChange('buyer_seller')}
-                            className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                              userRole === 'buyer_seller'
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300'
-                            }`}
+                            className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${userRole === 'buyer_seller'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-white text-gray-700 border border-gray-300'
+                              }`}
                           >
                             🛒 Alıcı/Satıcı
                           </button>
                           <button
                             onClick={() => handleRoleChange('carrier')}
-                            className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                              userRole === 'carrier'
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-700 border border-gray-300'
-                            }`}
+                            className={`flex-1 px-3 py-2 rounded-lg text-sm transition-colors ${userRole === 'carrier'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-white text-gray-700 border border-gray-300'
+                              }`}
                           >
                             🚛 Nakliyeci
                           </button>
@@ -342,7 +335,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                     </div>
 
                     {/* Mobile Menu Items */}
-                    <button 
+                    <button
                       onClick={() => {
                         handleDashboardClick();
                         setMobileMenuOpen(false);
@@ -352,7 +345,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                       <LayoutDashboard size={18} className="mr-2" />
                       Dashboard
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setMobileMenuOpen(false);
                         // Profil ayarlarına yönlendirme
@@ -362,7 +355,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
                       <Settings size={18} className="mr-2" />
                       Profil Ayarları
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         handleLogout();
                         setMobileMenuOpen(false);
