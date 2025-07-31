@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import PublicLayout from './components/layout/PublicLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -7,8 +7,9 @@ import { AuthProvider, useAuth } from './context/SupabaseAuthContext';
 import debugAuth from './utils/debugAuth';
 
 function AppContent() {
-  const { user, profile, loading } = useAuth();
+  const { loading } = useAuth();
   const [showDashboard, setShowDashboard] = useState(false);
+  const [publicLayoutKey, setPublicLayoutKey] = useState(0);
 
   // Debug auth bilgileri
   useEffect(() => {
@@ -20,26 +21,6 @@ function AppContent() {
     }
   }, []);
 
-  // Kullanıcı giriş yaptığında otomatik Dashboard'ı aç
-  useEffect(() => {
-    if (user && profile && !loading) {
-      console.log('🚀 User logged in, opening Dashboard automatically');
-      console.log('👤 Current User ID:', user.id);
-      console.log('📧 Current User Email:', user.email);
-      setShowDashboard(true);
-    }
-  }, [user, profile, loading]);
-
-  // Debug logs (production'da kaldırılabilir)
-  if (import.meta.env.DEV) {
-    console.log('App Debug:', JSON.stringify({ user: !!user, profile: !!profile, showDashboard, loading }));
-    console.log('🎯 Dashboard Decision:', JSON.stringify({
-      showDashboard,
-      hasUser: !!user,
-      hasProfile: !!profile
-    }));
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -48,17 +29,22 @@ function AppContent() {
     );
   }
 
-  if (showDashboard && user) {
+  if (showDashboard) {
     return (
       <DashboardProvider>
-        <DashboardLayout onBackToPublic={() => setShowDashboard(false)} />
+        <DashboardLayout onBackToPublic={() => {
+          setShowDashboard(false);
+          setTimeout(() => setPublicLayoutKey(prev => prev + 1), 0); // PublicLayout'u sıfırla ve ana sayfaya dön
+        }} />
       </DashboardProvider>
     );
   }
 
   return (
     <PublicLayout
+      key={publicLayoutKey}
       onShowDashboard={() => setShowDashboard(true)}
+      onBackToHome={() => { }}
     />
   );
 }

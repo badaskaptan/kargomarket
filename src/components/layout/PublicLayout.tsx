@@ -4,7 +4,6 @@ import PublicFooter from '../public/PublicFooter';
 import BetaBanner from '../common/BetaBanner';
 import HomePage from '../pages/HomePage';
 import ListingsPage from '../pages/ListingsPage';
-import AdPanelPage from '../pages/AdPanelPage';
 import AdsPage from '../pages/AdsPage';
 import ReviewsPage from '../pages/ReviewsPage';
 import HowItWorksPage from '../pages/HowItWorksPage';
@@ -19,10 +18,11 @@ import RevenueModelPage from '../pages/RevenueModelPage';
 
 interface PublicLayoutProps {
   onShowDashboard: () => void;
+  onBackToHome?: () => void;
 }
 
-const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard }) => {
-  const [activePage, setActivePage] = useState('listings'); // Start with listings for testing
+const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard, onBackToHome }) => {
+  const [activePage, setActivePage] = useState('home'); // Ana sayfa ile başla
 
   const renderPage = () => {
     switch (activePage) {
@@ -34,8 +34,6 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard }) => {
         return <AdsPage />;
       case 'reviews':
         return <ReviewsPage />;
-      case 'ad-panel':
-        return <AdPanelPage />;
       case 'how-it-works':
         return <HowItWorksPage />;
       case 'about':
@@ -59,20 +57,29 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard }) => {
     }
   };
 
+  // Ana sayfaya dön fonksiyonu
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#home') {
+      setActivePage('home');
+      if (onBackToHome) onBackToHome();
+      window.location.hash = '';
+    }
+  }, [onBackToHome]);
+
   return (
     <div className="min-h-screen bg-gray-50 font-inter">
       {/* Beta Banner - Site genelinde görünür */}
       <BetaBanner />
-       <PublicHeader
+      <PublicHeader
         activePage={activePage}
         setActivePage={setActivePage}
         onShowDashboard={onShowDashboard}
       />
-      
+
       <main className="min-h-screen">
         {renderPage()}
       </main>
-      
+
       <PublicFooter />
     </div>
   );

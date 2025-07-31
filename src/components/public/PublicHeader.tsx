@@ -25,7 +25,6 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
     { id: 'listings', label: 'İlanlar' },
     { id: 'ads', label: 'Reklamlar' },
     { id: 'reviews', label: 'Yorumlar' },
-    { id: 'ad-panel', label: 'Reklam Paneli' },
     { id: 'how-it-works', label: 'Nasıl Çalışır' },
     { id: 'about', label: 'Hakkımızda' }
   ];

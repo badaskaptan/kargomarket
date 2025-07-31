@@ -1,4 +1,16 @@
 # Last updated: 2025-07-31
+
+## [2025-07-31] Reklam Paneli ve Navigation Temizliği
+- Reklam Paneli (AdPanelPage) ve navigation'daki tüm bağlantılar sistemden kaldırıldı.
+- `AdPanelPage.tsx` ve `AdPanelPage.backup.tsx` dosyaları silindi.
+- Navigation bardaki "Reklam Paneli" butonu kaldırıldı.
+- PublicLayout ve ilgili navigation akışları sadeleştirildi.
+- Tüm sayfa yönlendirmeleri güncellendi, gereksiz yönlendirmeler ve eski referanslar temizlendi.
+- Dashboard ve public site arası geçişler güncellendi, kullanıcı odaklı navigation sağlandı.
+- Dashboard'dan ana siteye dönüşte artık ana sayfa açılıyor.
+- Otomatik yönlendirmeler kaldırıldı, tüm navigation kullanıcı aksiyonuna bağlı.
+
+Bu değişikliklerle birlikte sistemde reklam paneliyle ilgili hiçbir sayfa veya buton kalmamıştır. Navigation ve UX akışı sadeleştirilmiştir.
 # 📋 KargoMarket - AI Agent & Developer Handover Guide
 **Son Güncelleme**: 31 Temmuz 2025 - AnaSayfa'ya istatistikler eklendi, ilan kartlarındaki harita kaldırıldı, OverviewSection gerçek veriyle entegre edildi, build chunk uyarısı çözüldü, kod kalitesi ve performans iyileştirildi
 **Versiyon**: v2.5 - Dashboard Sadeleştirme & Yasal Bilgiler Modernizasyonu

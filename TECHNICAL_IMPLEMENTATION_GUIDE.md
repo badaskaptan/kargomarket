@@ -306,7 +306,20 @@ const HomePage = () => {
 
 ---
 
+
 ### **3. NAVIGATION & UX IMPROVEMENTS**
+
+#### [2025-07-31] Reklam Paneli ve Navigation Temizliği
+- Reklam Paneli (AdPanelPage) ve navigation'daki tüm bağlantılar sistemden kaldırıldı.
+- `AdPanelPage.tsx` ve `AdPanelPage.backup.tsx` dosyaları silindi.
+- Navigation bardaki "Reklam Paneli" butonu kaldırıldı.
+- PublicLayout ve ilgili navigation akışları sadeleştirildi.
+- Tüm sayfa yönlendirmeleri güncellendi, gereksiz yönlendirmeler ve eski referanslar temizlendi.
+- Dashboard ve public site arası geçişler güncellendi, kullanıcı odaklı navigation sağlandı.
+- Dashboard'dan ana siteye dönüşte artık ana sayfa açılıyor.
+- Otomatik yönlendirmeler kaldırıldı, tüm navigation kullanıcı aksiyonuna bağlı.
+
+Bu değişikliklerle birlikte sistemde reklam paneliyle ilgili hiçbir sayfa veya buton kalmamıştır. Navigation ve UX akışı sadeleştirilmiştir.
 
 #### **Navigation Flow Fixes**
 ```typescript
