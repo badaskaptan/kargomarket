@@ -1,3 +1,37 @@
+# TODO: Auto Control AI - Background Monitoring & Reporting System
+
+## Amaç
+- Arka planda çalışan, tüm sistem loglarını toplayan, analiz eden ve sadece admin’e raporlayan bir yapay zeka sistemi kurmak.
+
+## Planlama (Kısa)
+1. Kritik noktalara (API, hata, önemli aksiyonlar) log eventleri ekle.
+2. Logları merkezi bir log sunucusuna veya API’ye gönder.
+3. Sunucu tarafında çalışan bir AI servis ile logları analiz et (anomali, hata, performans, güvenlik).
+4. AI servisinin günlük/haftalık raporları admin’e e-posta ile göndermesini sağla.
+5. Kullanıcıya hiçbir log veya analiz gösterilmez, sadece admin ve IT ekibi erişebilir.
+
+## Notlar
+- Gelişmiş fonksiyonlar için makine öğrenmesi ile anomali tespiti, otomatik öneriler, proaktif bakım eklenebilir.
+# Lessons Learned: ListingsPage Email Visibility Issue (August 2025)
+
+**Context:**
+- Email field was not visible on listing cards for logged-in users, despite correct backend/frontend logic.
+- Adding a `console.log` in the render function caused the email to appear; removing it did not revert the fix.
+
+**Key Takeaways:**
+- React state/rendering issues can cause UI to not update as expected, even if the data and logic are correct.
+- Adding/removing debug code (like `console.log`) can trigger a re-render and "fix" the UI, masking the real issue.
+- Always hard refresh and clear cache when debugging UI data flow issues.
+- Confirm that all state and props are up-to-date and not stale.
+- Avoid leaving debug code in production; use it only for troubleshooting.
+
+**Best Practices:**
+- When UI does not reflect expected data, check for stale state, memoization, or missed re-renders.
+- Use React DevTools to inspect component state and props.
+- After debugging, always remove temporary code and verify the issue does not return.
+
+**Actionable Note:**
+- If a UI bug "fixes itself" after a code change unrelated to logic, suspect a render/state/cache issue first.
 ## 2025-08-01 Homepage Video & Category Label Improvements
 
 ### Yapılan İşler

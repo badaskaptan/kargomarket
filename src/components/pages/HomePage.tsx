@@ -750,7 +750,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Package size={14} className="mr-2 text-primary-500" />
-                      <span className="text-sm">{listing.load_type} • {listing.weight_value} {listing.weight_unit}</span>
+                      <span className="text-sm">{translateLoadType(listing.load_type || '')} • {listing.weight_value} {listing.weight_unit}</span>
                     </div>
                   </div>
 

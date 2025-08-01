@@ -112,9 +112,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }
   ];
 
+  const { logout } = useAuth();
   const handleMenuClick = (id: string) => {
     if (id === 'new-listing') {
       setNewListingOpen(!newListingOpen);
+    } else if (id === 'logout') {
+      logout();
     } else {
       setActiveSection(id as ActiveSection);
       onClose();

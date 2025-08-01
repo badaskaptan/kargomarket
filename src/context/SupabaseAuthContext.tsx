@@ -264,6 +264,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setProfile(null);
       setSession(null);
+      // Ana sayfaya yönlendir
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
       throw error;

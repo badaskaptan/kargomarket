@@ -927,7 +927,7 @@ const CreateShipmentRequestSection: React.FC = () => {
             <div>
               <label htmlFor="requestLoadingDate" className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
-                Yükleme Tarihi *
+                Yükleme Tarihi
               </label>
               <input
                 type="date"
@@ -936,7 +936,6 @@ const CreateShipmentRequestSection: React.FC = () => {
                 value={formData.requestLoadingDate}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
               />
             </div>
 
@@ -944,7 +943,7 @@ const CreateShipmentRequestSection: React.FC = () => {
             <div>
               <label htmlFor="requestDeliveryDate" className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
-                Teslimat Tarihi *
+                Teslimat Tarihi
               </label>
               <input
                 type="date"
@@ -953,7 +952,6 @@ const CreateShipmentRequestSection: React.FC = () => {
                 value={formData.requestDeliveryDate}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
               />
             </div>
 

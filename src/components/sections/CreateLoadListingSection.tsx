@@ -96,7 +96,7 @@ const CreateLoadListingSection: React.FC = () => {
     }
 
     // Form validasyonu
-    if (!formData.loadTitle || !formData.loadType || !formData.loadingDate || !formData.deliveryDate || !formData.loadWeight || !formData.loadVolume || !formData.loadRoleSelection || !formData.loadDescription) {
+    if (!formData.loadTitle || !formData.loadType || !formData.loadWeight || !formData.loadVolume || !formData.loadRoleSelection || !formData.loadDescription) {
       toast.error('Lütfen tüm zorunlu alanları doldurun!');
       return;
     }
@@ -504,7 +504,7 @@ const CreateLoadListingSection: React.FC = () => {
             <div>
               <label htmlFor="loadingDate" className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
-                Yükleme Tarihi *
+                Yükleme Tarihi
               </label>
               <input
                 type="date"
@@ -513,7 +513,6 @@ const CreateLoadListingSection: React.FC = () => {
                 value={formData.loadingDate}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
               />
             </div>
 
@@ -521,7 +520,7 @@ const CreateLoadListingSection: React.FC = () => {
             <div>
               <label htmlFor="deliveryDate" className="block text-sm font-medium text-gray-700 mb-2">
                 <Calendar className="inline w-4 h-4 mr-1" />
-                Teslimat Tarihi *
+                Teslimat Tarihi
               </label>
               <input
                 type="date"
@@ -530,7 +529,6 @@ const CreateLoadListingSection: React.FC = () => {
                 value={formData.deliveryDate}
                 onChange={handleInputChange}
                 className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                required
               />
             </div>
 

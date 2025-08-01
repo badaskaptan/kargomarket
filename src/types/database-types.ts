@@ -1366,6 +1366,7 @@ export type ExtendedListing = Database['public']['Tables']['listings']['Row'] & 
   owner_city?: string;
   owner_rating?: number;
   owner_address?: string;
+  owner_website?: string;
   owner_tax_office?: string;
   owner_tax_number?: string;
   owner_avatar_url?: string;

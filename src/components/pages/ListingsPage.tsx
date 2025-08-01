@@ -420,14 +420,14 @@ const ListingsPage: React.FC = () => {
               <button
                 onClick={() => setActiveTab('all')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${activeTab === 'all'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Tüm İlanlar
                 <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === 'all'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'bg-gray-100 text-gray-600'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
                   }`}>
                   {tabCounts.all}
                 </span>
@@ -435,14 +435,14 @@ const ListingsPage: React.FC = () => {
               <button
                 onClick={() => setActiveTab('load_listing')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${activeTab === 'load_listing'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Yük İlanları
                 <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === 'load_listing'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'bg-gray-100 text-gray-600'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
                   }`}>
                   {tabCounts.load_listing}
                 </span>
@@ -450,14 +450,14 @@ const ListingsPage: React.FC = () => {
               <button
                 onClick={() => setActiveTab('shipment_request')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${activeTab === 'shipment_request'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Nakliye Talebi
                 <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === 'shipment_request'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'bg-gray-100 text-gray-600'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
                   }`}>
                   {tabCounts.shipment_request}
                 </span>
@@ -465,14 +465,14 @@ const ListingsPage: React.FC = () => {
               <button
                 onClick={() => setActiveTab('transport_service')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap transition-colors duration-200 ${activeTab === 'transport_service'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
               >
                 Nakliye Hizmeti
                 <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === 'transport_service'
-                    ? 'bg-primary-100 text-primary-600'
-                    : 'bg-gray-100 text-gray-600'
+                  ? 'bg-primary-100 text-primary-600'
+                  : 'bg-gray-100 text-gray-600'
                   }`}>
                   {tabCounts.transport_service}
                 </span>

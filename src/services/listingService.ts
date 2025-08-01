@@ -189,6 +189,7 @@ export class ListingService {
             city,
             rating,
             address,
+            website,
             tax_office,
             tax_number,
             avatar_url,
@@ -219,6 +220,7 @@ export class ListingService {
           city?: string;
           rating?: number;
           address?: string;
+          website?: string;
           tax_office?: string;
           tax_number?: string;
           avatar_url?: string;
@@ -237,6 +239,7 @@ export class ListingService {
           owner_city: profile?.city || '',
           owner_rating: profile?.rating || 0,
           owner_address: profile?.address || '',
+          owner_website: profile?.website || '',
           owner_tax_office: profile?.tax_office || '',
           owner_tax_number: profile?.tax_number || '',
           owner_avatar_url: profile?.avatar_url || '',
@@ -263,7 +266,9 @@ export class ListingService {
             full_name,
             email,
             phone,
-            company_name
+            company_name,
+            address,
+            website
           )
         `)
         .eq('status', 'active')
@@ -289,7 +294,9 @@ export class ListingService {
             full_name,
             email,
             phone,
-            company_name
+            company_name,
+            address,
+            website
           )
         `)
         .eq('status', 'active')
@@ -427,7 +434,9 @@ export class ListingService {
         owner_name: service.profiles?.full_name || 'Bilinmiyor',
         owner_email: service.profiles?.email || '',
         owner_phone: service.profiles?.phone || '',
-        owner_company: service.profiles?.company_name || service.company_name || ''
+        owner_company: service.profiles?.company_name || service.company_name || '',
+        owner_address: service.profiles?.address || '',
+        owner_website: service.profiles?.website || ''
       }));
 
       // 4. Listings verilerini de ilan sahibi bilgileriyle genişlet
@@ -436,7 +445,9 @@ export class ListingService {
         owner_name: listing.profiles?.full_name || 'Bilinmiyor',
         owner_email: listing.profiles?.email || '',
         owner_phone: listing.profiles?.phone || '',
-        owner_company: listing.profiles?.company_name || ''
+        owner_company: listing.profiles?.company_name || '',
+        owner_address: listing.profiles?.address || '',
+        owner_website: listing.profiles?.website || ''
       }));
 
       // 5. Her iki veri setini birleştir

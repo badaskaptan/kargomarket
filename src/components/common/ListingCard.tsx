@@ -43,6 +43,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
   isPublicPage = false,
   isLoggedIn = false
 }) => {
+  // DEBUG: owner_email kontrolü
+  console.log('ListingCard owner_email:', listing.owner_email, 'listing:', listing);
   // İlan tipine göre ikon
   const getTypeIcon = () => {
     switch (listing.listing_type) {
@@ -108,7 +110,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
 
   return (
     <div className={`bg-white rounded-xl border border-gray-200 p-4 hover:shadow-lg hover:border-blue-200 transition-all duration-200 ${layout === 'horizontal' ? 'flex items-start gap-6' :
-        layout === 'compact' ? 'h-full flex flex-col' : ''
+      layout === 'compact' ? 'h-full flex flex-col' : ''
       }`}>
 
       {/* Sol Taraf - Ana İçerik */}
@@ -213,8 +215,8 @@ const ListingCard: React.FC<ListingCardProps> = ({
 
         {/* İlan Detayları */}
         <div className={`${layout === 'horizontal' ? 'grid grid-cols-2 gap-x-6 gap-y-3' :
-            layout === 'compact' ? 'space-y-2 flex-1' :
-              'space-y-3'
+          layout === 'compact' ? 'space-y-2 flex-1' :
+            'space-y-3'
           }`}>
           {/* Rota */}
           <div className="flex items-center text-gray-700">
@@ -328,39 +330,39 @@ const ListingCard: React.FC<ListingCardProps> = ({
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mr-3 flex-shrink-0">
               <span className="text-white text-sm font-semibold">
-                {listing.owner_name && listing.owner_name !== 'Bilinmiyor' 
+                {listing.owner_name && listing.owner_name !== 'Bilinmiyor'
                   ? listing.owner_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
                   : 'U'
                 }
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <div className={`font-semibold text-gray-900 ${layout === 'compact' ? 'text-sm' : 'text-base'} truncate`}>
-                {listing.owner_name && listing.owner_name !== 'Bilinmiyor' ? listing.owner_name : 'İlan Sahibi'}
-              </div>
-              {listing.owner_company && (
-                <div className={`text-gray-600 ${layout === 'compact' ? 'text-xs' : 'text-sm'} truncate`}>
-                  {listing.owner_company}
+              {/* Kullanıcı Adı (her zaman görünür) */}
+              {listing.owner_name && listing.owner_name !== 'Bilinmiyor' && (
+                <div className={`font-semibold text-gray-900 ${layout === 'compact' ? 'text-sm' : 'text-base'} truncate`}>
+                  {listing.owner_name}
                 </div>
               )}
-              <div className={`flex items-center space-x-2 ${layout === 'compact' ? 'text-xs' : 'text-sm'} text-gray-500 mt-1`}>
-                {listing.owner_phone && (
-                  <span className="flex items-center">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    {listing.owner_phone}
-                  </span>
-                )}
-                {listing.owner_email && (
-                  <span className="flex items-center">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    {listing.owner_email}
-                  </span>
-                )}
-              </div>
+              {/* Sadece giriş yapan kullanıcıya: Şirket Adı, Telefon, E-posta */}
+              {isLoggedIn && (
+                <>
+                  {listing.owner_company && (
+                    <div className={`text-gray-700 ${layout === 'compact' ? 'text-xs' : 'text-sm'} truncate`}>
+                      <span className="font-medium">Şirket:</span> {listing.owner_company}
+                    </div>
+                  )}
+                  {listing.owner_phone && (
+                    <div className={`text-gray-700 ${layout === 'compact' ? 'text-xs' : 'text-sm'} truncate`}>
+                      <span className="font-medium">Telefon:</span> {listing.owner_phone}
+                    </div>
+                  )}
+                  {listing.owner_email && (
+                    <div className={`text-gray-700 ${layout === 'compact' ? 'text-xs' : 'text-sm'} truncate`}>
+                      <span className="font-medium">E-posta:</span> {listing.owner_email}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

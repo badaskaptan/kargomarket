@@ -8,16 +8,99 @@ export const translateLoadType = (loadType: string): string => {
     console.log('translateLoadType called with:', loadType);
 
     const translations: { [key: string]: string } = {
-        'dangerous_class1': 'Tehlikeli Madde Sınıf 1 (Patlayıcılar)',
-        'dangerous_class2': 'Tehlikeli Madde Sınıf 2 (Gazlar)',
-        'dangerous_class3': 'Tehlikeli Madde Sınıf 3 (Yanıcı Sıvılar)',
-        'dangerous_class4': 'Tehlikeli Madde Sınıf 4 (Yanıcı Katılar)',
-        'dangerous_class5': 'Tehlikeli Madde Sınıf 5 (Oksitleyici Maddeler)',
-        'dangerous_class6': 'Tehlikeli Madde Sınıf 6 (Zehirli Maddeler)',
-        'dangerous_class7': 'Tehlikeli Madde Sınıf 7 (Radyoaktif Maddeler)',
-        'dangerous_class8': 'Tehlikeli Madde Sınıf 8 (Aşındırıcı Maddeler)',
-        'dangerous_class9': 'Tehlikeli Madde Sınıf 9 (Çeşitli Tehlikeli Maddeler)',
-        'general_cargo': 'Genel Kargo',
+        // Genel Kargo / Paletli Ürünler
+        'box_package': 'Koli / Paket',
+        'pallet_standard': 'Paletli Yükler - Standart Palet',
+        'pallet_euro': 'Paletli Yükler - Euro Palet',
+        'pallet_industrial': 'Paletli Yükler - Endüstriyel Palet',
+        'sack_bigbag': 'Çuval / Bigbag (Dökme Olmayan)',
+        'barrel_drum': 'Varil / Fıçı',
+        'appliances_electronics': 'Beyaz Eşya / Elektronik',
+        'furniture_decor': 'Mobilya / Dekorasyon Ürünleri',
+        'textile_products': 'Tekstil Ürünleri',
+        'automotive_parts': 'Otomotiv Parçaları / Yedek Parça',
+        'machinery_parts': 'Makine / Ekipman Parçaları (Büyük Olmayan)',
+        'construction_materials': 'İnşaat Malzemeleri (Torbalı Çimento, Demir Bağlar vb.)',
+        'packaged_food': 'Ambalajlı Gıda Ürünleri (Kuru Gıda, Konserve vb.)',
+        'consumer_goods': 'Tüketim Ürünleri (Market Ürünleri)',
+        'ecommerce_cargo': 'E-ticaret Kargo',
+        'other_general': 'Diğer Genel Kargo',
+
+        // Dökme Yükler
+        'grain': 'Tahıl (Buğday, Mısır, Arpa, Pirinç vb.)',
+        'ore': 'Maden Cevheri (Demir, Bakır, Boksit vb.)',
+        'coal': 'Kömür',
+        'cement_bulk': 'Çimento (Dökme)',
+        'sand_gravel': 'Kum / Çakıl',
+        'fertilizer_bulk': 'Gübre (Dökme)',
+        'soil_excavation': 'Toprak / Hafriyat',
+        'scrap_metal': 'Hurda Metal',
+        'other_bulk': 'Diğer Dökme Yükler',
+
+        // Sıvı Yükler (Dökme Sıvı)
+        'crude_oil': 'Ham Petrol / Petrol Ürünleri',
+        'chemical_liquids': 'Kimyasal Sıvılar (Asit, Baz, Solvent vb.)',
+        'vegetable_oils': 'Bitkisel Yağlar (Ayçiçek Yağı, Zeytinyağı vb.)',
+        'fuel': 'Yakıt (Dizel, Benzin vb.)',
+        'lpg_lng': 'LPG / LNG (Sıvılaştırılmış Gazlar)',
+        'water': 'Su (İçme Suyu, Endüstriyel Su)',
+        'milk_dairy': 'Süt / Süt Ürünleri (Dökme)',
+        'wine_concentrate': 'Şarap / İçecek Konsantresi',
+        'other_liquid': 'Diğer Sıvı Yükler',
+
+        // Ağır Yük / Gabari Dışı Yük
+        'tbm': 'Tünel Açma Makinesi (TBM)',
+        'transformer_generator': 'Trafo / Jeneratör',
+        'heavy_machinery': 'Büyük İş Makineleri (Ekskavatör, Vinç vb.)',
+        'boat_yacht': 'Tekne / Yat',
+        'industrial_parts': 'Büyük Endüstriyel Parçalar',
+        'prefab_elements': 'Prefabrik Yapı Elemanları',
+        'wind_turbine': 'Rüzgar Türbini Kanatları / Kuleleri',
+        'other_oversized': 'Diğer Gabari Dışı Yükler',
+
+        // Hassas / Kırılabilir Kargo
+        'art_antiques': 'Sanat Eserleri / Antikalar',
+        'glass_ceramic': 'Cam / Seramik Ürünler',
+        'electronic_devices': 'Elektronik Cihaz',
+        'medical_devices': 'Tıbbi Cihazlar',
+        'lab_equipment': 'Laboratuvar Ekipmanları',
+        'flowers_plants': 'Çiçek / Canlı Bitki',
+        'other_sensitive': 'Diğer Hassas Kargo',
+
+        // Tehlikeli Madde (ADR / IMDG / IATA Sınıflandırması)
+        'dangerous_class1': 'Patlayıcılar (Sınıf 1)',
+        'dangerous_class2': 'Gazlar (Sınıf 2)',
+        'dangerous_class3': 'Yanıcı Sıvılar (Sınıf 3)',
+        'dangerous_class4': 'Yanıcı Katılar (Sınıf 4)',
+        'dangerous_class5': 'Oksitleyici Maddeler (Sınıf 5)',
+        'dangerous_class6': 'Zehirli ve Bulaşıcı Maddeler (Sınıf 6)',
+        'dangerous_class7': 'Radyoaktif Maddeler (Sınıf 7)',
+        'dangerous_class8': 'Aşındırıcı Maddeler (Sınıf 8)',
+        'dangerous_class9': 'Diğer Tehlikeli Maddeler (Sınıf 9)',
+
+        // Soğuk Zincir / Isı Kontrollü Yük
+        'frozen_food': 'Donmuş Gıda',
+        'fresh_produce': 'Taze Meyve / Sebze',
+        'meat_dairy': 'Et / Süt Ürünleri',
+        'pharma_vaccine': 'İlaç / Aşı',
+        'chemical_temp': 'Kimyasal Maddeler (Isı Kontrollü)',
+        'other_cold_chain': 'Diğer Soğuk Zincir Kargo',
+
+        // Canlı Hayvan
+        'small_livestock': 'Küçük Baş Hayvan (Koyun, Keçi vb.)',
+        'large_livestock': 'Büyük Baş Hayvan (Sığır, At vb.)',
+        'poultry': 'Kanatlı Hayvan',
+        'pets': 'Evcil Hayvan',
+        'other_livestock': 'Diğer Canlı Hayvanlar',
+
+        // Proje Yükleri
+        'factory_setup': 'Fabrika Kurulumu',
+        'power_plant': 'Enerji Santrali Ekipmanları',
+        'infrastructure': 'Altyapı Proje Malzemeleri',
+        'other_project': 'Diğer Proje Yükleri',
+
+        // Eski ve genel anahtarlar (geriye dönük uyumluluk için)
+        // 'general_cargo': 'Genel Kargo', // duplicate removed
         'refrigerated': 'Soğutmalı Kargo',
         'hazmat': 'Tehlikeli Madde',
         'oversized': 'Yüksek/Geniş Yük',
@@ -25,18 +108,16 @@ export const translateLoadType = (loadType: string): string => {
         'bulk': 'Dökme Yük',
         'container': 'Konteyner',
         'automotive': 'Otomotiv',
-        'machinery': 'Makine/Ekipman',
-        'machinery_parts': 'Makine Parçaları',
-        'textile': 'Tekstil',
-        'textile_products': 'Tekstil Ürünleri',
-        'food': 'Gıda',
+        // 'machinery': 'Makine/Ekipman', // duplicate removed
+        // 'machinery_parts': 'Makine Parçaları', // duplicate removed
+        // 'textile': 'Tekstil', // duplicate removed
+        // 'food': 'Gıda', // duplicate removed
         'food_products': 'Gıda Ürünleri',
-        'chemical': 'Kimyasal',
+        // 'chemical': 'Kimyasal', // duplicate removed
         'pharmaceutical': 'İlaç/Tıbbi',
-        'electronics': 'Elektronik',
-        'construction': 'İnşaat Malzemesi',
-        'agricultural': 'Tarım Ürünleri',
-        'ecommerce_cargo': 'E-Ticaret Kargos',
+        // 'electronics': 'Elektronik', // duplicate removed
+        // 'construction': 'İnşaat Malzemesi', // duplicate removed
+        // 'agricultural': 'Tarım Ürünleri', // duplicate removed
 
         // Türkçe değerler de çevirisiz geçsin (eğer database'de Türkçe kaydedilmişse)
         'tekstil': 'Tekstil',

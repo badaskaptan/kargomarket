@@ -1,3 +1,36 @@
+# TODO: Auto Control AI - Background Monitoring & Reporting System
+
+## Purpose
+- Build a background AI system that collects, analyzes, and reports all system logs only to admin (not visible to users).
+
+## Short Planning
+1. Add log events to critical points (API, errors, key actions).
+2. Send logs to a central log server or API endpoint.
+3. Run a backend AI service to analyze logs (anomaly, error, performance, security).
+4. Have the AI service send daily/weekly summary reports to admin via email.
+5. No logs or analysis are shown to users; only admin/IT can access reports.
+
+## Notes
+- For advanced features, add ML-based anomaly detection, auto-suggestions, and proactive maintenance.
+# Technical Note: React State, Rendering, and Debugging (ListingsPage Email Case)
+
+## Problem Recap
+- Email field was not showing for logged-in users, even though backend and frontend logic was correct.
+- Adding a `console.log` in the render function made the email appear; removing it did not break the fix.
+
+## What We Learned
+- React's rendering can be affected by stale state, missed updates, or cache issues.
+- Debug code (like `console.log`) can force a re-render, temporarily hiding the real problem.
+- Always test with hard refresh and clear cache when UI state/data issues are suspected.
+- Use React DevTools to inspect live state and props.
+- Do not rely on debug code for production fixes.
+
+## Checklist for Similar Issues
+- [ ] Confirm backend and frontend data flow is correct.
+- [ ] Check for stale state, missed re-renders, or memoization issues.
+- [ ] Use hard refresh and clear cache during debugging.
+- [ ] Remove all debug code after troubleshooting.
+- [ ] Use React DevTools for live inspection.
 # 🤖 AI Agent & Developer Navigation Guide
 ## KargoMarket Project - Complete System Reference
 
