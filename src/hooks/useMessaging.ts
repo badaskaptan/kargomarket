@@ -1,21 +1,67 @@
+
+
 import { useState, useCallback, useEffect } from 'react';
 import { conversationService } from '../services/conversationService.ts';
 import { messageService } from '../services/messageService.ts';
 import type { ExtendedConversation, ExtendedMessage } from '../types/messaging-types.ts';
 
 export function useMessaging(currentUserId: string | null) {
+  // Konuşmayı silme fonksiyonu
+  const deleteConversation = useCallback(async (conversationId: number) => {
+    try {
+      const { error } = await conversationService.deleteConversation(conversationId);
+      if (error) throw error;
+      setConversations(prev => prev.filter((c: ExtendedConversation) => c.id !== conversationId));
+      return true;
+    } catch {
+      setError('Konuşma silinemedi');
+      return false;
+    }
+  }, []);
   const [conversations, setConversations] = useState<ExtendedConversation[]>([]);
   const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * ⚠️ CRITICAL: Bu fonksiyon ismi ListingsPage.tsx'in beklediği isim!
-   * Değiştirmeyin: sendOrStartConversationAndMessage
-   */
+
+
+  // Mesaj silme fonksiyonu
+  const deleteMessage = useCallback(async (messageId: number) => {
+    if (!currentUserId) return false;
+    try {
+      const result = await messageService.deleteMessage(messageId, currentUserId);
+      if (result) {
+        setMessages((prev: ExtendedMessage[]) => prev.filter((m: ExtendedMessage) => m.id !== messageId));
+      }
+      return result;
+    } catch {
+      setError('Mesaj silinemedi');
+      return false;
+    }
+  }, [currentUserId]);
+
+
+
+  // Kullanıcının konuşmalarını getirir
+  const loadConversations = useCallback(async () => {
+    if (!currentUserId) return;
+    setLoading(true);
+    try {
+      const userConversations = await conversationService.getUserConversations(currentUserId);
+      setConversations(userConversations);
+    } catch {
+      setError('Konuşmalar yüklenemedi');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUserId]);
+
+
+
+  // Mesaj gönderme ve konuşma başlatma
   const sendOrStartConversationAndMessage = useCallback(async (
-    recipientId: string, 
-    content: string, 
+    recipientId: string,
+    content: string,
     listingId: number | null = null,
     imageUrls?: string[],
     documentUrls?: string[]
@@ -23,125 +69,68 @@ export function useMessaging(currentUserId: string | null) {
     if (!currentUserId) {
       throw new Error('Kullanıcı giriş yapmamış');
     }
-
     if (!recipientId) {
       throw new Error('Alıcı ID gerekli');
     }
-
     if (!content || content.trim() === '') {
       throw new Error('Mesaj içeriği boş olamaz');
     }
-
     setLoading(true);
     setError(null);
-
     try {
-      console.log('🚀 Starting conversation and message process:', {
-        currentUserId,
-        recipientId,
-        listingId,
-        contentLength: content.length
-      });
-
-      // 1. Mevcut konuşmayı bul
       let conversation = await conversationService.findConversationBetweenUsers(currentUserId, recipientId);
-
-      // 2. Konuşma yoksa yeni oluştur
+      let isNewConversation = false;
       if (!conversation) {
-        console.log('📝 Creating new conversation...');
-        
-        // Başlık oluştur
         const title = listingId ? `İlan Konuşması #${listingId}` : 'Genel Konuşma';
-        
-        // Konuşma oluştur
         conversation = await conversationService.createConversation(title, currentUserId, listingId);
-        
-        // Katılımcıları ekle
         await conversationService.addParticipant(conversation.id, currentUserId);
         await conversationService.addParticipant(conversation.id, recipientId);
-        
-        console.log('✅ New conversation created with participants');
-      } else {
-        console.log('✅ Using existing conversation:', conversation.id);
+        isNewConversation = true;
       }
-
-      // 3. Mesaj gönder
-      console.log('📤 Sending message...');
       const message = await messageService.sendMessage(
-        conversation.id, 
-        currentUserId, 
+        conversation.id,
+        currentUserId,
         content,
         imageUrls,
         documentUrls
       );
-      
-      console.log('🎉 Message sent successfully!');
-      
-      // 4. State'i güncelle (isteğe bağlı)
       setMessages(prev => [...prev, message]);
-      
+      if (isNewConversation) {
+        await loadConversations();
+      }
       return {
         success: true,
         conversation,
         message
       };
-
     } catch (err) {
-      console.error('❌ Error in sendOrStartConversationAndMessage:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Mesaj gönderilemedi';
-      setError(errorMessage);
+      setError('Mesaj gönderilemedi');
       throw err;
     } finally {
+
       setLoading(false);
     }
-  }, [currentUserId]);
+  }, [currentUserId, loadConversations]);
 
-  /**
-   * Kullanıcının konuşmalarını getirir
-   */
-  const loadConversations = useCallback(async () => {
-    if (!currentUserId) return;
-
-    setLoading(true);
-    try {
-      const userConversations = await conversationService.getUserConversations(currentUserId);
-      setConversations(userConversations);
-    } catch (err) {
-      console.error('❌ Error loading conversations:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Konuşmalar yüklenemedi';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentUserId]);
-
-  /**
-   * Belirli bir konuşmanın mesajlarını getirir
-   */
+  // Belirli bir konuşmanın mesajlarını getirir
   const loadMessages = useCallback(async (conversationId: number) => {
     if (!conversationId) return;
-
     setLoading(true);
     try {
       const conversationMessages = await messageService.getMessages(conversationId);
       setMessages(conversationMessages);
-    } catch (err) {
-      console.error('❌ Error loading messages:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Mesajlar yüklenemedi';
-      setError(errorMessage);
+    } catch {
+      setError('Mesajlar yüklenemedi');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /**
-   * Hata mesajını temizler
-   */
+  // Hata mesajını temizler
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // Auto-load conversations when currentUserId changes
   useEffect(() => {
     if (currentUserId) {
       loadConversations();
@@ -149,20 +138,18 @@ export function useMessaging(currentUserId: string | null) {
   }, [currentUserId, loadConversations]);
 
   return {
-    // State
     conversations,
     messages,
     loading,
     error,
-    
-    // Actions
-    sendOrStartConversationAndMessage, // ⚠️ ListingsPage'in beklediği exact isim!
+    sendOrStartConversationAndMessage,
     loadConversations,
     loadMessages,
     clearError,
-    setError
+    setError,
+    deleteMessage,
+    deleteConversation
   };
 }
 
-// Named export for dynamic import
 export { useMessaging as default };

@@ -1,6 +1,7 @@
 # Last updated: 2025-07-29
 
 # 🔧 KargoMarketing - Technical Implementation Guide
+
 **Hedef Kitle**: Developers & Technical AI Agents  
 **Focus**: Implementation details, code samples, technical decisions  
 **⚠️ KRİTİK**: Bu dosya sürekli güncel tutulmalıdır!
@@ -10,9 +11,11 @@
 ## 📋 **GÜNCEL TUTMA TALİMATLARI**
 
 ### **🔄 Bu Dosyanın Güncellenmesi Zorunludur**
+
 **AI Agent'lar için kritik görev**: Her implementation sonrasında bu dosyayı güncelleyin:
 
 1. **Implementation Tamamlandığında**:
+
    ```markdown
    // ❌ CURRENT: Mock data  → // ✅ COMPLETED: Real data (Tarih)
    ```
@@ -37,6 +40,7 @@
 ### **1. DATA INTEGRATION TASKS**
 
 #### **MyAdsSection.tsx** - Real Data Integration
+
 ```typescript
 // ❌ CURRENT: Mock data
 const mockAds = [{ id: 1, title: 'Hızlı Taşıma', views: 142 }]
@@ -80,6 +84,7 @@ const MyAdsSection = () => {
 ```
 
 **Gereken Service Methods**:
+
 ```typescript
 // listingService.ts eklenecek
 export const getListingStats = async (listingId: number) => {
@@ -103,6 +108,7 @@ $$ LANGUAGE plpgsql;
 ```
 
 #### **MyReviewsSection.tsx** - Database Integration
+
 ```typescript
 // ❌ CURRENT: Mock reviews
 const mockReviews = [...]
@@ -133,6 +139,7 @@ const MyReviewsSection = () => {
 ```
 
 **New Tables Needed**:
+
 ```sql
 -- reviews table
 CREATE TABLE reviews (
@@ -161,7 +168,43 @@ CREATE TABLE user_ratings (
 );
 ```
 
+#### **MessagesSection.tsx** - Messaging Panel & Silme Özellikleri
+
+```typescript
+// ✅ COMPLETED: Mesajlaşma panelinde konuşma ve mesaj silme özellikleri (1 Ağustos 2025)
+import { useMessaging } from '../hooks/useMessaging'
+
+const MessagesSection = () => {
+  const {
+    conversations,
+    deleteConversation,
+    deleteMessage,
+    // ...
+  } = useMessaging(user?.id)
+
+  // Konuşma silme örneği:
+  const handleDeleteConversation = async (conversationId: number) => {
+    await deleteConversation(conversationId)
+    // Liste otomatik güncellenir
+  }
+
+  // Mesaj silme örneği:
+  const handleDeleteMessage = async (messageId: number) => {
+    await deleteMessage(messageId)
+    // Mesajlar otomatik güncellenir
+  }
+}
+```
+
+**Test:**
+- Tüm mesajlaşma paneli fonksiyonları (yeni konuşma başlatma, mesaj gönderme, konuşma ve mesaj silme) başarıyla test edildi.
+- Panel WhatsApp benzeri UX ile çalışıyor.
+- Silinen konuşmalar ve mesajlar anında listeden kayboluyor.
+
+---
+
 #### **OverviewSection.tsx** - Dynamic Statistics
+
 ```typescript
 // ❌ CURRENT: Static mock data
 const stats = [
@@ -186,6 +229,7 @@ const OverviewSection = () => {
 ```
 
 **Dashboard Stats Service**:
+
 ```typescript
 // dashboardService.ts - New file
 export const getDashboardStats = async (userId: string) => {
@@ -210,6 +254,7 @@ export const getDashboardStats = async (userId: string) => {
 ### **2. FEATURE COMPLETION TASKS**
 
 #### **ProfileSection.tsx** - Avatar Upload
+
 ```typescript
 // Eklenecek avatar upload functionality
 const handleAvatarUpload = async (file: File) => {
@@ -249,6 +294,7 @@ const handleAvatarUpload = async (file: File) => {
 ```
 
 **Storage Setup Needed**:
+
 ```sql
 -- Supabase Dashboard > Storage > Create new bucket
 Bucket name: avatars
@@ -265,6 +311,7 @@ FOR INSERT WITH CHECK (
 ```
 
 #### **HomePage.tsx** - Maps Integration
+
 ```bash
 # Install required packages
 npm install react-leaflet leaflet
@@ -306,10 +353,10 @@ const HomePage = () => {
 
 ---
 
-
 ### **3. NAVIGATION & UX IMPROVEMENTS**
 
 #### [2025-07-31] Reklam Paneli ve Navigation Temizliği
+
 - Reklam Paneli (AdPanelPage) ve navigation'daki tüm bağlantılar sistemden kaldırıldı.
 - `AdPanelPage.tsx` ve `AdPanelPage.backup.tsx` dosyaları silindi.
 - Navigation bardaki "Reklam Paneli" butonu kaldırıldı.
@@ -322,6 +369,7 @@ const HomePage = () => {
 Bu değişikliklerle birlikte sistemde reklam paneliyle ilgili hiçbir sayfa veya buton kalmamıştır. Navigation ve UX akışı sadeleştirilmiştir.
 
 #### **Navigation Flow Fixes**
+
 ```typescript
 // src/components/layout/DashboardLayout.tsx
 const handleBackNavigation = () => {
@@ -351,6 +399,7 @@ const updateBreadcrumbs = (path: string) => {
 ```
 
 #### **Logout Implementation**
+
 ```typescript
 // src/components/ui/UserMenu.tsx
 const handleLogout = async () => {
@@ -384,6 +433,7 @@ const handleLogout = async () => {
 ### **4. PERFORMANCE OPTIMIZATIONS**
 
 #### **Bundle Size Reduction**
+
 ```typescript
 // Implement lazy loading for heavy components
 const LazyMessagingSection = lazy(() => import('../sections/MessagingSection'))
@@ -402,6 +452,7 @@ const loadMapLibrary = async () => {
 ```
 
 #### **Image Optimization**
+
 ```typescript
 // Implement progressive image loading
 const OptimizedImage = ({ src, alt, className }) => {
@@ -430,6 +481,7 @@ const OptimizedImage = ({ src, alt, className }) => {
 ### **5. DATABASE OPTIMIZATIONS**
 
 #### **Required Indexes**
+
 ```sql
 -- Performance indexes
 CREATE INDEX idx_listings_created_by ON listings(created_by);
@@ -445,6 +497,7 @@ CREATE INDEX idx_offers_status_created ON offers(status, created_at DESC);
 ```
 
 #### **Database Functions**
+
 ```sql
 -- Get user statistics function
 CREATE OR REPLACE FUNCTION get_user_dashboard_stats(user_id uuid)
@@ -469,6 +522,7 @@ $$ LANGUAGE plpgsql;
 ## 🚀 **DEPLOYMENT CHECKLIST**
 
 ### **Environment Variables**
+
 ```bash
 # .env.production
 VITE_SUPABASE_URL=your_production_url
@@ -478,6 +532,7 @@ VITE_ENABLE_ANALYTICS=true
 ```
 
 ### **Build Optimization**
+
 ```typescript
 // vite.config.ts
 export default defineConfig({
@@ -527,32 +582,34 @@ export default defineConfig({
 
 ### **🔄 Güncel Durum - 26 Temmuz 2025**
 
-
 #### **Data Integration Status**
+
 - [x] MyAdsSection.tsx - Real data integration (✅ COMPLETED: Canlı veri, Supabase entegrasyonu, 28 Temmuz 2025)
 - [x] MyReviewsSection.tsx - Database integration (✅ COMPLETED: Gerçek Supabase verisi, 28 Temmuz 2025)
 - [x] OverviewSection.tsx - Dynamic statistics (✅ COMPLETED: Gerçek zamanlı dashboard istatistikleri, 31 Temmuz 2025)
 
-
 #### **Feature Completion Status**
+
 - [x] ProfileSection.tsx - Avatar upload (✅ COMPLETED: Supabase Storage ile avatar yükleme, 28 Temmuz 2025)
 - [x] HomePage.tsx - Maps integration (✅ COMPLETED: react-leaflet ile harita ve öne çıkan ilanlar, 28 Temmuz 2025)
 - [x] Navigation flow fixes (✅ COMPLETED: Dashboard geri butonu ve breadcrumb iyileştirmeleri, 28 Temmuz 2025)
 
-
 #### **Performance Status**
+
 - [x] Bundle size optimization (✅ COMPLETED: Kod bölme ve lazy loading, 28 Temmuz 2025)
 - [x] Image optimization (✅ COMPLETED: Progressive image loading, 28 Temmuz 2025)
 - [x] Database indexing (✅ COMPLETED: Performans indexleri eklendi, 28 Temmuz 2025)
 
-
 #### **Database Schema Status**
+
 - [x] Reviews table creation (✅ COMPLETED: reviews & user_ratings tabloları oluşturuldu ve kullanılıyor, 28 Temmuz 2025)
 - [x] Dashboard stats function (✅ COMPLETED: get_user_dashboard_stats fonksiyonu eklendi, 28 Temmuz 2025)
 - [x] Storage setup for avatars (✅ COMPLETED: Supabase storage bucket ve RLS policy, 28 Temmuz 2025)
 
 ### **🎯 Next Agent Instructions**
+
 * Build chunk uyarısı çözüldü, kod bölme/lazy loading önerildi. Inline style'lar CSS'e taşındı. Kod kalitesi ve performans için öneriler uygulandı.
+
 1. Check yukarıdaki status'ları kontrol et
 2. Implementation yap
 3. ✅ işaretini koy

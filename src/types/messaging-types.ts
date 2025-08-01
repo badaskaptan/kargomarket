@@ -61,41 +61,45 @@ export interface ConversationWithParticipant {
 // Service interfaces
 export interface ConversationServiceInterface {
   findConversationBetweenUsers(
-    user1Id: string, 
+    user1Id: string,
     user2Id: string
   ): Promise<Conversation | null>;
-  
+
   createConversation(
-    title: string, 
-    creatorId: string, 
+    title: string,
+    creatorId: string,
     listingId?: number | null
   ): Promise<Conversation>;
-  
+
   addParticipant(
-    conversationId: number, 
+    conversationId: number,
     userId: string
   ): Promise<ConversationParticipant>;
-  
+
   getUserConversations(userId: string): Promise<ExtendedConversation[]>;
+
+  deleteConversation(conversationId: number): Promise<{ error: Error | null }>;
 }
 
 export interface MessageServiceInterface {
   sendMessage(
-    conversationId: number, 
-    senderId: string, 
+    conversationId: number,
+    senderId: string,
     content: string,
     imageUrls?: string[],
     documentUrls?: string[]
   ): Promise<Message>;
-  
+
   getMessages(
-    conversationId: number, 
+    conversationId: number,
     limit?: number
   ): Promise<ExtendedMessage[]>;
-  
+
   markAsRead(messageId: number, userId: string): Promise<Message | null>;
-  
+
   getUnreadCount(conversationId: number, userId: string): Promise<number>;
+
+  deleteMessage(messageId: number, userId: string): Promise<boolean>;
 }
 
 // UseMessaging hook return type
@@ -105,8 +109,8 @@ export interface UseMessagingReturn {
   loading: boolean;
   error: string | null;
   sendOrStartConversationAndMessage: (
-    recipientId: string, 
-    content: string, 
+    recipientId: string,
+    content: string,
     listingId?: number | null,
     imageUrls?: string[],
     documentUrls?: string[]
@@ -119,4 +123,5 @@ export interface UseMessagingReturn {
   loadMessages: (conversationId: number) => Promise<void>;
   clearError: () => void;
   setError: (error: string | null) => void;
+  deleteMessage: (messageId: number) => Promise<boolean>;
 }

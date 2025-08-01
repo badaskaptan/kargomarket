@@ -1,30 +1,52 @@
 import { supabase } from '../lib/supabase';
-import type { 
-  Message, 
-  ExtendedMessage, 
-  MessageServiceInterface 
+import type {
+  Message,
+  ExtendedMessage,
+  MessageServiceInterface
 } from '../types/messaging-types.ts';
 
+
+
 export const messageService: MessageServiceInterface = {
+  /**
+   * Bir mesajı siler (kendi mesajı ise)
+   */
+  async deleteMessage(messageId: number, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId)
+        .eq('sender_id', userId);
+      if (error) {
+        console.error('❌ Error deleting message:', error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('❌ deleteMessage error:', error);
+      return false;
+    }
+  },
   /**
    * Konuşmaya mesaj gönderir
    */
   async sendMessage(
-    conversationId: number, 
-    senderId: string, 
+    conversationId: number,
+    senderId: string,
     content: string,
     imageUrls?: string[],
     documentUrls?: string[]
   ): Promise<Message> {
     try {
-      console.log('📤 Sending message:', { 
-        conversationId, 
-        senderId, 
+      console.log('📤 Sending message:', {
+        conversationId,
+        senderId,
         contentLength: content?.length,
         imageCount: imageUrls?.length || 0,
         documentCount: documentUrls?.length || 0
       });
-      
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -57,7 +79,7 @@ export const messageService: MessageServiceInterface = {
   async getMessages(conversationId: number, limit: number = 50): Promise<ExtendedMessage[]> {
     try {
       console.log('📥 Getting messages for conversation:', conversationId);
-      
+
       const { data, error } = await supabase
         .from('messages')
         .select(`
@@ -100,7 +122,7 @@ export const messageService: MessageServiceInterface = {
   async markAsRead(messageId: number, userId: string): Promise<Message | null> {
     try {
       console.log('👁️ Marking message as read:', { messageId, userId });
-      
+
       const { data, error } = await supabase
         .from('messages')
         .update({ is_read: true })
@@ -128,7 +150,7 @@ export const messageService: MessageServiceInterface = {
   async getUnreadCount(conversationId: number, userId: string): Promise<number> {
     try {
       console.log('🔢 Getting unread count:', { conversationId, userId });
-      
+
       const { count, error } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })

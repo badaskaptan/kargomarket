@@ -445,14 +445,21 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
         {/* Kutular grid satırı burada bitiyor */}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {/* İlan Başına Ortalama Teklif */}
+        {/* İlan Başına Ortalama Teklif (Dinamik) */}
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
           <div className="flex items-center mb-4">
             <AlertCircle className="text-indigo-500 mr-2" size={20} />
             <h3 className="text-lg font-semibold text-gray-900">İlan Başına Ortalama Teklif</h3>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-indigo-600 mb-2">2.8</div>
+            <div className="text-4xl font-bold text-indigo-600 mb-2">
+              {(() => {
+                const totalOffers = stats.totalOffers ?? 0;
+                const totalListings = (stats.yuk ?? 0) + (stats.nakliyeTalebi ?? 0) + (stats.nakliyeHizmeti ?? 0);
+                if (totalListings === 0) return '0';
+                return (totalOffers / totalListings).toFixed(2);
+              })()}
+            </div>
             <p className="text-gray-600">teklif / ilan</p>
           </div>
         </div>

@@ -16,6 +16,8 @@ import {
   X
 } from 'lucide-react';
 import { useDashboard, type ActiveSection } from '../context/DashboardContext';
+import { useAuth } from '../context/SupabaseAuthContext';
+import { useUnreadMessagesCount } from '../hooks/useUnreadMessagesCount';
 import clsx from 'clsx';
 
 interface SidebarProps {
@@ -26,6 +28,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { activeSection, setActiveSection } = useDashboard();
   const [newListingOpen, setNewListingOpen] = React.useState(false);
+  const { user } = useAuth();
+  const { count: unreadCount } = useUnreadMessagesCount(user?.id || null);
 
   const menuItems = [
     {
@@ -76,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       id: 'messages',
       label: 'Mesajlar',
       icon: MessageCircle,
-      badge: 2,
+      badge: unreadCount > 0 ? unreadCount : undefined,
       active: activeSection === 'messages'
     },
     {
