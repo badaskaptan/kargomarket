@@ -1,3 +1,15 @@
+## 2025-08-01 Homepage Video & Category Label Improvements
+
+
+### Yapılan İşler
+
+- Homepage istatistikler bölümü eklendi (toplam kullanıcı, ilan, teklif, tamamlanmış işlem, ilan türleri, taşıma modları, popüler yük kategorileri).
+- "KargoMarketing Nasıl Çalışır?" video alanı, yeni büyük ve responsive bir iframe ile değiştirildi. Artık video 16:9 oranında, geniş ve modern bir şekilde gösteriliyor.
+- Video iframe kodu: https://video.pictory.ai/embed/1754006147934/20250801000551334Duz7SHyAmbI3hmq
+- En Popüler Yük Kategorileri kutusunda, kategori isimleri artık Türkçe ve kullanıcı dostu şekilde gösteriliyor (translateLoadType fonksiyonu ile).
+- Tüm değişiklikler HomePage.tsx dosyasında yapıldı.
+
+---
 # Last updated: 2025-07-31
 
 ## [2025-07-31] Reklam Paneli ve Navigation Temizliği

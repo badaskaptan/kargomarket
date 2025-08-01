@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useGlobalStats } from '../../hooks/useGlobalStats';
 import LoadListingDetailModal from '../modals/listings/detail/LoadListingDetailModal';
 import ShipmentRequestDetailModal from '../modals/listings/detail/ShipmentRequestDetailModal';
 import TransportServiceDetailModal from '../modals/listings/detail/TransportServiceDetailModal';
@@ -21,13 +22,14 @@ import {
   Zap,
   Shield,
   Globe,
-  TrendingUp,
-  DollarSign,
   Ship,
   Plane,
   Train,
   AlertCircle
 } from 'lucide-react';
+// ...other imports...
+import { fetchTopLoadCategories } from '../../services/statsService';
+import { translateLoadType } from '../../utils/translationUtils';
 import LiveMap from '../common/LiveMap';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
@@ -117,7 +119,16 @@ interface HomePageProps {
 // stats: array of { label: string, number: number, icon?: React.ElementType }
 
 const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) => {
+  // Teklif modalları için state
+  const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
+  const [showCreateServiceOfferModal, setShowCreateServiceOfferModal] = useState(false);
+  const [selectedOfferListing, setSelectedOfferListing] = useState<ExtendedListing | null>(null);
+  // Mesaj modalı için state
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageTarget, setMessageTarget] = useState<ExtendedListing | null>(null);
+
   const auth = useAuth();
+  const { stats, loading: statsLoading, error: statsError } = useGlobalStats();
   const navigate = useNavigate();
   const { isLoggedIn, login, register, googleLogin, user } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -136,15 +147,23 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
   // Canlı veri
   const { listings, refetch } = useListings();
 
+  // En popüler yük kategorileri için state
+  const [topCategories, setTopCategories] = useState<Array<{ load_type: string; count: number }>>([]);
+  const [topCategoriesLoading, setTopCategoriesLoading] = useState(false);
+  const [topCategoriesError, setTopCategoriesError] = useState<string | null>(null);
 
-  // Teklif Ver Modalı için state
-  const [showCreateOfferModal, setShowCreateOfferModal] = useState(false);
-  const [showCreateServiceOfferModal, setShowCreateServiceOfferModal] = useState(false);
-  const [selectedOfferListing, setSelectedOfferListing] = useState<ExtendedListing | null>(null);
-
-  // Mesaj modalı için state
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [messageTarget, setMessageTarget] = useState<ExtendedListing | null>(null);
+  useEffect(() => {
+    setTopCategoriesLoading(true);
+    fetchTopLoadCategories()
+      .then(data => {
+        setTopCategories(data);
+        setTopCategoriesError(null);
+      })
+      .catch(() => {
+        setTopCategoriesError('Yük kategorileri alınamadı');
+      })
+      .finally(() => setTopCategoriesLoading(false));
+  }, []);
 
   const features = [
     {
@@ -374,171 +393,148 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 <Package className="ml-2 group-hover:scale-125 transition-transform duration-300" size={20} />
               </button>
             </div>
-
-            {/* Logistics Stats - Modern, yatay ve alanı verimli kullanan kutular */}
-            <div className="max-w-7xl mx-auto mt-8 mb-8 px-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium mb-1">Toplam Kullanıcı</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">12.5K</p>
-                    <p className="text-gray-500 text-xs">Aktif üye sayısı</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                    <Users size={24} />
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium mb-1">Toplam İlan</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">8.9K</p>
-                    <p className="text-gray-500 text-xs">Yayında olan ilanlar</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white">
-                    <Package size={24} />
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium mb-1">Toplam Teklif</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">24.6K</p>
-                    <p className="text-gray-500 text-xs">Verilen teklif sayısı</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                    <TrendingUp size={24} />
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium mb-1">İşlem Hacmi</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">₺45.6M</p>
-                    <p className="text-gray-500 text-xs">Aylık toplam işlem</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                    <DollarSign size={24} />
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                  <div className="flex items-center mb-4">
-                    <AlertCircle className="text-indigo-500 mr-2" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">İlan Başına Ortalama Teklif</h3>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-indigo-600 mb-2">2.8</div>
-                    <p className="text-gray-600">teklif / ilan</p>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">İlan Türleri</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Yük İlanı</span>
-                      <span className="font-semibold text-blue-600">4.5K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Nakliye Talebi</span>
-                      <span className="font-semibold text-green-600">2.8K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Nakliye Hizmeti</span>
-                      <span className="font-semibold text-purple-600">1.5K</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Taşıma Modları</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center">
-                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                        <Truck className="text-blue-600" size={20} />
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900">6.2K</div>
-                      <div className="text-xs text-gray-600">Karayolu</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                        <Ship className="text-blue-600" size={20} />
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900">1.4K</div>
-                      <div className="text-xs text-gray-600">Denizyolu</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                        <Plane className="text-blue-600" size={20} />
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900">892</div>
-                      <div className="text-xs text-gray-600">Havayolu</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                        <Train className="text-blue-600" size={20} />
-                      </div>
-                      <div className="text-sm font-semibold text-gray-900">350</div>
-                      <div className="text-xs text-gray-600">Demiryolu</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                  <div className="flex items-center mb-6">
-                    <Package className="text-green-500 mr-2" size={20} />
-                    <h3 className="text-lg font-semibold text-gray-900">En Çok Taşınan Yük Türleri</h3>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">1. Gıda Ürünleri</span>
-                      <span className="text-blue-600 font-bold">2.1K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">2. İnşaat Malzemesi</span>
-                      <span className="text-green-600 font-bold">1.8K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">3. Tekstil</span>
-                      <span className="text-purple-600 font-bold">1.6K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">4. Elektronik</span>
-                      <span className="text-orange-600 font-bold">1.4K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">5. Otomotiv Yedek Parça</span>
-                      <span className="text-red-600 font-bold">1.2K</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">Taşıma Modları Dağılımı</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Karayolu Taşımacılığı</span>
-                      <span className="text-blue-600 font-bold">6.2K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Denizyolu Taşımacılığı</span>
-                      <span className="text-green-600 font-bold">1.4K</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Havayolu Taşımacılığı</span>
-                      <span className="text-purple-600 font-bold">892</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-700">Demiryolu Taşımacılığı</span>
-                      <span className="text-orange-600 font-bold">350</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center mt-6 text-gray-500 text-sm">
-                <p>Veriler gerçek zamanlı olarak güncellenmektedir • Son güncelleme: {new Date().toLocaleString('tr-TR')}</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
+
+      {/* Logistics Stats - Modern, yatay ve alanı verimli kullanan kutular */}
+      <div className="max-w-7xl mx-auto mt-8 mb-8 px-2">
+        {statsLoading ? (
+          <div className="text-center py-8">İstatistikler yükleniyor...</div>
+        ) : statsError ? (
+          <div className="text-center text-red-600 py-8">İstatistikler yüklenirken hata oluştu: {statsError.message}</div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-6">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Genel İstatistikler</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm text-gray-700">
+                <tbody>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Users size={18} className="text-blue-500" /> Toplam Kullanıcı</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.totalUsers ?? 'N/A'}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Package size={18} className="text-blue-600" /> Yük İlanı</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.yuk}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Truck size={18} className="text-green-600" /> Nakliye Talebi</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.nakliyeTalebi}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Ship size={18} className="text-purple-600" /> Nakliye Hizmeti</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.nakliyeHizmeti}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Package size={18} className="text-gray-600" /> Toplam İlan</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.yuk + stats.nakliyeTalebi + stats.nakliyeHizmeti}</td>
+                  </tr>
+                  <tr className="border-b">
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Users size={18} className="text-indigo-500" /> Toplam Teklif</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.totalOffers ?? 'N/A'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Users size={18} className="text-orange-500" /> Tamamlanmış İşlem</td>
+                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.completedTransactions ?? 'N/A'}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+        {/* Kutular grid satırı burada bitiyor */}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        {/* İlan Başına Ortalama Teklif */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+          <div className="flex items-center mb-4">
+            <AlertCircle className="text-indigo-500 mr-2" size={20} />
+            <h3 className="text-lg font-semibold text-gray-900">İlan Başına Ortalama Teklif</h3>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-bold text-indigo-600 mb-2">2.8</div>
+            <p className="text-gray-600">teklif / ilan</p>
+          </div>
+        </div>
+        {/* İlan Türleri */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">İlan Türleri</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Yük İlanı</span>
+              <span className="font-semibold text-blue-600">{stats.yuk}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Nakliye Talebi</span>
+              <span className="font-semibold text-green-600">{stats.nakliyeTalebi}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Nakliye Hizmeti</span>
+              <span className="font-semibold text-purple-600">{stats.nakliyeHizmeti}</span>
+            </div>
+          </div>
+        </div>
+        {/* Taşıma Modları */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Taşıma Modları</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center">
+              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                <Truck className="text-blue-600" size={20} />
+              </div>
+              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.road}</div>
+              <div className="text-xs text-gray-600">Karayolu</div>
+            </div>
+            <div className="text-center">
+              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                <Ship className="text-blue-600" size={20} />
+              </div>
+              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.sea}</div>
+              <div className="text-xs text-gray-600">Denizyolu</div>
+            </div>
+            <div className="text-center">
+              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                <Plane className="text-blue-600" size={20} />
+              </div>
+              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.air}</div>
+              <div className="text-xs text-gray-600">Havayolu</div>
+            </div>
+            <div className="text-center">
+              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
+                <Train className="text-blue-600" size={20} />
+              </div>
+              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.rail}</div>
+              <div className="text-xs text-gray-600">Demiryolu</div>
+            </div>
+          </div>
+        </div>
+        {/* En Popüler Yük Kategorileri */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+          <div className="flex items-center mb-6">
+            <Package className="text-green-500 mr-2" size={20} />
+            <h3 className="text-lg font-semibold text-gray-900">En Popüler Yük Kategorileri</h3>
+          </div>
+          <div className="space-y-4">
+            {topCategoriesLoading ? (
+              <div className="text-center text-gray-500">Yükleniyor...</div>
+            ) : topCategoriesError ? (
+              <div className="text-center text-red-500">{topCategoriesError}</div>
+            ) : topCategories.length === 0 ? (
+              <div className="text-center text-gray-500">Veri yok</div>
+            ) : (
+              topCategories.map((cat, idx) => (
+                <div key={cat.load_type} className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">{idx + 1}. {translateLoadType(cat.load_type)}</span>
+                  <span className="font-bold text-blue-600">{cat.count}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="text-center mt-6 text-gray-500 text-sm">
+        <p>Veriler gerçek zamanlı olarak güncellenmektedir • Son güncelleme: {new Date().toLocaleString('tr-TR')}</p>
+      </div>
 
       {/* Video Section */}
       <section className="py-16 bg-white">
@@ -554,16 +550,13 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
           <div className="max-w-5xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               {/* Responsive Video Embed */}
-              <div className="video-embed-responsive">
+              <div className="w-full aspect-video max-w-4xl mx-auto relative">
                 <iframe
-                  id="vp1uPtKt"
-                  title="Video Player"
-                  src="https://s3.amazonaws.com/embed.animoto.com/play.html?w=swf/production/vp1&e=1750969143&f=uPtKt76FIJhLEgxM8d1KFA&d=0&m=p&r=360p+720p&volume=100&start_res=720p&i=m&asset_domain=s3-p.animoto.com&animoto_domain=animoto.com&options="
+                  src="https://video.pictory.ai/embed/1754006147934/20250801000551334Duz7SHyAmbI3hmq"
+                  title="KargoMarket: Alım, Satım, Taşımayı Bir Arada Sunuyor!"
+                  className="absolute top-0 left-0 w-full h-full rounded-xl border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
-                  width="432"
-                  height="243"
-                  frameBorder="0"
-                  aria-label="Video Player"
                 ></iframe>
               </div>
               <div className="p-8 bg-gradient-to-r from-gray-50 to-white">
@@ -842,7 +835,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
             <MessageModal
               isOpen={showMessageModal}
               onClose={() => setShowMessageModal(false)}
-              target={messageTarget}
+              target={messageTarget!}
               currentUserId={user?.id || null}
             />
           )}
@@ -880,8 +873,6 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
 
       {/* Subscribe Section kaldırıldı */}
 
-      {/* ...existing code... */}
-
       {/* User Profile Card Modal */}
       {selectedMapUser && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -897,40 +888,40 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
             <div className="text-center mb-6">
               <div className="relative inline-block mb-4">
                 <img
-                  src={selectedMapUser.avatar}
-                  alt={selectedMapUser.name}
+                  src={selectedMapUser!.avatar}
+                  alt={selectedMapUser!.name}
                   className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                 />
-                <div className={`absolute -bottom-1 -right-1 w-6 h-6 ${getUserTypeColor(selectedMapUser.type)} rounded-full flex items-center justify-center border-2 border-white`}>
+                <div className={`absolute -bottom-1 -right-1 w-6 h-6 ${getUserTypeColor(selectedMapUser!.type)} rounded-full flex items-center justify-center border-2 border-white`}>
                   <span className="text-white text-xs font-bold">
-                    {selectedMapUser.type === 'buyer' ? 'A' : selectedMapUser.type === 'seller' ? 'S' : 'N'}
+                    {selectedMapUser!.type === 'buyer' ? 'A' : selectedMapUser!.type === 'seller' ? 'S' : 'N'}
                   </span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMapUser.name}</h3>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedMapUser.type === 'buyer' ? 'bg-blue-100 text-blue-800' :
-                selectedMapUser.type === 'seller' ? 'bg-green-100 text-green-800' :
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{selectedMapUser!.name}</h3>
+              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedMapUser!.type === 'buyer' ? 'bg-blue-100 text-blue-800' :
+                selectedMapUser!.type === 'seller' ? 'bg-green-100 text-green-800' :
                   'bg-orange-100 text-orange-800'
                 }`}>
-                {getUserTypeLabel(selectedMapUser.type)}
+                {getUserTypeLabel(selectedMapUser!.type)}
               </span>
             </div>
             <div className="mb-6">
               <img
-                src={selectedMapUser.productImage}
+                src={selectedMapUser!.productImage}
                 alt="Ürün"
                 className="w-full h-32 object-cover rounded-lg border border-gray-200"
               />
             </div>
             <div className="space-y-3 mb-6">
-              <h4 className="font-semibold text-gray-900">{selectedMapUser.title}</h4>
+              <h4 className="font-semibold text-gray-900">{selectedMapUser!.title}</h4>
               <div className="flex items-center text-gray-600">
                 <MapPin size={16} className="mr-2 text-primary-500" />
-                <span className="text-sm">{selectedMapUser.route}</span>
+                <span className="text-sm">{selectedMapUser!.route}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Son aktivite: {selectedMapUser.lastActive}</span>
-                <span className="text-lg font-bold text-primary-600">{selectedMapUser.price}</span>
+                <span className="text-sm text-gray-500">Son aktivite: {selectedMapUser!.lastActive}</span>
+                <span className="text-lg font-bold text-primary-600">{selectedMapUser!.price}</span>
               </div>
             </div>
             <div className="flex gap-3">
@@ -945,7 +936,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
             </div>
             <div className="mt-4">
               <button
-                onClick={() => openGoogleMaps(selectedMapUser)}
+                onClick={() => openGoogleMaps(selectedMapUser!)}
                 className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 transform hover:scale-105"
                 aria-label="Google Maps'te Gör"
                 title="Google Maps'te Gör"
@@ -961,32 +952,30 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
       {/* Listing Detail Modal (Önizleme) - ListingsPage ile birebir aynı yapı */}
       {selectedListing && selectedListing.listing_type === 'load_listing' && (
         <LoadListingDetailModal
-          listing={selectedListing}
+          listing={selectedListing!}
           isOpen={true}
           onClose={() => setSelectedListing(null)}
         />
       )}
       {selectedListing && selectedListing.listing_type === 'shipment_request' && (
         <ShipmentRequestDetailModal
-          listing={selectedListing}
+          listing={selectedListing!}
           isOpen={true}
           onClose={() => setSelectedListing(null)}
         />
       )}
       {selectedListing && selectedListing.listing_type === 'transport_service' && (
         <TransportServiceDetailModal
-          service={convertToTransportService(selectedListing)}
+          service={convertToTransportService(selectedListing!)}
           isOpen={true}
           onClose={() => setSelectedListing(null)}
         />
       )}
 
       {/* Teklif Ver Modalı */}
-
-      {/* CreateOfferModal - Yük İlanı ve Nakliye Talebi için */}
       {selectedOfferListing && showCreateOfferModal && (
         <CreateOfferModal
-          listing={selectedOfferListing}
+          listing={selectedOfferListing!}
           isOpen={showCreateOfferModal}
           onClose={() => { setShowCreateOfferModal(false); setSelectedOfferListing(null); }}
           onSubmit={async (offerData) => {
@@ -1005,7 +994,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
       {/* EnhancedServiceOfferModal - Nakliye Hizmeti için */}
       {selectedOfferListing && showCreateServiceOfferModal && (
         <EnhancedServiceOfferModal
-          transportService={selectedOfferListing}
+          transportService={selectedOfferListing!}
           isOpen={showCreateServiceOfferModal}
           onClose={() => { setShowCreateServiceOfferModal(false); setSelectedOfferListing(null); }}
           onSuccess={() => { setShowCreateServiceOfferModal(false); setSelectedOfferListing(null); }}
