@@ -98,7 +98,7 @@ export interface ReviewWithProfile {
   }
 }
 
-class ReviewService {
+export class ReviewService {
 
   // Herkese açık tüm yorumları getir (Vitrin sayfası için)
   async getAllPublicReviews(): Promise<{ data: ReviewWithProfile[] | null; error: unknown }> {
@@ -390,6 +390,193 @@ class ReviewService {
     } catch (error) {
       console.error('Error searching users:', error)
       return { data: null, error }
+    }
+  }
+
+  // Yoruma cevap ekleme - sadece reviewee (yorum yapılan kişi) cevap verebilir
+  static async addResponseToReview(reviewId: string, responseText: string): Promise<{ data: Review | null; error: string | null }> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return { data: null, error: 'Giriş yapmanız gerekiyor.' }
+      }
+
+      // Önce review'ı getir ve bu kullanıcının cevap verebilecek kişi olduğunu kontrol et
+      const { data: reviewData, error: reviewError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('id', reviewId)
+        .single()
+
+      if (reviewError || !reviewData) {
+        return { data: null, error: 'Yorum bulunamadı.' }
+      }
+
+      // Sadece yorum yapılan kişi (reviewee) cevap verebilir
+      if (reviewData.reviewee_id !== user.id) {
+        console.log('Permission check failed:', {
+          reviewee_id: reviewData.reviewee_id,
+          user_id: user.id,
+          review_id: reviewId
+        })
+        return { data: null, error: 'Bu yoruma sadece yorum yapılan kişi cevap verebilir.' }
+      }
+
+      console.log('Permission check passed:', {
+        reviewee_id: reviewData.reviewee_id,  
+        user_id: user.id,
+        review_id: reviewId,
+        can_respond: reviewData.reviewee_id === user.id
+      })
+
+      console.log('About to update review with data:', {
+        response: responseText,
+        response_date: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        reviewId
+      });
+
+      // Response'ı güncelle
+      const { data, error } = await supabase
+        .from('reviews')
+        .update({
+          response: responseText,
+          response_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', reviewId)
+        .select()
+
+      console.log('Update response result:', { data, error, reviewId });
+
+      if (error) {
+        console.error('Supabase error adding response:', error)
+        if (error.message) {
+          return { data: null, error: `Veritabanı hatası: ${error.message}` }
+        }
+        return { data: null, error: 'Cevap eklenirken veritabanı hatası oluştu.' }
+      }
+
+      // Single row yerine array'den ilk elemanı al
+      const updatedReview = Array.isArray(data) ? data[0] : data
+      console.log('Updated review data:', updatedReview);
+      
+      if (!updatedReview) {
+        console.error('No data returned from update operation');
+        return { data: null, error: 'Güncelleme başarısız - veri döndürülmedi.' }
+      }
+
+      return { data: updatedReview as Review, error: null }
+    } catch (error) {
+      console.error('Error in addResponseToReview:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+      return { data: null, error: `Beklenmeyen hata: ${errorMessage}` }
+    }
+  }
+
+  // Response'ı güncelleme
+  static async updateResponse(reviewId: string, responseText: string): Promise<{ data: Review | null; error: string | null }> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return { data: null, error: 'Giriş yapmanız gerekiyor.' }
+      }
+
+      // Önce review'ı getir ve bu kullanıcının cevap verebilecek kişi olduğunu kontrol et
+      const { data: reviewData, error: reviewError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('id', reviewId)
+        .single()
+
+      if (reviewError || !reviewData) {
+        return { data: null, error: 'Yorum bulunamadı.' }
+      }
+
+      // Sadece yorum yapılan kişi (reviewee) cevap verebilir
+      if (reviewData.reviewee_id !== user.id) {
+        return { data: null, error: 'Bu yoruma sadece yorum yapılan kişi cevap verebilir.' }
+      }
+
+      // Response'ı güncelle
+      const { data, error } = await supabase
+        .from('reviews')
+        .update({
+          response: responseText,
+          response_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', reviewId)
+        .select()
+
+      if (error) {
+        console.error('Error updating response:', error)
+        return { data: null, error: 'Cevap güncellenirken bir hata oluştu.' }
+      }
+
+      // Single row yerine array'den ilk elemanı al
+      const updatedReview = Array.isArray(data) ? data[0] : data
+      if (!updatedReview) {
+        return { data: null, error: 'Güncelleme başarısız - veri döndürülmedi.' }
+      }
+
+      return { data: updatedReview as Review, error: null }
+    } catch (error) {
+      console.error('Error in updateResponse:', error)
+      return { data: null, error: 'Beklenmeyen bir hata oluştu.' }
+    }
+  }
+
+  // Response'ı silme
+  static async deleteResponse(reviewId: string): Promise<{ data: Review | null; error: string | null }> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return { data: null, error: 'Giriş yapmanız gerekiyor.' }
+      }
+
+      // Önce review'ı getir ve bu kullanıcının cevap silebilecek kişi olduğunu kontrol et
+      const { data: reviewData, error: reviewError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('id', reviewId)
+        .single()
+
+      if (reviewError || !reviewData) {
+        return { data: null, error: 'Yorum bulunamadı.' }
+      }
+
+      // Sadece yorum yapılan kişi (reviewee) cevap silebilir
+      if (reviewData.reviewee_id !== user.id) {
+        return { data: null, error: 'Bu cevabı sadece sahibi silebilir.' }
+      }
+
+      // Response'ı sil
+      const { data, error } = await supabase
+        .from('reviews')
+        .update({
+          response: null,
+          response_date: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', reviewId)
+        .select()
+
+      if (error) {
+        console.error('Error deleting response:', error)
+        return { data: null, error: 'Cevap silinirken bir hata oluştu.' }
+      }
+
+      // Single row yerine array'den ilk elemanı al
+      const updatedReview = Array.isArray(data) ? data[0] : data
+      if (!updatedReview) {
+        return { data: null, error: 'Silme başarısız - veri döndürülmedi.' }
+      }
+
+      return { data: updatedReview as Review, error: null }
+    } catch (error) {
+      console.error('Error in deleteResponse:', error)
+      return { data: null, error: 'Beklenmeyen bir hata oluştu.' }
     }
   }
 }

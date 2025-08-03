@@ -89,9 +89,9 @@ const AdsPage = () => {
   }, []);
 
   const categories = useMemo(() => {
-    const transportCount = ads.filter(ad => ad.placement === 'transport').length;
-    const insuranceCount = ads.filter(ad => ad.placement === 'insurance').length;
-    const logisticsCount = ads.filter(ad => ad.placement === 'logistics').length;
+    const transportCount = ads.filter(ad => ad.category === 'transport').length;
+    const insuranceCount = ads.filter(ad => ad.category === 'insurance').length;
+    const logisticsCount = ads.filter(ad => ad.category === 'logistics').length;
 
     return [
       { id: 'all', label: 'Tümü', count: ads.length },
@@ -184,7 +184,7 @@ const AdsPage = () => {
         ad.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ad.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory = categoryFilter === 'all' || ad.placement === categoryFilter;
+      const matchesCategory = categoryFilter === 'all' || ad.category === categoryFilter;
 
       return matchesSearch && matchesCategory;
     });

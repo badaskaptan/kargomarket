@@ -8,15 +8,22 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
-  Loader
+  Loader,
+  Reply,
+  Edit3,
+  Save,
+  X,
+  Trash2
 } from 'lucide-react';
-import { reviewService, type ReviewWithProfile } from '../../services/reviewService';
+import { reviewService, ReviewService, type ReviewWithProfile } from '../../services/reviewService';
+import { useAuth } from '../../context/SupabaseAuthContext';
 
 const ReviewsPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const revieweeIdFilter = searchParams.get('revieweeId');
-  console.log('ReviewsPage: Debug 1 - revieweeIdFilter from URL:', revieweeIdFilter); 
+  console.log('ReviewsPage: Debug 1 - revieweeIdFilter from URL:', revieweeIdFilter);
 
+  const { user } = useAuth();
   const [allReviews, setAllReviews] = useState<ReviewWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +31,38 @@ const ReviewsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [expandedCompanyId, setExpandedCompanyId] = useState<string | null>(null);
+
+  // Response yönetimi için state'ler
+  const [responseStates, setResponseStates] = useState<{
+    [reviewId: string]: {
+      isEditing: boolean;
+      text: string;
+      isSubmitting: boolean;
+    }
+  }>({});
+
+  const initResponseState = (reviewId: string, existingResponse?: string) => {
+    if (!responseStates[reviewId]) {
+      setResponseStates(prev => ({
+        ...prev,
+        [reviewId]: {
+          isEditing: false,
+          text: existingResponse || '',
+          isSubmitting: false
+        }
+      }));
+    }
+  };
+
+  const updateResponseState = (reviewId: string, updates: Partial<typeof responseStates[string]>) => {
+    setResponseStates(prev => ({
+      ...prev,
+      [reviewId]: {
+        ...prev[reviewId],
+        ...updates
+      }
+    }));
+  };
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -35,7 +74,7 @@ const ReviewsPage: React.FC = () => {
           throw new Error(`Yorumlar yüklenirken bir hata oluştu: ${fetchError}`);
         }
         setAllReviews(data || []);
-        console.log('ReviewsPage: Debug 2 - Fetched all public reviews (raw data):', data); 
+        console.log('ReviewsPage: Debug 2 - Fetched all public reviews (raw data):', data);
       } catch (err: any) {
         setError(err.message || 'Bilinmeyen bir hata oluştu.');
         console.error('ReviewsPage: Debug - Error fetching reviews:', err);
@@ -46,21 +85,116 @@ const ReviewsPage: React.FC = () => {
 
     fetchReviews();
   }, []);
-  
+
+  // Response handling functions
+  const handleAddResponse = async (reviewId: string) => {
+    const responseText = responseStates[reviewId]?.text?.trim();
+    if (!responseText) return;
+
+    updateResponseState(reviewId, { isSubmitting: true });
+
+    try {
+      const { error } = await ReviewService.addResponseToReview(reviewId, responseText);
+
+      if (error) {
+        console.error('Response add error:', error);
+        alert(`Hata: ${error}`);
+        return;
+      }
+
+      // Update the review in the list
+      setAllReviews(prev => prev.map(review =>
+        review.id === reviewId
+          ? { ...review, response: responseText, response_date: new Date().toISOString() }
+          : review
+      ));
+
+      updateResponseState(reviewId, { isEditing: false, isSubmitting: false });
+    } catch (error) {
+      console.error('Error adding response:', error);
+      alert('Cevap eklenirken beklenmeyen bir hata oluştu. Konsolu kontrol edin.');
+    } finally {
+      updateResponseState(reviewId, { isSubmitting: false });
+    }
+  };
+
+  const handleUpdateResponse = async (reviewId: string) => {
+    const responseText = responseStates[reviewId]?.text?.trim();
+    if (!responseText) return;
+
+    updateResponseState(reviewId, { isSubmitting: true });
+
+    try {
+      const { error } = await ReviewService.updateResponse(reviewId, responseText);
+
+      if (error) {
+        alert(error);
+        return;
+      }
+
+      // Update the review in the list
+      setAllReviews(prev => prev.map(review =>
+        review.id === reviewId
+          ? { ...review, response: responseText, response_date: new Date().toISOString() }
+          : review
+      ));
+
+      updateResponseState(reviewId, { isEditing: false, isSubmitting: false });
+    } catch (error) {
+      console.error('Error updating response:', error);
+      alert('Cevap güncellenirken bir hata oluştu.');
+    } finally {
+      updateResponseState(reviewId, { isSubmitting: false });
+    }
+  };
+
+  const handleDeleteResponse = async (reviewId: string) => {
+    if (!confirm('Bu cevabı silmek istediğinizden emin misiniz?')) return;
+
+    updateResponseState(reviewId, { isSubmitting: true });
+
+    try {
+      const { error } = await ReviewService.deleteResponse(reviewId);
+
+      if (error) {
+        alert(error);
+        return;
+      }
+
+      // Update the review in the list
+      setAllReviews(prev => prev.map(review =>
+        review.id === reviewId
+          ? { ...review, response: null, response_date: null }
+          : review
+      ));
+
+      updateResponseState(reviewId, { text: '', isEditing: false, isSubmitting: false });
+    } catch (error) {
+      console.error('Error deleting response:', error);
+      alert('Cevap silinirken bir hata oluştu.');
+    } finally {
+      updateResponseState(reviewId, { isSubmitting: false });
+    }
+  };
+
+  const canResponseToReview = (review: ReviewWithProfile): boolean => {
+    return user?.id === review.reviewee_id;
+  };
+
   const companiesData = useMemo(() => {
-    console.log('ReviewsPage: Debug 3 - Recalculating companiesData. allReviews length:', allReviews.length); 
+    console.log('ReviewsPage: Debug 3 - Recalculating companiesData. allReviews length:', allReviews.length);
     if (!allReviews || allReviews.length === 0) {
-        console.log('ReviewsPage: Debug 4 - allReviews is empty or null, returning empty companiesData.'); 
-        return [];
+      console.log('ReviewsPage: Debug 4 - allReviews is empty or null, returning empty companiesData.');
+      return [];
     }
 
     const groupedReviews = allReviews.reduce((acc, review) => {
       const revieweeId = review.reviewee_id;
-      
+
       // Add a check for valid reviewee_profile for grouping
       if (!review.reviewee_profile || (!review.reviewee_profile.company_name && !review.reviewee_profile.full_name)) {
-          console.warn('ReviewsPage: Debug 5 - Skipping review due to missing or invalid reviewee_profile:', review); 
-          return acc; 
+        console.warn('ReviewsPage: Debug 5 - Skipping review due to missing or invalid reviewee_profile:', review);
+        return acc;
       }
 
       if (!acc[revieweeId]) {
@@ -95,7 +229,7 @@ const ReviewsPage: React.FC = () => {
       };
     });
 
-    console.log('ReviewsPage: Debug 6 - Companies data before revieweeId filter:', companiesArray); 
+    console.log('ReviewsPage: Debug 6 - Companies data before revieweeId filter:', companiesArray);
 
     // Filter by revieweeId from URL if it exists
     if (revieweeIdFilter) {
@@ -103,7 +237,7 @@ const ReviewsPage: React.FC = () => {
         console.log(`ReviewsPage: Debug 7 - Comparing filter: '${revieweeIdFilter}' with company ID: '${company.id}'`); // Critical Debug
         return company.id === revieweeIdFilter;
       });
-      console.log('ReviewsPage: Debug 8 - Companies data after revieweeId filter:', companiesArray); 
+      console.log('ReviewsPage: Debug 8 - Companies data after revieweeId filter:', companiesArray);
     }
 
     return companiesArray;
@@ -229,9 +363,9 @@ const ReviewsPage: React.FC = () => {
             Hata: {error}
           </div>
         ) : sortedCompanies.length === 0 ? (
-           <div className="text-center text-gray-600 text-xl h-64 flex items-center justify-center">
-             {revieweeIdFilter ? 'Bu firmaya ait hiç yorum bulunamadı.' : 'Henüz gösterilecek herkese açık yorum bulunmuyor.'}
-           </div>
+          <div className="text-center text-gray-600 text-xl h-64 flex items-center justify-center">
+            {revieweeIdFilter ? 'Bu firmaya ait hiç yorum bulunamadı.' : 'Henüz gösterilecek herkese açık yorum bulunmuyor.'}
+          </div>
         ) : (
           <div className="space-y-8">
             {sortedCompanies.map((company) => (
@@ -263,15 +397,15 @@ const ReviewsPage: React.FC = () => {
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-lg font-semibold text-gray-900">Yorumlar ({company.reviews.length})</h4>
-                     {company.reviews.length > 2 && !revieweeIdFilter && (
-                       <button
-                         onClick={() => setExpandedCompanyId(expandedCompanyId === company.id ? null : company.id)}
-                         className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
-                       >
-                         {expandedCompanyId === company.id ? 'Daha Az Göster' : `Tümünü Gör (${company.reviews.length})`}
-                         {expandedCompanyId === company.id ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
-                       </button>
-                     )}
+                    {company.reviews.length > 2 && !revieweeIdFilter && (
+                      <button
+                        onClick={() => setExpandedCompanyId(expandedCompanyId === company.id ? null : company.id)}
+                        className="text-primary-600 hover:text-primary-700 font-medium flex items-center"
+                      >
+                        {expandedCompanyId === company.id ? 'Daha Az Göster' : `Tümünü Gör (${company.reviews.length})`}
+                        {expandedCompanyId === company.id ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-4">
@@ -294,6 +428,118 @@ const ReviewsPage: React.FC = () => {
                           <span className="text-sm text-gray-500">{new Date(review.created_at).toLocaleDateString()}</span>
                         </div>
                         <p className="text-gray-700 mb-3">{review.comment}</p>
+
+                        {/* Response Section */}
+                        {(review.response || canResponseToReview(review)) && (
+                          <div className="mt-4 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-200">
+                            {review.response && !responseStates[review.id]?.isEditing ? (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center text-blue-700">
+                                    <Reply size={16} className="mr-2" />
+                                    <span className="font-medium">İşletme Yanıtı</span>
+                                    {review.response_date && (
+                                      <span className="ml-2 text-sm text-blue-600">
+                                        {new Date(review.response_date).toLocaleDateString('tr-TR')}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {canResponseToReview(review) && (
+                                    <div className="flex items-center space-x-2">
+                                      <button
+                                        onClick={() => {
+                                          initResponseState(review.id, review.response || '');
+                                          updateResponseState(review.id, { isEditing: true });
+                                        }}
+                                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                                        title="Yanıtı düzenle"
+                                      >
+                                        <Edit3 size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteResponse(review.id)}
+                                        className="text-red-600 hover:text-red-800 transition-colors"
+                                        disabled={responseStates[review.id]?.isSubmitting}
+                                        title="Yanıtı sil"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-gray-700">{review.response}</p>
+                              </div>
+                            ) : canResponseToReview(review) && responseStates[review.id]?.isEditing ? (
+                              <div>
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center text-blue-700">
+                                    <Reply size={16} className="mr-2" />
+                                    <span className="font-medium">
+                                      {review.response ? 'Yanıtı Düzenle' : 'Yanıt Ekle'}
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => updateResponseState(review.id, { isEditing: false })}
+                                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                                    title="Düzenlemeyi iptal et"
+                                  >
+                                    <X size={16} />
+                                  </button>
+                                </div>
+                                <textarea
+                                  value={responseStates[review.id]?.text || ''}
+                                  onChange={(e) => updateResponseState(review.id, { text: e.target.value })}
+                                  placeholder="Müşterinizin yorumuna yanıt verin..."
+                                  className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  rows={4}
+                                  disabled={responseStates[review.id]?.isSubmitting}
+                                />
+                                <div className="flex justify-end space-x-2 mt-3">
+                                  <button
+                                    onClick={() => updateResponseState(review.id, { isEditing: false })}
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                                    disabled={responseStates[review.id]?.isSubmitting}
+                                  >
+                                    İptal
+                                  </button>
+                                  <button
+                                    onClick={() => review.response ? handleUpdateResponse(review.id) : handleAddResponse(review.id)}
+                                    disabled={
+                                      !responseStates[review.id]?.text?.trim() ||
+                                      responseStates[review.id]?.isSubmitting
+                                    }
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                  >
+                                    {responseStates[review.id]?.isSubmitting ? (
+                                      <>
+                                        <Loader size={16} className="animate-spin mr-2" />
+                                        Kaydediliyor...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Save size={16} className="mr-2" />
+                                        {review.response ? 'Güncelle' : 'Yanıtla'}
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : canResponseToReview(review) && !review.response && (
+                              <div>
+                                <button
+                                  onClick={() => {
+                                    initResponseState(review.id, '');
+                                    updateResponseState(review.id, { isEditing: true });
+                                  }}
+                                  className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                  <Reply size={16} className="mr-2" />
+                                  Bu yoruma yanıt ver
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

@@ -12,11 +12,13 @@ import {
   Save,
   X,
   AlertCircle,
-  Loader2
+  Loader2,
+  Reply,
+  Edit3
 } from 'lucide-react';
 import { useReviews } from '../../hooks/useReviews';
 import { useAuth } from '../../context/SupabaseAuthContext';
-import { reviewService } from '../../services/reviewService';
+import { reviewService, ReviewService } from '../../services/reviewService';
 import type { ReviewWithProfile, ReviewInsert, ReviewUpdate } from '../../services/reviewService';
 
 const MyReviewsSection: React.FC = () => {
@@ -44,6 +46,117 @@ const MyReviewsSection: React.FC = () => {
   const [newReviewModalOpen, setNewReviewModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [reviewToDelete, setReviewToDelete] = useState<ReviewWithProfile | null>(null);
+
+  // Response state management
+  interface ResponseState {
+    text: string;
+    isEditing: boolean;
+    isSubmitting: boolean;
+  }
+  const [responseStates, setResponseStates] = useState<Record<string, ResponseState>>({});
+
+  // Response state helpers
+  const initResponseState = (reviewId: string, initialText: string = '') => {
+    setResponseStates(prev => ({
+      ...prev,
+      [reviewId]: { text: initialText, isEditing: false, isSubmitting: false }
+    }));
+  };
+
+  const updateResponseState = (reviewId: string, updates: Partial<ResponseState>) => {
+    setResponseStates(prev => ({
+      ...prev,
+      [reviewId]: { ...prev[reviewId], ...updates }
+    }));
+  };
+
+  // Response handler functions
+  const handleAddResponse = async (reviewId: string) => {
+    const responseText = responseStates[reviewId]?.text?.trim();
+    if (!responseText) return;
+
+    updateResponseState(reviewId, { isSubmitting: true });
+
+    try {
+      const { error } = await ReviewService.addResponseToReview(reviewId, responseText);
+      
+      if (error) {
+        alert(`Hata: ${error}`);
+        return;
+      }
+
+      // receivedReviews state'ini güncelle
+      // useReviews hook'undan güncelleme fonksiyonu gerekebilir
+      alert('Yanıt başarıyla eklendi!');
+      updateResponseState(reviewId, { isEditing: false, isSubmitting: false });
+      window.location.reload(); // Geçici çözüm - ideally useReviews hook'u güncellenecek
+    } catch (error) {
+      console.error('Error adding response:', error);
+      alert('Yanıt eklenirken beklenmeyen hata oluştu.');
+    } finally {
+      updateResponseState(reviewId, { isSubmitting: false });
+    }
+  };
+
+  const handleUpdateResponse = async (reviewId: string) => {
+    const responseText = responseStates[reviewId]?.text?.trim();
+    if (!responseText) return;
+
+    updateResponseState(reviewId, { isSubmitting: true });
+
+    try {
+      const { error } = await ReviewService.updateResponse(reviewId, responseText);
+      
+      if (error) {
+        alert(`Hata: ${error}`);
+        return;
+      }
+
+      alert('Yanıt başarıyla güncellendi!');
+      updateResponseState(reviewId, { isEditing: false, isSubmitting: false });
+      window.location.reload(); // Geçici çözüm
+    } catch (error) {
+      console.error('Error updating response:', error);
+      alert('Yanıt güncellenirken beklenmeyen hata oluştu.');
+    } finally {
+      updateResponseState(reviewId, { isSubmitting: false });
+    }
+  };
+
+  const handleDeleteResponse = async (reviewId: string) => {
+    if (!confirm('Bu yanıtı silmek istediğinizden emin misiniz?')) return;
+
+    updateResponseState(reviewId, { isSubmitting: true });
+
+    try {
+      const { error } = await ReviewService.deleteResponse(reviewId);
+      
+      if (error) {
+        alert(`Hata: ${error}`);
+        return;
+      }
+
+      alert('Yanıt başarıyla silindi!');
+      updateResponseState(reviewId, { text: '', isEditing: false, isSubmitting: false });
+      window.location.reload(); // Geçici çözüm
+    } catch (error) {
+      console.error('Error deleting response:', error);
+      alert('Yanıt silinirken beklenmeyen hata oluştu.');
+    } finally {
+      updateResponseState(reviewId, { isSubmitting: false });
+    }
+  };
+
+  // Initialize response states when reviews load
+  useEffect(() => {
+    if (receivedReviews) {
+      receivedReviews.forEach(review => {
+        if (!responseStates[review.id]) {
+          initResponseState(review.id, review.response || '');
+        }
+      });
+    }
+  }, [receivedReviews]);
 
   // Form state'leri
   const [editFormData, setEditFormData] = useState({
@@ -564,6 +677,113 @@ const MyReviewsSection: React.FC = () => {
                       : 'Genel'}
                 </span>
               </div>
+
+              {/* Response Section - Sadece received tab'da görünür */}
+              {activeTab === 'received' && (
+                <div className="mt-4 border-t pt-4">
+                  {review.response && !responseStates[review.id]?.isEditing ? (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center text-blue-700">
+                          <Reply size={16} className="mr-2" />
+                          <span className="font-medium">Yanıtınız</span>
+                          {review.response_date && (
+                            <span className="ml-2 text-sm text-blue-600">
+                              {new Date(review.response_date).toLocaleDateString('tr-TR')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => updateResponseState(review.id, { isEditing: true })}
+                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            title="Yanıtı düzenle"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteResponse(review.id)}
+                            className="text-red-600 hover:text-red-800 transition-colors"
+                            disabled={responseStates[review.id]?.isSubmitting}
+                            title="Yanıtı sil"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-gray-700">{review.response}</p>
+                    </div>
+                  ) : responseStates[review.id]?.isEditing ? (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center text-blue-700">
+                          <Reply size={16} className="mr-2" />
+                          <span className="font-medium">
+                            {review.response ? 'Yanıtı Düzenle' : 'Yanıt Ekle'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => updateResponseState(review.id, { isEditing: false })}
+                          className="text-gray-500 hover:text-gray-700 transition-colors"
+                          title="Düzenlemeyi iptal et"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <textarea
+                        value={responseStates[review.id]?.text || ''}
+                        onChange={(e) => updateResponseState(review.id, { text: e.target.value })}
+                        placeholder="Müşterinizin yorumuna yanıt verin..."
+                        className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        rows={4}
+                        disabled={responseStates[review.id]?.isSubmitting}
+                      />
+                      <div className="flex justify-end space-x-2 mt-3">
+                        <button
+                          onClick={() => updateResponseState(review.id, { isEditing: false })}
+                          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                          disabled={responseStates[review.id]?.isSubmitting}
+                        >
+                          İptal
+                        </button>
+                        <button
+                          onClick={() => review.response ? handleUpdateResponse(review.id) : handleAddResponse(review.id)}
+                          disabled={
+                            !responseStates[review.id]?.text?.trim() || 
+                            responseStates[review.id]?.isSubmitting
+                          }
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        >
+                          {responseStates[review.id]?.isSubmitting ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin mr-2" />
+                              Kaydediliyor...
+                            </>
+                          ) : (
+                            <>
+                              <Save size={16} className="mr-2" />
+                              {review.response ? 'Güncelle' : 'Yanıtla'}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <button
+                        onClick={() => {
+                          initResponseState(review.id, '');
+                          updateResponseState(review.id, { isEditing: true });
+                        }}
+                        className="flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        <Reply size={16} className="mr-2" />
+                        Bu yoruma yanıt ver
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))
         ) : (

@@ -23,6 +23,7 @@ const MyAdsSection = () => {
     budget: '',
     duration: '',
     placement: '',
+    category: 'general', // Yeni kategori alanı
     description: '',
     mediaUrl: '',
     startDate: '',
@@ -70,6 +71,7 @@ const MyAdsSection = () => {
         video_url: editForm.type === 'video' ? (editForm.mediaUrl || undefined) : undefined,
         target_url: undefined,
         placement: editForm.placement,
+        category: editForm.category as 'transport' | 'insurance' | 'logistics' | 'general', // Kategori eklendi
         start_date: new Date(editForm.startDate).toISOString(),
         end_date: new Date(editForm.endDate).toISOString(),
         budget: budgetValue,
@@ -161,6 +163,7 @@ const MyAdsSection = () => {
         budget: ad.budget ? String(ad.budget) : '',
         duration: getRemainingDays(ad.end_date),
         placement: ad.placement || '',
+        category: ad.category || 'general', // Kategori eklendi
         description: ad.description || '',
         mediaUrl: ad.image_url || '',
         startDate: ad.start_date || '',
@@ -283,6 +286,7 @@ const MyAdsSection = () => {
       budget: '',
       duration: '',
       placement: 'homepage',
+      category: 'general', // Kategori eklendi
       description: '',
       mediaUrl: '',
       startDate: tomorrow.toISOString().split('T')[0],
@@ -762,6 +766,24 @@ const MyAdsSection = () => {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kategori
+                </label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Kategori"
+                  required
+                >
+                  <option value="general">Genel</option>
+                  <option value="transport">Kargo</option>
+                  <option value="insurance">Sigorta</option>
+                  <option value="logistics">Lojistik</option>
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Reklam Medyası
                 </label>
@@ -910,6 +932,24 @@ const MyAdsSection = () => {
                     <option value="listings">İlan Listesi</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kategori
+                </label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Kategori"
+                  required
+                >
+                  <option value="general">Genel</option>
+                  <option value="transport">Kargo</option>
+                  <option value="insurance">Sigorta</option>
+                  <option value="logistics">Lojistik</option>
+                </select>
               </div>
 
               <div>

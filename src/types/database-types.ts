@@ -1061,6 +1061,8 @@ export interface Database {
           title: string
           description: string | null
           ad_type: 'banner' | 'featured_listing' | 'sponsored_post' | 'premium_placement'
+          category: 'transport' | 'insurance' | 'logistics' | 'general' // Yeni kategori alanı
+          placement: string // Mevcut placement alanı korundu
           target_audience: Record<string, unknown>
           target_locations: string[]
           target_categories: string[]
@@ -1091,6 +1093,8 @@ export interface Database {
           title: string
           description?: string | null
           ad_type: 'banner' | 'featured_listing' | 'sponsored_post' | 'premium_placement'
+          category?: 'transport' | 'insurance' | 'logistics' | 'general' // Yeni kategori alanı
+          placement?: string // Mevcut placement alanı korundu
           target_audience?: Record<string, unknown>
           target_locations?: string[]
           target_categories?: string[]
@@ -1121,6 +1125,8 @@ export interface Database {
           title?: string
           description?: string | null
           ad_type?: 'banner' | 'featured_listing' | 'sponsored_post' | 'premium_placement'
+          category?: 'transport' | 'insurance' | 'logistics' | 'general' // Yeni kategori alanı
+          placement?: string // Mevcut placement alanı korundu
           target_audience?: Record<string, unknown>
           target_locations?: string[]
           target_categories?: string[]

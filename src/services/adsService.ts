@@ -16,6 +16,7 @@ export interface Ad {
   video_url?: string;
   target_url?: string;
   placement: string;
+  category: 'transport' | 'insurance' | 'logistics' | 'general'; // Yeni kategori alanı
   status: string;
   start_date: string;
   end_date: string;
@@ -53,6 +54,7 @@ export interface CreateAdData {
   video_url?: string;
   target_url?: string;
   placement: string;
+  category: 'transport' | 'insurance' | 'logistics' | 'general'; // Yeni kategori alanı
   start_date: string;
   end_date: string;
   budget: number;
