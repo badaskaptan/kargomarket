@@ -51,7 +51,8 @@ const CreateShipmentRequestSection: React.FC = () => {
     requestDeliveryDate: '',
     requestWeight: '',
     requestVolume: '',
-    requestSetPrice: ''
+    requestSetPrice: '',
+    userRole: 'buyer' // Yeni rol alanı - Alıcı (buyer) veya Satıcı (seller)
   });
 
   // Örnek yük ilanları listesi - Artık Supabase'den çekilecek
@@ -455,7 +456,7 @@ const CreateShipmentRequestSection: React.FC = () => {
         destination: formData.requestDestination,
         transport_mode: transportMode,
         vehicle_types: vehicleType ? [vehicleType] : null, // Convert single vehicle type to array
-        role_type: null, // Nakliye talebinde genellikle role_type yok
+        role_type: formData.userRole, // Kullanıcının seçtiği rol (buyer/seller)
         load_type: formData.requestLoadType || null,
         weight_value: weightValue,
         weight_unit: 'ton',
@@ -713,6 +714,30 @@ const CreateShipmentRequestSection: React.FC = () => {
                 className="w-full px-6 py-4 bg-gray-50 border border-gray-300 rounded-full text-gray-500 cursor-not-allowed shadow-sm"
                 readOnly
               />
+            </div>
+
+            {/* Kullanıcı Rolü */}
+            <div>
+              <label htmlFor="userRole" className="block text-sm font-medium text-gray-700 mb-2">
+                Rolünüz * (Lütfen Nakliye sorumlusu olduğunuz ilana uygun rol seçiniz)
+              </label>
+              <select
+                id="userRole"
+                name="userRole"
+                value={formData.userRole}
+                onChange={handleInputChange}
+                className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
+                required
+              >
+                <option value="buyer">Alıcı</option>
+                <option value="seller">Satıcı</option>
+              </select>
+              <p className="mt-2 text-sm text-gray-500">
+                {formData.userRole === 'buyer' 
+                  ? 'Alıcı olarak nakliye hizmeti arıyorsunuz.' 
+                  : 'Satıcı olarak nakliye hizmeti arıyorsunuz.'
+                }
+              </p>
             </div>
 
             {/* İlan Başlığı */}
