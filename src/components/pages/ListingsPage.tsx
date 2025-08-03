@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Clock, MapPin, Package, Eye, X, LogIn } from 'lucide-react';
+import { Search, Clock, MapPin, Package, Eye, X, LogIn, Truck } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
 import LoadListingDetailModal from '../modals/listings/detail/LoadListingDetailModal';
@@ -11,7 +11,7 @@ import { useListings } from '../../hooks/useListings';
 import { useMessaging } from '../../hooks/useMessaging.ts';
 import { OfferService } from '../../services/offerService';
 import type { ExtendedListing, TransportService, Database } from '../../types/database-types';
-import { translateLoadType } from '../../utils/translationUtils';
+import { translateLoadType, translateVehicleType } from '../../utils/translationUtils';
 import toast from 'react-hot-toast';
 
 const ListingsPage: React.FC = () => {
@@ -546,6 +546,13 @@ const ListingsPage: React.FC = () => {
                           <Package size={14} className="mr-2 text-primary-500" />
                           <span className="text-sm">{translateLoadType(displayData.loadType)} • {displayData.weight}</span>
                         </div>
+                        {/* Nakliye Talebi için İstenen Araç Tipleri */}
+                        {listing.listing_type === 'shipment_request' && listing.vehicle_types && listing.vehicle_types.length > 0 && (
+                          <div className="flex items-center text-gray-600">
+                            <Truck size={14} className="mr-2 text-primary-500" />
+                            <span className="text-sm">İstenen Araç: {listing.vehicle_types.map(type => translateVehicleType(type)).join(', ')}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* İlan Sahibi Bilgileri - Her zaman görünür */}

@@ -733,8 +733,8 @@ const CreateShipmentRequestSection: React.FC = () => {
                 <option value="seller">Satıcı</option>
               </select>
               <p className="mt-2 text-sm text-gray-500">
-                {formData.userRole === 'buyer' 
-                  ? 'Alıcı olarak nakliye hizmeti arıyorsunuz.' 
+                {formData.userRole === 'buyer'
+                  ? 'Alıcı olarak nakliye hizmeti arıyorsunuz.'
                   : 'Satıcı olarak nakliye hizmeti arıyorsunuz.'
                 }
               </p>

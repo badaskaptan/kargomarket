@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 // ...other imports...
 import { fetchTopLoadCategories } from '../../services/statsService';
-import { translateLoadType } from '../../utils/translationUtils';
+import { translateLoadType, translateVehicleType } from '../../utils/translationUtils';
 import LiveMap from '../common/LiveMap';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
@@ -752,6 +752,13 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                       <Package size={14} className="mr-2 text-primary-500" />
                       <span className="text-sm">{translateLoadType(listing.load_type || '')} • {listing.weight_value} {listing.weight_unit}</span>
                     </div>
+                    {/* Nakliye Talebi için İstenen Araç Tipleri */}
+                    {listing.listing_type === 'shipment_request' && listing.vehicle_types && listing.vehicle_types.length > 0 && (
+                      <div className="flex items-center text-gray-600">
+                        <Truck size={14} className="mr-2 text-primary-500" />
+                        <span className="text-sm">İstenen Araç: {listing.vehicle_types.map(type => translateVehicleType(type)).join(', ')}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Contact Info - Only for logged in users */}
