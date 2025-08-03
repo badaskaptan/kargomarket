@@ -79,17 +79,6 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
     );
   };
 
-  // Rating gösterimi
-  const renderRating = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-5 w-5 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-          }`}
-      />
-    ));
-  };
-
   // Transport mode ikonu
   const getTransportModeIcon = (mode: string) => {
     switch (mode) {
@@ -415,33 +404,34 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
             </section>
           )}
 
-          {/* Değerlendirme ve İstatistikler */}
-          <section className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl p-6 border border-yellow-200">
-            <h3 className="text-xl font-semibold text-yellow-900 mb-4 flex items-center">
-              <Star className="h-6 w-6 mr-3" />
-              Değerlendirme ve İstatistikler
+          {/* İlan Bilgileri */}
+          <section className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-6 border border-slate-200">
+            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center">
+              <Calendar className="h-6 w-6 mr-3" />
+              İlan Bilgileri
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-lg p-6 border border-yellow-100 text-center">
-                <div className="flex justify-center mb-3">
-                  {renderRating(Math.round(service.rating || 0))}
-                </div>
-                <div className="text-3xl font-bold text-yellow-600 mb-1">
-                  {service.rating ? service.rating.toFixed(1) : '0.0'}
-                </div>
-                <div className="text-sm text-gray-600">Ortalama Puan</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-slate-100">
+                <div className="text-sm font-medium text-slate-700 mb-1">Oluşturulma Tarihi</div>
+                <div className="text-gray-900">{formatDate(service.created_at)}</div>
               </div>
+              <div className="bg-white rounded-lg p-4 border border-slate-100">
+                <div className="text-sm font-medium text-slate-700 mb-1">Son Güncelleme</div>
+                <div className="text-gray-900">{formatDate(service.updated_at)}</div>
+              </div>
+              <div className="bg-white rounded-lg p-4 border border-slate-100">
+                <div className="text-sm font-medium text-slate-700 mb-1">Son Aktivite</div>
+                <div className="text-gray-900">{formatDate(service.last_activity_at)}</div>
+              </div>
+            </div>
 
-              <div className="bg-white rounded-lg p-6 border border-yellow-100 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-1">{service.rating_count || 0}</div>
-                <div className="text-sm text-gray-600">Değerlendirme Sayısı</div>
-              </div>
-
-              <div className="bg-white rounded-lg p-6 border border-yellow-100 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-1">{service.view_count || 0}</div>
-                <div className="text-sm text-gray-600">Görüntülenme</div>
-              </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {service.is_featured && (
+                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                  ⭐ Öne Çıkan Hizmet
+                </span>
+              )}
             </div>
           </section>
 
@@ -595,43 +585,6 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
               )}
             </section>
           )}
-
-          {/* Sistem Bilgileri */}
-          <section className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-6 border border-slate-200">
-            <h3 className="text-xl font-semibold text-slate-900 mb-4 flex items-center">
-              <Eye className="h-6 w-6 mr-3" />
-              Sistem Bilgileri
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-slate-100">
-                <div className="text-sm font-medium text-slate-700 mb-1">Oluşturulma</div>
-                <div className="text-gray-900">{formatDate(service.created_at)}</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-slate-100">
-                <div className="text-sm font-medium text-slate-700 mb-1">Son Güncelleme</div>
-                <div className="text-gray-900">{formatDate(service.updated_at)}</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-slate-100">
-                <div className="text-sm font-medium text-slate-700 mb-1">Son Aktivite</div>
-                <div className="text-gray-900">{formatDate(service.last_activity_at)}</div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {service.is_featured && (
-                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
-                  ⭐ Öne Çıkan Hizmet
-                </span>
-              )}
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                📊 {service.view_count || 0} Görüntülenme
-              </span>
-              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                ⭐ {service.rating_count || 0} Değerlendirme
-              </span>
-            </div>
-          </section>
         </div>
       </div>
     </div>

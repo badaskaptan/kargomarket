@@ -11,7 +11,6 @@ import {
   Shield,
   DollarSign,
   Clock,
-  Eye,
   Download,
   File,
   Image,
@@ -143,15 +142,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-4 border border-blue-100">
-                  <div className="text-sm font-medium text-blue-700 mb-1">Kategori</div>
-                  <div className="text-gray-900">{listing.category || 'Belirtilmemiş'}</div>
-                  {listing.subcategory && (
-                    <div className="text-sm text-gray-600 mt-1">{listing.subcategory}</div>
-                  )}
-                </div>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white rounded-lg p-4 border border-blue-100">
                   <div className="text-sm font-medium text-blue-700 mb-1">Yük Tipi</div>
                   <div className="text-gray-900">{listing.load_type ? translateLoadType(listing.load_type) : 'Genel Kargo'}</div>
@@ -565,35 +556,16 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
             </div>
           </section>
 
-          {/* İstatistikler */}
+          {/* İlan Bilgileri */}
           <section className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-              <Eye className="h-6 w-6 mr-3" />
-              İlan İstatistikleri
+              <Calendar className="h-6 w-6 mr-3" />
+              İlan Bilgileri
             </h3>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-gray-100 text-center">
-                <div className="text-2xl font-bold text-blue-600">{listing.view_count || 0}</div>
-                <div className="text-sm text-gray-600">Görüntülenme</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-100 text-center">
-                <div className="text-2xl font-bold text-green-600">{listing.offer_count || 0}</div>
-                <div className="text-sm text-gray-600">Teklif</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-100 text-center">
-                <div className="text-2xl font-bold text-red-600">{listing.favorite_count || 0}</div>
-                <div className="text-sm text-gray-600">Favori</div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-100 text-center">
-                <div className="text-2xl font-bold text-purple-600">{listing.priority_level || 0}</div>
-                <div className="text-sm text-gray-600">Öncelik</div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white rounded-lg p-4 border border-gray-100">
-                <div className="text-sm font-medium text-gray-700 mb-1">Oluşturulma</div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Oluşturulma Tarihi</div>
                 <div className="text-gray-900">{formatDate(listing.created_at)}</div>
               </div>
               <div className="bg-white rounded-lg p-4 border border-gray-100">
