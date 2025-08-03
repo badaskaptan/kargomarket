@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { TransportService } from '../../../../types/database-types';
 import { translateDocument, translateVehicleType } from '../../../../utils/translationUtils';
+import { getFormattedCapacity } from '../../../../utils/transportCapacity';
 
 
 interface TransportServiceDetailModalProps {
@@ -213,7 +214,7 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                 <div className="bg-white rounded-lg p-4 border border-purple-100">
                   <div className="text-sm font-medium text-purple-700 mb-1">Kapasite</div>
                   <div className="text-gray-900">
-                    {service.capacity_value} {service.capacity_unit || 'kg'}
+                    {getFormattedCapacity(service.capacity_value, service.transport_mode)}
                   </div>
                 </div>
               )}

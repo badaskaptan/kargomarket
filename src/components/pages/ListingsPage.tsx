@@ -12,6 +12,7 @@ import { useMessaging } from '../../hooks/useMessaging.ts';
 import { OfferService } from '../../services/offerService';
 import type { ExtendedListing, TransportService, Database } from '../../types/database-types';
 import { translateLoadType, translateVehicleType } from '../../utils/translationUtils';
+import { getFormattedCapacity } from '../../utils/transportCapacity';
 import toast from 'react-hot-toast';
 
 const ListingsPage: React.FC = () => {
@@ -125,7 +126,12 @@ const ListingsPage: React.FC = () => {
     title: listing.title,
     route: `${listing.origin} → ${listing.destination}`,
     loadType: listing.load_type || '',
-    weight: listing.weight_value ? `${listing.weight_value} ${listing.weight_unit || 'kg'}` : 'Belirtilmemiş',
+    weight: listing.weight_value
+      ? (listing.listing_type === 'transport_service' && listing.transport_mode
+        ? getFormattedCapacity(listing.weight_value, listing.transport_mode)
+        : `${listing.weight_value} ${listing.weight_unit || 'kg'}`
+      )
+      : 'Belirtilmemiş',
     price: listing.price_amount ? `₺${listing.price_amount.toLocaleString()}` : 'Fiyat belirtilmemiş',
     offers: listing.offer_count || 0,
     urgent: listing.is_urgent || false,

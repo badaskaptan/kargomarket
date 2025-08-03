@@ -30,6 +30,7 @@ import {
 // ...other imports...
 import { fetchTopLoadCategories } from '../../services/statsService';
 import { translateLoadType, translateVehicleType } from '../../utils/translationUtils';
+import { getFormattedCapacity } from '../../utils/transportCapacity';
 import LiveMap from '../common/LiveMap';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import AuthModal from '../auth/AuthModal';
@@ -405,37 +406,37 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
           <div className="text-center text-red-600 py-8">İstatistikler yüklenirken hata oluştu: {statsError.message}</div>
         ) : (
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Genel İstatistikler</h3>
+            <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">Genel İstatistikler</h3>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-gray-700">
+              <table className="min-w-full text-base text-gray-700">
                 <tbody>
                   <tr className="border-b">
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Users size={18} className="text-blue-500" /> Toplam Kullanıcı</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.totalUsers ?? 'N/A'}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Users size={22} className="text-blue-500" /> Toplam Kullanıcı</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-blue-600">{stats.totalUsers ?? 'N/A'}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Package size={18} className="text-blue-600" /> Yük İlanı</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.yuk}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Package size={22} className="text-blue-600" /> Yük İlanı</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-blue-600">{stats.yuk}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Truck size={18} className="text-green-600" /> Nakliye Talebi</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.nakliyeTalebi}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Truck size={22} className="text-green-600" /> Nakliye Talebi</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-green-600">{stats.nakliyeTalebi}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Ship size={18} className="text-purple-600" /> Nakliye Hizmeti</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.nakliyeHizmeti}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Ship size={22} className="text-purple-600" /> Nakliye Hizmeti</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-purple-600">{stats.nakliyeHizmeti}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Package size={18} className="text-gray-600" /> Toplam İlan</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.yuk + stats.nakliyeTalebi + stats.nakliyeHizmeti}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Package size={22} className="text-gray-600" /> Toplam İlan</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-gray-700">{stats.yuk + stats.nakliyeTalebi + stats.nakliyeHizmeti}</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Users size={18} className="text-indigo-500" /> Toplam Teklif</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.totalOffers ?? 'N/A'}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Users size={22} className="text-indigo-500" /> Toplam Teklif</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-indigo-600">{stats.totalOffers ?? 'N/A'}</td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 font-semibold flex items-center gap-2"><Users size={18} className="text-orange-500" /> Tamamlanmış İşlem</td>
-                    <td className="py-3 px-4 text-right text-lg font-bold">{stats.completedTransactions ?? 'N/A'}</td>
+                    <td className="py-4 px-6 font-semibold text-lg flex items-center gap-3"><Users size={22} className="text-orange-500" /> Tamamlanmış İşlem</td>
+                    <td className="py-4 px-6 text-right text-2xl font-bold text-orange-600">{stats.completedTransactions ?? 'N/A'}</td>
                   </tr>
                 </tbody>
               </table>
@@ -446,13 +447,13 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {/* İlan Başına Ortalama Teklif (Dinamik) */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
-          <div className="flex items-center mb-4">
-            <AlertCircle className="text-indigo-500 mr-2" size={20} />
-            <h3 className="text-lg font-semibold text-gray-900">İlan Başına Ortalama Teklif</h3>
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 flex flex-col justify-between">
+          <div className="flex items-center mb-6">
+            <AlertCircle className="text-indigo-500 mr-3" size={28} />
+            <h3 className="text-xl font-bold text-gray-900">İlan Başına Ortalama Teklif</h3>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-bold text-indigo-600 mb-2">
+            <div className="text-5xl font-bold text-indigo-600 mb-3">
               {(() => {
                 const totalOffers = stats.totalOffers ?? 0;
                 const totalListings = (stats.yuk ?? 0) + (stats.nakliyeTalebi ?? 0) + (stats.nakliyeHizmeti ?? 0);
@@ -460,86 +461,86 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                 return (totalOffers / totalListings).toFixed(2);
               })()}
             </div>
-            <p className="text-gray-600">teklif / ilan</p>
+            <p className="text-lg text-gray-600 font-medium">teklif / ilan</p>
           </div>
         </div>
         {/* İlan Türleri */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">İlan Türleri</h3>
-          <div className="space-y-3">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 flex flex-col justify-between">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">İlan Türleri</h3>
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Yük İlanı</span>
-              <span className="font-semibold text-blue-600">{stats.yuk}</span>
+              <span className="text-lg text-gray-700 font-medium">Yük İlanı</span>
+              <span className="text-2xl font-bold text-blue-600">{stats.yuk}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Nakliye Talebi</span>
-              <span className="font-semibold text-green-600">{stats.nakliyeTalebi}</span>
+              <span className="text-lg text-gray-700 font-medium">Nakliye Talebi</span>
+              <span className="text-2xl font-bold text-green-600">{stats.nakliyeTalebi}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Nakliye Hizmeti</span>
-              <span className="font-semibold text-purple-600">{stats.nakliyeHizmeti}</span>
+              <span className="text-lg text-gray-700 font-medium">Nakliye Hizmeti</span>
+              <span className="text-2xl font-bold text-purple-600">{stats.nakliyeHizmeti}</span>
             </div>
           </div>
         </div>
         {/* Taşıma Modları */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Taşıma Modları</h3>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 flex flex-col justify-between">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Taşıma Modları</h3>
+          <div className="grid grid-cols-2 gap-6">
             <div className="text-center">
-              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                <Truck className="text-blue-600" size={20} />
+              <div className="p-4 bg-blue-100 rounded-lg mb-3 mx-auto w-fit">
+                <Truck className="text-blue-600" size={28} />
               </div>
-              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.road}</div>
-              <div className="text-xs text-gray-600">Karayolu</div>
+              <div className="text-xl font-bold text-gray-900">{stats.transportModes.road}</div>
+              <div className="text-base text-gray-600 font-medium">Karayolu</div>
             </div>
             <div className="text-center">
-              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                <Ship className="text-blue-600" size={20} />
+              <div className="p-4 bg-blue-100 rounded-lg mb-3 mx-auto w-fit">
+                <Ship className="text-blue-600" size={28} />
               </div>
-              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.sea}</div>
-              <div className="text-xs text-gray-600">Denizyolu</div>
+              <div className="text-xl font-bold text-gray-900">{stats.transportModes.sea}</div>
+              <div className="text-base text-gray-600 font-medium">Denizyolu</div>
             </div>
             <div className="text-center">
-              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                <Plane className="text-blue-600" size={20} />
+              <div className="p-4 bg-blue-100 rounded-lg mb-3 mx-auto w-fit">
+                <Plane className="text-blue-600" size={28} />
               </div>
-              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.air}</div>
-              <div className="text-xs text-gray-600">Havayolu</div>
+              <div className="text-xl font-bold text-gray-900">{stats.transportModes.air}</div>
+              <div className="text-base text-gray-600 font-medium">Havayolu</div>
             </div>
             <div className="text-center">
-              <div className="p-3 bg-blue-100 rounded-lg mb-2 mx-auto w-fit">
-                <Train className="text-blue-600" size={20} />
+              <div className="p-4 bg-blue-100 rounded-lg mb-3 mx-auto w-fit">
+                <Train className="text-blue-600" size={28} />
               </div>
-              <div className="text-sm font-semibold text-gray-900">{stats.transportModes.rail}</div>
-              <div className="text-xs text-gray-600">Demiryolu</div>
+              <div className="text-xl font-bold text-gray-900">{stats.transportModes.rail}</div>
+              <div className="text-base text-gray-600 font-medium">Demiryolu</div>
             </div>
           </div>
         </div>
         {/* En Popüler Yük Kategorileri */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100 flex flex-col justify-between">
           <div className="flex items-center mb-6">
-            <Package className="text-green-500 mr-2" size={20} />
-            <h3 className="text-lg font-semibold text-gray-900">En Popüler Yük Kategorileri</h3>
+            <Package className="text-green-500 mr-3" size={28} />
+            <h3 className="text-xl font-bold text-gray-900">En Popüler Yük Kategorileri</h3>
           </div>
           <div className="space-y-4">
             {topCategoriesLoading ? (
-              <div className="text-center text-gray-500">Yükleniyor...</div>
+              <div className="text-center text-lg text-gray-500">Yükleniyor...</div>
             ) : topCategoriesError ? (
-              <div className="text-center text-red-500">{topCategoriesError}</div>
+              <div className="text-center text-lg text-red-500">{topCategoriesError}</div>
             ) : topCategories.length === 0 ? (
-              <div className="text-center text-gray-500">Veri yok</div>
+              <div className="text-center text-lg text-gray-500">Veri yok</div>
             ) : (
               topCategories.map((cat, idx) => (
-                <div key={cat.load_type} className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">{idx + 1}. {translateLoadType(cat.load_type)}</span>
-                  <span className="font-bold text-blue-600">{cat.count}</span>
+                <div key={cat.load_type} className="flex justify-between items-center py-2">
+                  <span className="text-lg font-medium text-gray-700">{idx + 1}. {translateLoadType(cat.load_type)}</span>
+                  <span className="text-xl font-bold text-blue-600">{cat.count}</span>
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
-      <div className="text-center mt-6 text-gray-500 text-sm">
+      <div className="text-center mt-8 text-gray-500 text-base">
         <p>Veriler gerçek zamanlı olarak güncellenmektedir • Son güncelleme: {new Date().toLocaleString('tr-TR')}</p>
       </div>
 
@@ -750,7 +751,13 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Package size={14} className="mr-2 text-primary-500" />
-                      <span className="text-sm">{translateLoadType(listing.load_type || '')} • {listing.weight_value} {listing.weight_unit}</span>
+                      <span className="text-sm">
+                        {translateLoadType(listing.load_type || '')} • {' '}
+                        {listing.listing_type === 'transport_service' && listing.transport_mode
+                          ? getFormattedCapacity(listing.weight_value || 0, listing.transport_mode)
+                          : `${listing.weight_value} ${listing.weight_unit}`
+                        }
+                      </span>
                     </div>
                     {/* Nakliye Talebi için İstenen Araç Tipleri */}
                     {listing.listing_type === 'shipment_request' && listing.vehicle_types && listing.vehicle_types.length > 0 && (

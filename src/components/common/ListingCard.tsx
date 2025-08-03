@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { ExtendedListing } from '../../types/database-types';
 import { translateLoadType, translateVehicleTypes, translateVehicleType, translateTransportMode } from '../../utils/translationUtils';
+import { getFormattedCapacity } from '../../utils/transportCapacity';
 
 interface ListingCardProps {
   listing: ExtendedListing;
@@ -275,7 +276,12 @@ const ListingCard: React.FC<ListingCardProps> = ({
                 <span className="text-xs text-gray-500 uppercase tracking-wide font-medium block mb-1">Kapasite</span>
                 <div>
                   {listing.weight_value && (
-                    <span>{listing.weight_value} {listing.weight_unit}</span>
+                    <span>
+                      {listing.listing_type === 'transport_service' && listing.transport_mode
+                        ? getFormattedCapacity(listing.weight_value, listing.transport_mode)
+                        : `${listing.weight_value} ${listing.weight_unit}`
+                      }
+                    </span>
                   )}
                   {listing.weight_value && listing.volume_value && <span className="mx-2">•</span>}
                   {listing.volume_value && (
