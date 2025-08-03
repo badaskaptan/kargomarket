@@ -98,7 +98,7 @@ export async function fetchTotalOffersCount(): Promise<number | null> {
     const { count: offersCount, error: offersError } = await supabase
       .from('offers')
       .select('*', { count: 'exact', head: true });
-    
+
     if (offersError) {
       console.error('Error fetching offers count:', offersError);
       throw offersError;
@@ -108,7 +108,7 @@ export async function fetchTotalOffersCount(): Promise<number | null> {
     const { count: serviceOffersCount, error: serviceOffersError } = await supabase
       .from('service_offers')
       .select('*', { count: 'exact', head: true });
-    
+
     if (serviceOffersError) {
       console.error('Error fetching service_offers count:', serviceOffersError);
       throw serviceOffersError;
@@ -117,7 +117,7 @@ export async function fetchTotalOffersCount(): Promise<number | null> {
     // İki tablonun toplamını döndür
     const totalCount = (offersCount || 0) + (serviceOffersCount || 0);
     console.log('Total offers count:', { offersCount, serviceOffersCount, totalCount });
-    
+
     return totalCount;
   } catch (error) {
     console.error('Error in fetchTotalOffersCount:', error);
@@ -133,7 +133,7 @@ export async function fetchTotalCompletedTransactionsCount(): Promise<number | n
       .from('offers')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'accepted');
-    
+
     if (offersError) {
       console.error('Error fetching accepted offers count:', offersError);
       throw offersError;
@@ -144,7 +144,7 @@ export async function fetchTotalCompletedTransactionsCount(): Promise<number | n
       .from('service_offers')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'accepted');
-    
+
     if (serviceOffersError) {
       console.error('Error fetching accepted service_offers count:', serviceOffersError);
       throw serviceOffersError;
@@ -153,7 +153,7 @@ export async function fetchTotalCompletedTransactionsCount(): Promise<number | n
     // İki tablonun toplamını döndür
     const totalCompleted = (acceptedOffersCount || 0) + (acceptedServiceOffersCount || 0);
     console.log('Total completed transactions:', { acceptedOffersCount, acceptedServiceOffersCount, totalCompleted });
-    
+
     return totalCompleted;
   } catch (error) {
     console.error('Error in fetchTotalCompletedTransactionsCount:', error);

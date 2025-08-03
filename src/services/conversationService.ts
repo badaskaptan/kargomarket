@@ -1,10 +1,10 @@
 import { supabase } from '../lib/supabase';
-import type { 
-  Conversation, 
-  ConversationParticipant, 
+import type {
+  Conversation,
+  ConversationParticipant,
   ConversationServiceInterface,
   ConversationWithParticipant,
-  ExtendedConversation 
+  ExtendedConversation
 } from '../types/messaging-types.ts';
 
 export const conversationService: ConversationServiceInterface = {
@@ -14,7 +14,7 @@ export const conversationService: ConversationServiceInterface = {
   async findConversationBetweenUsers(user1Id: string, user2Id: string): Promise<Conversation | null> {
     try {
       console.log('🔍 Looking for conversation between:', { user1Id, user2Id });
-      
+
       // İki kullanıcının da katıldığı konuşmaları bul
       const { data, error } = await supabase
         .from('conversation_participants')
@@ -74,7 +74,7 @@ export const conversationService: ConversationServiceInterface = {
   async createConversation(title: string, creatorId: string, listingId?: number | null): Promise<Conversation> {
     try {
       console.log('🆕 Creating conversation:', { title, creatorId, listingId });
-      
+
       const { data, error } = await supabase
         .from('conversations')
         .insert({
@@ -104,7 +104,7 @@ export const conversationService: ConversationServiceInterface = {
   async addParticipant(conversationId: number, userId: string): Promise<ConversationParticipant> {
     try {
       console.log('👤 Adding participant:', { conversationId, userId });
-      
+
       const { data, error } = await supabase
         .from('conversation_participants')
         .insert({
@@ -188,7 +188,7 @@ export const conversationService: ConversationServiceInterface = {
     }
   },
 
-// ... (other methods remain unchanged)
+  // ... (other methods remain unchanged)
 
   /**
    * Konuşmayı siler (conversations tablosundan)

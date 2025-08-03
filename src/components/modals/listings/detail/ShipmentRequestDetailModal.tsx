@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  X, 
-  Truck, 
-  MapPin, 
-  Calendar, 
-  Route, 
-  Settings, 
-  FileText, 
-  Shield, 
+import {
+  X,
+  Truck,
+  MapPin,
+  Calendar,
+  Route,
+  Settings,
+  FileText,
+  Shield,
   DollarSign,
   Clock,
   Eye,
@@ -108,9 +108,9 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
       'expired': { label: 'Süresi Doldu', color: 'bg-red-100 text-red-800' },
       'draft': { label: 'Taslak', color: 'bg-gray-100 text-gray-800' }
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         {config.label}
@@ -156,7 +156,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               <FileText className="h-6 w-6 mr-3" />
               Temel Bilgiler
             </h3>
-            
+
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4 border border-green-100">
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">{listing.title}</h4>
@@ -169,11 +169,11 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                 <div className="bg-white rounded-lg p-4 border border-green-100">
                   <div className="text-sm font-medium text-green-700 mb-1">Rol</div>
                   <div className="text-gray-900">
-                    {listing.role_type === 'buyer' ? '🛒 Alıcı (Taşıma Arıyor)' : 
-                     listing.role_type === 'seller' ? '📦 Satıcı (Taşıma Arıyor)' : 'Belirtilmemiş'}
+                    {listing.role_type === 'buyer' ? '🛒 Alıcı (Taşıma Arıyor)' :
+                      listing.role_type === 'seller' ? '📦 Satıcı (Taşıma Arıyor)' : 'Belirtilmemiş'}
                   </div>
                 </div>
-                
+
                 <div className="bg-white rounded-lg p-4 border border-green-100">
                   <div className="text-sm font-medium text-green-700 mb-1">Kategori</div>
                   <div className="text-gray-900">{listing.category || 'Genel Taşımacılık'}</div>
@@ -191,7 +191,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               <MapPin className="h-6 w-6 mr-3" />
               Rota Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-4 border border-blue-100">
                 <div className="flex items-center mb-3">
@@ -205,7 +205,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                   </div>
                 )}
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-blue-100">
                 <div className="flex items-center mb-3">
                   <div className="w-4 h-4 bg-red-500 rounded-full mr-3"></div>
@@ -243,28 +243,28 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               <Settings className="h-6 w-6 mr-3" />
               Taşıma Gereksinimleri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-white rounded-lg p-4 border border-purple-100">
                 <div className="text-sm font-medium text-purple-700 mb-1">Taşıma Modu</div>
                 <div className="text-lg font-semibold text-gray-900">
                   {listing.transport_mode === 'road' ? '🚛 Karayolu' :
-                   listing.transport_mode === 'sea' ? '🚢 Denizyolu' :
-                   listing.transport_mode === 'air' ? '✈️ Havayolu' :
-                   listing.transport_mode === 'rail' ? '🚂 Demiryolu' :
-                   listing.transport_mode === 'multimodal' ? '🔄 Karma Taşımacılık' :
-                   'Belirtilmemiş'}
+                    listing.transport_mode === 'sea' ? '🚢 Denizyolu' :
+                      listing.transport_mode === 'air' ? '✈️ Havayolu' :
+                        listing.transport_mode === 'rail' ? '🚂 Demiryolu' :
+                          listing.transport_mode === 'multimodal' ? '🔄 Karma Taşımacılık' :
+                            'Belirtilmemiş'}
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-purple-100">
                 <div className="text-sm font-medium text-purple-700 mb-1">Taşıma Sorumluluğu</div>
                 <div className="text-lg font-semibold text-gray-900">
                   {listing.transport_responsible === 'buyer' ? 'Alıcı Organize Eder' :
-                   listing.transport_responsible === 'seller' ? 'Satıcı Organize Eder' :
-                   listing.transport_responsible === 'carrier' ? 'Taşıyıcı Organize Eder' :
-                   listing.transport_responsible === 'negotiable' ? 'Pazarlıklı' :
-                   'Belirtilmemiş'}
+                    listing.transport_responsible === 'seller' ? 'Satıcı Organize Eder' :
+                      listing.transport_responsible === 'carrier' ? 'Taşıyıcı Organize Eder' :
+                        listing.transport_responsible === 'negotiable' ? 'Pazarlıklı' :
+                          'Belirtilmemiş'}
                 </div>
               </div>
             </div>
@@ -362,7 +362,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               <Calendar className="h-6 w-6 mr-3" />
               Tarih ve Zaman Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-4 border border-amber-100">
                 <div className="text-sm font-medium text-amber-700 mb-2">Alım/Yükleme Zamanı</div>
@@ -377,7 +377,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-amber-100">
                 <div className="text-sm font-medium text-amber-700 mb-2">Teslimat Zamanı</div>
                 <div className="space-y-2">
@@ -401,7 +401,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                     <div className="text-lg font-semibold text-gray-900">{formatDate(listing.available_from_date)}</div>
                   </div>
                 )}
-                
+
                 {listing.available_until_date && (
                   <div className="bg-white rounded-lg p-4 border border-amber-100">
                     <div className="text-sm font-medium text-amber-700 mb-1">Bitiş Tarihi</div>
@@ -430,7 +430,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                 <Link className="h-6 w-6 mr-3" />
                 İlgili Yük İlanı
               </h3>
-              
+
               <div className="bg-white rounded-lg p-4 border border-indigo-100">
                 <div className="flex items-center">
                   <div className="text-2xl mr-3">📦</div>
@@ -470,19 +470,19 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               <DollarSign className="h-6 w-6 mr-3" />
               Fiyat ve Teklif Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-lg p-4 border border-green-100">
                 <div className="text-sm font-medium text-green-700 mb-1">Teklif Alma Yöntemi</div>
                 <div className="text-lg font-semibold text-gray-900">
                   {listing.offer_type === 'fixed_price' ? '💰 Sabit Fiyat' :
-                   listing.offer_type === 'negotiable' ? '💬 Pazarlıklı' :
-                   listing.offer_type === 'auction' ? '🏷️ Müzayede' :
-                   listing.offer_type === 'free_quote' ? '📝 Serbest Teklif' :
-                   'Belirtilmemiş'}
+                    listing.offer_type === 'negotiable' ? '💬 Pazarlıklı' :
+                      listing.offer_type === 'auction' ? '🏷️ Müzayede' :
+                        listing.offer_type === 'free_quote' ? '📝 Serbest Teklif' :
+                          'Belirtilmemiş'}
                 </div>
               </div>
-              
+
               {listing.price_amount && (
                 <div className="bg-white rounded-lg p-4 border border-green-100">
                   <div className="text-sm font-medium text-green-700 mb-1">Teklif Edilen Fiyat</div>
@@ -492,7 +492,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
                   </div>
                 </div>
               )}
-              
+
               {(listing.budget_min || listing.budget_max) && (
                 <div className="bg-white rounded-lg p-4 border border-green-100">
                   <div className="text-sm font-medium text-green-700 mb-1">Bütçe Aralığı</div>
@@ -686,7 +686,7 @@ const ShipmentRequestDetailModal: React.FC<ShipmentRequestDetailModalProps> = ({
               <Eye className="h-6 w-6 mr-3" />
               İlan İstatistikleri
             </h3>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg p-4 border border-gray-100 text-center">
                 <div className="text-2xl font-bold text-blue-600">{listing.view_count || 0}</div>

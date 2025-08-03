@@ -388,10 +388,10 @@ export class ListingService {
           // Tüm transport modes için özel alanlar
           vehicle_type: service.vehicle_type,
           company_name: service.company_name,
-          
+
           // Karayolu
           plate_number: service.plate_number,
-          
+
           // Denizyolu
           ship_name: service.ship_name,
           imo_number: service.imo_number,
@@ -408,18 +408,18 @@ export class ListingService {
           speed_knots: service.speed_knots,
           fuel_consumption: service.fuel_consumption,
           ballast_capacity: service.ballast_capacity,
-          
+
           // Havayolu
           flight_number: service.flight_number,
           aircraft_type: service.aircraft_type,
           max_payload: service.max_payload,
           cargo_volume: service.cargo_volume,
-          
+
           // Demiryolu
           train_number: service.train_number,
           wagon_count: service.wagon_count,
           wagon_types: service.wagon_types,
-          
+
           // Ortak alanlar
           required_documents: service.required_documents,
           document_urls: service.document_urls,

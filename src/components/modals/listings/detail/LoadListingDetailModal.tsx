@@ -1,14 +1,14 @@
 import React from 'react';
-import { 
-  X, 
-  Package, 
-  MapPin, 
-  Calendar, 
-  Truck, 
-  Weight, 
-  Ruler, 
-  FileText, 
-  Shield, 
+import {
+  X,
+  Package,
+  MapPin,
+  Calendar,
+  Truck,
+  Weight,
+  Ruler,
+  FileText,
+  Shield,
   DollarSign,
   Clock,
   Eye,
@@ -59,9 +59,9 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
       'expired': { label: 'Süresi Doldu', color: 'bg-red-100 text-red-800' },
       'draft': { label: 'Taslak', color: 'bg-gray-100 text-gray-800' }
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         {config.label}
@@ -74,7 +74,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
     const extension = url.split('.').pop()?.toLowerCase() || '';
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
     const documentExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'rtf'];
-    
+
     if (imageExtensions.includes(extension)) return 'image';
     if (documentExtensions.includes(extension)) return 'document';
     return 'file';
@@ -134,7 +134,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <FileText className="h-6 w-6 mr-3" />
               Temel Bilgiler
             </h3>
-            
+
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4 border border-blue-100">
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">{listing.title}</h4>
@@ -151,7 +151,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                     <div className="text-sm text-gray-600 mt-1">{listing.subcategory}</div>
                   )}
                 </div>
-                
+
                 <div className="bg-white rounded-lg p-4 border border-blue-100">
                   <div className="text-sm font-medium text-blue-700 mb-1">Yük Tipi</div>
                   <div className="text-gray-900">{listing.load_type ? translateLoadType(listing.load_type) : 'Genel Kargo'}</div>
@@ -163,8 +163,8 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                 <div className="bg-white rounded-lg p-4 border border-blue-100">
                   <div className="text-sm font-medium text-blue-700 mb-1">Rol</div>
                   <div className="text-gray-900">
-                    {listing.role_type === 'buyer' ? 'Alıcı' : 
-                     listing.role_type === 'seller' ? 'Satıcı' : 'Belirtilmemiş'}
+                    {listing.role_type === 'buyer' ? 'Alıcı' :
+                      listing.role_type === 'seller' ? 'Satıcı' : 'Belirtilmemiş'}
                   </div>
                 </div>
               </div>
@@ -177,7 +177,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <MapPin className="h-6 w-6 mr-3" />
               Rota Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-4 border border-green-100">
                 <div className="flex items-center mb-3">
@@ -191,7 +191,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                   </div>
                 )}
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-green-100">
                 <div className="flex items-center mb-3">
                   <div className="w-4 h-4 bg-red-500 rounded-full mr-3"></div>
@@ -226,7 +226,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <Weight className="h-6 w-6 mr-3" />
               Yük Özellikleri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white rounded-lg p-4 border border-purple-100">
                 <div className="text-sm font-medium text-purple-700 mb-1">Ağırlık</div>
@@ -234,7 +234,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                   {listing.weight_value ? `${listing.weight_value} ${listing.weight_unit || 'ton'}` : 'Belirtilmemiş'}
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-purple-100">
                 <div className="text-sm font-medium text-purple-700 mb-1">Hacim</div>
                 <div className="text-lg font-semibold text-gray-900">
@@ -262,7 +262,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <Calendar className="h-6 w-6 mr-3" />
               Tarih ve Zaman Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-4 border border-orange-100">
                 <div className="text-sm font-medium text-orange-700 mb-2">Yükleme</div>
@@ -277,7 +277,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-orange-100">
                 <div className="text-sm font-medium text-orange-700 mb-2">Teslimat</div>
                 <div className="space-y-2">
@@ -309,16 +309,16 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <Truck className="h-6 w-6 mr-3" />
               Taşıma Gereksinimleri
             </h3>
-            
+
             <div className="grid grid-cols-1 gap-4">
               <div className="bg-white rounded-lg p-4 border border-cyan-100">
                 <div className="text-sm font-medium text-cyan-700 mb-1">Taşıma Sorumluluğu</div>
                 <div className="text-lg font-semibold text-gray-900">
                   {listing.transport_responsible === 'buyer' ? 'Alıcı' :
-                   listing.transport_responsible === 'seller' ? 'Satıcı' :
-                   listing.transport_responsible === 'carrier' ? 'Taşıyıcı' :
-                   listing.transport_responsible === 'negotiable' ? 'Pazarlıklı' :
-                   'Belirtilmemiş'}
+                    listing.transport_responsible === 'seller' ? 'Satıcı' :
+                      listing.transport_responsible === 'carrier' ? 'Taşıyıcı' :
+                        listing.transport_responsible === 'negotiable' ? 'Pazarlıklı' :
+                          'Belirtilmemiş'}
                 </div>
               </div>
             </div>
@@ -350,19 +350,19 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <DollarSign className="h-6 w-6 mr-3" />
               Fiyat Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white rounded-lg p-4 border border-green-100">
                 <div className="text-sm font-medium text-green-700 mb-1">Teklif Tipi</div>
                 <div className="text-lg font-semibold text-gray-900">
                   {listing.offer_type === 'fixed_price' ? '💰 Sabit Fiyat' :
-                   listing.offer_type === 'negotiable' ? '💬 Pazarlıklı' :
-                   listing.offer_type === 'auction' ? '🏷️ Müzayede' :
-                   listing.offer_type === 'free_quote' ? '📝 Doğrudan Teklif' :
-                   'Belirtilmemiş'}
+                    listing.offer_type === 'negotiable' ? '💬 Pazarlıklı' :
+                      listing.offer_type === 'auction' ? '🏷️ Müzayede' :
+                        listing.offer_type === 'free_quote' ? '📝 Doğrudan Teklif' :
+                          'Belirtilmemiş'}
                 </div>
               </div>
-              
+
               {listing.price_amount && (
                 <div className="bg-white rounded-lg p-4 border border-green-100">
                   <div className="text-sm font-medium text-green-700 mb-1">Fiyat</div>
@@ -372,7 +372,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
                   </div>
                 </div>
               )}
-              
+
               {(listing.budget_min || listing.budget_max) && (
                 <div className="bg-white rounded-lg p-4 border border-green-100">
                   <div className="text-sm font-medium text-green-700 mb-1">Bütçe Aralığı</div>
@@ -390,7 +390,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <Shield className="h-6 w-6 mr-3" />
               Sigorta
             </h3>
-            
+
             <div className="grid grid-cols-1 gap-4">
               <div className={`bg-white rounded-lg p-4 border ${listing.insurance_required ? 'border-indigo-200 bg-indigo-50' : 'border-gray-200'}`}>
                 <div className="text-sm font-medium text-indigo-700 mb-1">Sigorta</div>
@@ -421,121 +421,121 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
           </section>
 
           {/* Yüklenen Dosyalar ve Resimler */}
-          {((listing.document_urls && listing.document_urls.length > 0) || 
+          {((listing.document_urls && listing.document_urls.length > 0) ||
             (listing.image_urls && listing.image_urls.length > 0)) && (
-            <section className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
-              <h3 className="text-xl font-semibold text-purple-900 mb-4 flex items-center">
-                <FileText className="h-6 w-6 mr-3" />
-                Yüklenen Dosyalar ve Resimler
-              </h3>
-              
-              {/* Resimler */}
-              {listing.image_urls && listing.image_urls.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
-                    <Image className="h-5 w-5 mr-2" />
-                    Resimler ({listing.image_urls.length})
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {listing.image_urls.map((imageUrl, index) => (
-                      <div key={index} className="bg-white rounded-lg p-3 border border-purple-100 group hover:shadow-md transition-shadow">
-                        <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
-                          <img
-                            src={imageUrl}
-                            alt={`İlan resmi ${index + 1}`}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                            onClick={() => window.open(imageUrl, '_blank')}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0EyIDIgMCAwIDAgMTkgNUg1QTIgMiAwIDAgMCAzIDdWMTdBMiAyIDAgMCAwIDUgMTlIMTVNMjEgMTVMMTggMTJMMTUgMTVNMjEgMTlMMTggMTZMMTUgMTkiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
-                            }}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs text-gray-600 truncate flex-1">
-                            {getFileName(imageUrl)}
-                          </p>
-                          <div className="flex space-x-1 ml-2">
-                            <button
-                              onClick={() => window.open(imageUrl, '_blank')}
-                              className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
-                              title="Büyük boyutta görüntüle"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </button>
-                            <button
-                              onClick={() => handleDownload(imageUrl, getFileName(imageUrl))}
-                              className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
-                              title="İndir"
-                            >
-                              <Download className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <section className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+                <h3 className="text-xl font-semibold text-purple-900 mb-4 flex items-center">
+                  <FileText className="h-6 w-6 mr-3" />
+                  Yüklenen Dosyalar ve Resimler
+                </h3>
 
-              {/* Dökümanlar */}
-              {listing.document_urls && listing.document_urls.length > 0 && (
-                <div>
-                  <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
-                    <File className="h-5 w-5 mr-2" />
-                    Dökümanlar ({listing.document_urls.length})
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {listing.document_urls.map((docUrl, index) => {
-                      const fileName = getFileName(docUrl);
-                      const fileType = getFileType(docUrl);
-                      
-                      return (
-                        <div key={index} className="bg-white rounded-lg p-4 border border-purple-100 group hover:shadow-md transition-shadow">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 mr-3">
-                              {fileType === 'document' ? (
-                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                                  <FileText className="h-5 w-5 text-red-600" />
-                                </div>
-                              ) : (
-                                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                  <File className="h-5 w-5 text-gray-600" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                {fileName}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {fileType === 'document' ? 'Döküman' : 'Dosya'}
-                              </p>
-                            </div>
-                            <div className="flex space-x-2 ml-3">
+                {/* Resimler */}
+                {listing.image_urls && listing.image_urls.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+                      <Image className="h-5 w-5 mr-2" />
+                      Resimler ({listing.image_urls.length})
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {listing.image_urls.map((imageUrl, index) => (
+                        <div key={index} className="bg-white rounded-lg p-3 border border-purple-100 group hover:shadow-md transition-shadow">
+                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2">
+                            <img
+                              src={imageUrl}
+                              alt={`İlan resmi ${index + 1}`}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                              onClick={() => window.open(imageUrl, '_blank')}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIxIDlWN0EyIDIgMCAwIDAgMTkgNUg1QTIgMiAwIDAgMCAzIDdWMTdBMiAyIDAgMCAwIDUgMTlIMTVNMjEgMTVMMTggMTJMMTUgMTVNMjEgMTlMMTggMTZMMTUgMTkiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K';
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-gray-600 truncate flex-1">
+                              {getFileName(imageUrl)}
+                            </p>
+                            <div className="flex space-x-1 ml-2">
                               <button
-                                onClick={() => window.open(docUrl, '_blank')}
-                                className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
-                                title="Görüntüle"
+                                onClick={() => window.open(imageUrl, '_blank')}
+                                className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                                title="Büyük boyutta görüntüle"
                               >
-                                <ExternalLink className="h-4 w-4" />
+                                <ExternalLink className="h-3 w-3" />
                               </button>
                               <button
-                                onClick={() => handleDownload(docUrl, fileName)}
-                                className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                onClick={() => handleDownload(imageUrl, getFileName(imageUrl))}
+                                className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
                                 title="İndir"
                               >
-                                <Download className="h-4 w-4" />
+                                <Download className="h-3 w-3" />
                               </button>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </section>
-          )}
+                )}
+
+                {/* Dökümanlar */}
+                {listing.document_urls && listing.document_urls.length > 0 && (
+                  <div>
+                    <h4 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+                      <File className="h-5 w-5 mr-2" />
+                      Dökümanlar ({listing.document_urls.length})
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {listing.document_urls.map((docUrl, index) => {
+                        const fileName = getFileName(docUrl);
+                        const fileType = getFileType(docUrl);
+
+                        return (
+                          <div key={index} className="bg-white rounded-lg p-4 border border-purple-100 group hover:shadow-md transition-shadow">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 mr-3">
+                                {fileType === 'document' ? (
+                                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <FileText className="h-5 w-5 text-red-600" />
+                                  </div>
+                                ) : (
+                                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <File className="h-5 w-5 text-gray-600" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {fileName}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {fileType === 'document' ? 'Döküman' : 'Dosya'}
+                                </p>
+                              </div>
+                              <div className="flex space-x-2 ml-3">
+                                <button
+                                  onClick={() => window.open(docUrl, '_blank')}
+                                  className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                  title="Görüntüle"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDownload(docUrl, fileName)}
+                                  className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded-lg transition-colors"
+                                  title="İndir"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
 
           {/* İletişim Bilgileri */}
           <section className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
@@ -571,7 +571,7 @@ const LoadListingDetailModal: React.FC<LoadListingDetailModalProps> = ({
               <Eye className="h-6 w-6 mr-3" />
               İlan İstatistikleri
             </h3>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white rounded-lg p-4 border border-gray-100 text-center">
                 <div className="text-2xl font-bold text-blue-600">{listing.view_count || 0}</div>

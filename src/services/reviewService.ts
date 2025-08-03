@@ -134,7 +134,7 @@ export class ReviewService {
       if (profileError) {
         console.error('Error fetching profiles for reviews:', profileError);
         // Profilsiz de devam edebiliriz ama loglamak önemli
-        return { data: reviews.map(r => ({...r})), error: null };
+        return { data: reviews.map(r => ({ ...r })), error: null };
       }
 
       // Yorumları profil bilgileriyle birleştir
@@ -162,11 +162,11 @@ export class ReviewService {
         .eq('reviewer_id', userId)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         return { data: null, error };
       }
-      
+
       // Eğer review'lar varsa, profile'ları manuel olarak al
       if (data && data.length > 0) {
         const revieweeIds = [...new Set(data.map(r => r.reviewee_id))];
@@ -174,13 +174,13 @@ export class ReviewService {
           .from('profiles')
           .select('id, full_name, avatar_url, company_name')
           .in('id', revieweeIds);
-          
+
         // Reviews ile profiles'ı birleştir
         const reviewsWithProfiles = data.map(review => ({
           ...review,
           reviewee_profile: profiles?.find(p => p.id === review.reviewee_id) || null
         }));
-        
+
         return { data: reviewsWithProfiles, error: null };
       }
 
@@ -202,11 +202,11 @@ export class ReviewService {
         .eq('status', 'active')
         .eq('is_public', true)
         .order('created_at', { ascending: false });
-        
+
       if (error) {
         return { data: null, error };
       }
-      
+
       // Eğer review'lar varsa, profile'ları manuel olarak al
       if (data && data.length > 0) {
         const reviewerIds = [...new Set(data.map(r => r.reviewer_id))];
@@ -214,13 +214,13 @@ export class ReviewService {
           .from('profiles')
           .select('id, full_name, avatar_url, company_name')
           .in('id', reviewerIds);
-          
+
         // Reviews ile profiles'ı birleştir
         const reviewsWithProfiles = data.map(review => ({
           ...review,
           reviewer_profile: profiles?.find(p => p.id === review.reviewer_id) || null
         }));
-        
+
         return { data: reviewsWithProfiles, error: null };
       }
 
@@ -423,7 +423,7 @@ export class ReviewService {
       }
 
       console.log('Permission check passed:', {
-        reviewee_id: reviewData.reviewee_id,  
+        reviewee_id: reviewData.reviewee_id,
         user_id: user.id,
         review_id: reviewId,
         can_respond: reviewData.reviewee_id === user.id
@@ -460,7 +460,7 @@ export class ReviewService {
       // Single row yerine array'den ilk elemanı al
       const updatedReview = Array.isArray(data) ? data[0] : data
       console.log('Updated review data:', updatedReview);
-      
+
       if (!updatedReview) {
         console.error('No data returned from update operation');
         return { data: null, error: 'Güncelleme başarısız - veri döndürülmedi.' }

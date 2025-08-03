@@ -504,8 +504,8 @@ const MessagesSection: React.FC = () => {
                     >
                       <div
                         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg relative ${isMyMessage
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-900'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-900'
                           }`}
                       >
                         {/* Sil butonu sadece kendi mesajı için */}

@@ -79,7 +79,7 @@ const MyReviewsSection: React.FC = () => {
 
     try {
       const { error } = await ReviewService.addResponseToReview(reviewId, responseText);
-      
+
       if (error) {
         alert(`Hata: ${error}`);
         return;
@@ -106,7 +106,7 @@ const MyReviewsSection: React.FC = () => {
 
     try {
       const { error } = await ReviewService.updateResponse(reviewId, responseText);
-      
+
       if (error) {
         alert(`Hata: ${error}`);
         return;
@@ -130,7 +130,7 @@ const MyReviewsSection: React.FC = () => {
 
     try {
       const { error } = await ReviewService.deleteResponse(reviewId);
-      
+
       if (error) {
         alert(`Hata: ${error}`);
         return;
@@ -747,7 +747,7 @@ const MyReviewsSection: React.FC = () => {
                         <button
                           onClick={() => review.response ? handleUpdateResponse(review.id) : handleAddResponse(review.id)}
                           disabled={
-                            !responseStates[review.id]?.text?.trim() || 
+                            !responseStates[review.id]?.text?.trim() ||
                             responseStates[review.id]?.isSubmitting
                           }
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"

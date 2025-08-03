@@ -13,17 +13,20 @@ SET category = 'general'
 WHERE category IS NULL;
 
 -- 4. Category alanını NOT NULL yap
-ALTER TABLE ads ALTER COLUMN category SET NOT NULL;
+ALTER TABLE ads ALTER COLUMN category
+SET
+NOT NULL;
 
 -- 5. Placement değerlerinin güncel durumunu kontrol et
-SELECT DISTINCT placement FROM ads;
+SELECT DISTINCT placement
+FROM ads;
 
 -- 6. Güncellenen ads tablosu yapısını kontrol et
-SELECT 
-    column_name, 
-    data_type, 
-    is_nullable, 
+SELECT
+    column_name,
+    data_type,
+    is_nullable,
     column_default
-FROM information_schema.columns 
+FROM information_schema.columns
 WHERE table_name = 'ads' AND table_schema = 'public'
 ORDER BY ordinal_position;

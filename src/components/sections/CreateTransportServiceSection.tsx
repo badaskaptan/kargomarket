@@ -943,7 +943,7 @@ const CreateTransportServiceSection: React.FC = () => {
                   value={String(formData.serviceAvailableDate || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  // required
+                // required
                 />
               </div>
 

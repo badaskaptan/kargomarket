@@ -448,12 +448,12 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
           {/* İletişim Bilgileri */}
           {service.contact_info && (
             <section className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
-            <h3 className="text-xl font-semibold text-indigo-900 mb-4 flex items-center">
-              <svg className="h-6 w-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              İletişim Bilgileri
-            </h3>              <div className="bg-white rounded-lg p-4 border border-indigo-100">
+              <h3 className="text-xl font-semibold text-indigo-900 mb-4 flex items-center">
+                <svg className="h-6 w-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                İletişim Bilgileri
+              </h3>              <div className="bg-white rounded-lg p-4 border border-indigo-100">
                 <div className="text-sm font-medium text-indigo-700 mb-2">İletişim</div>
                 <div className="text-gray-900 whitespace-pre-wrap">{service.contact_info}</div>
               </div>
