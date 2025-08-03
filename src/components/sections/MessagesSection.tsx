@@ -338,21 +338,31 @@ const MessagesSection: React.FC = () => {
                         disabled={!quickMessage.trim() || quickSending}
                         onClick={async () => {
                           setQuickSending(true);
-                          const recipientId = selectedUser.id;
-                          if (!recipientId) {
-                            alert('Hedef kullanıcı bulunamadı.');
+                          try {
+                            const recipientId = selectedUser.id;
+                            if (!recipientId) {
+                              alert('Hedef kullanıcı bulunamadı.');
+                              setQuickSending(false);
+                              return;
+                            }
+                            console.log('MessagesSection - Sending to:', recipientId, 'Message:', quickMessage);
+                            const result = await sendOrStartConversationAndMessage(recipientId, quickMessage);
+                            if (result && result.conversation) {
+                              // Konuşma listesini yeniden yükle
+                              await loadConversations();
+                              // Yeni konuşmayı seç ve mesajları yükle
+                              setSelectedConversation(result.conversation);
+                              loadMessages(result.conversation.id);
+                            }
+                            setShowUserModal(false);
+                            setQuickMessage('');
+                            setSelectedUser(null);
+                          } catch (error) {
+                            console.error('MessagesSection - Send error:', error);
+                            alert('Mesaj gönderilemedi: ' + (error instanceof Error ? error.message : String(error)));
+                          } finally {
                             setQuickSending(false);
-                            return;
                           }
-                          const result = await sendOrStartConversationAndMessage(recipientId, quickMessage);
-                          if (result && result.conversation) {
-                            setSelectedConversation(result.conversation);
-                            loadMessages(result.conversation.id);
-                          }
-                          setShowUserModal(false);
-                          setQuickMessage('');
-                          setSelectedUser(null);
-                          setQuickSending(false);
                         }}
                       >
                         Gönder ve Kapat

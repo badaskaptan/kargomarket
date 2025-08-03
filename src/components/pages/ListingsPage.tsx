@@ -133,7 +133,8 @@ const ListingsPage: React.FC = () => {
       name: listing.owner_name || 'Bilinmiyor',
       company: listing.owner_company || '',
       phone: listing.owner_phone || '',
-      email: listing.owner_email || ''
+      email: listing.owner_email || '',
+      website: listing.owner_website || ''
     }
   });
 
@@ -195,7 +196,7 @@ const ListingsPage: React.FC = () => {
       available_until_date: listing.available_until_date,
       capacity_value: listing.weight_value || null,
       capacity_unit: listing.weight_unit || 'kg',
-      contact_info: listing.owner_phone ? `Tel: ${listing.owner_phone}${listing.owner_email ? `\nE-posta: ${listing.owner_email}` : ''}${listing.owner_company ? `\nŞirket: ${listing.owner_company}` : ''}` : null,
+      contact_info: listing.owner_phone ? `Tel: ${listing.owner_phone}${listing.owner_email ? `\nE-posta: ${listing.owner_email}` : ''}${listing.owner_company ? `\nŞirket: ${listing.owner_company}` : ''}${listing.owner_website ? `\nWeb: ${listing.owner_website}` : ''}` : null,
       company_name: listing.owner_company || transportDetails?.company_name || null,
 
       // Karayolu özel alanları
@@ -495,7 +496,7 @@ const ListingsPage: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {filteredListings.map((listing) => {
                 const displayData = getListingDisplayData(listing);
                 return (
@@ -527,7 +528,7 @@ const ListingsPage: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 hover:text-primary-600 transition-colors cursor-pointer">
+                          <h3 className="text-base font-bold text-gray-900 mb-2 hover:text-primary-600 transition-colors cursor-pointer leading-tight line-clamp-2">
                             {displayData.title}
                           </h3>
                         </div>
@@ -556,28 +557,34 @@ const ListingsPage: React.FC = () => {
                             </span>
                           </div>
                           <div className="flex-1">
-                            <div className="font-medium text-gray-900 text-sm">{displayData.contact.name}</div>
+                            <div className="font-medium text-gray-900 text-sm truncate">{displayData.contact.name}</div>
                             {displayData.contact.company && (
-                              <div className="text-xs text-gray-500">{displayData.contact.company}</div>
+                              <div className="text-xs text-gray-500 truncate">{displayData.contact.company}</div>
                             )}
                             {isLoggedIn ? (
-                              <div className="flex items-center space-x-3 mt-1">
+                              <div className="mt-1">
                                 {displayData.contact.phone && (
-                                  <div className="flex items-center text-xs text-gray-500">
-                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <div className="flex items-center text-xs text-gray-500 mb-1">
+                                    <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
-                                    {displayData.contact.phone}
+                                    <span className="truncate">{displayData.contact.phone}</span>
                                   </div>
                                 )}
                                 {displayData.contact.email && (
                                   <div className="flex items-center text-xs text-gray-500">
-                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
-                                    {displayData.contact.email}
+                                    <span className="truncate">{displayData.contact.email}</span>
                                   </div>
                                 )}
+                                <div className="flex items-center text-xs text-gray-500">
+                                  <svg className="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                                  </svg>
+                                  <span className="truncate">{displayData.contact.website || 'Web adresi belirtilmemiş'}</span>
+                                </div>
                               </div>
                             ) : (
                               <div className="mt-1 px-2 py-1 bg-yellow-100 rounded text-xs text-yellow-800">
@@ -752,6 +759,8 @@ const ListingsPage: React.FC = () => {
                       <div><strong>İsim:</strong> {getListingDisplayData(selectedListing).contact.name}</div>
                       <div><strong>Firma:</strong> {getListingDisplayData(selectedListing).contact.company}</div>
                       <div><strong>Telefon:</strong> {getListingDisplayData(selectedListing).contact.phone}</div>
+                      <div><strong>E-posta:</strong> {getListingDisplayData(selectedListing).contact.email || 'Belirtilmemiş'}</div>
+                      <div><strong>Web:</strong> {getListingDisplayData(selectedListing).contact.website || 'Belirtilmemiş'}</div>
                     </div>
                   </div>
                 ) : (

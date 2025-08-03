@@ -58,7 +58,7 @@ const convertToTransportService = (listing: ExtendedListing): TransportService =
     available_until_date: listing.available_until_date,
     capacity_value: listing.weight_value || null,
     capacity_unit: listing.weight_unit || 'kg',
-    contact_info: listing.owner_phone ? `Tel: ${listing.owner_phone}${listing.owner_email ? `\nE-posta: ${listing.owner_email}` : ''}${listing.owner_company ? `\nŞirket: ${listing.owner_company}` : ''}` : null,
+    contact_info: listing.owner_phone ? `Tel: ${listing.owner_phone}${listing.owner_email ? `\nE-posta: ${listing.owner_email}` : ''}${listing.owner_company ? `\nŞirket: ${listing.owner_company}` : ''}${listing.owner_website ? `\nWeb: ${listing.owner_website}` : ''}` : null,
     company_name: listing.owner_company || transportDetails?.company_name || null,
     plate_number: transportDetails?.plate_number || null,
     ship_name: transportDetails?.ship_name || null,
@@ -767,6 +767,12 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
                           <div className="font-medium text-gray-900 text-sm">{listing.owner_name}</div>
                           <div className="text-xs text-gray-500">{listing.owner_company}</div>
                           <div className="text-xs text-gray-500">{listing.owner_phone}</div>
+                          {listing.owner_email && (
+                            <div className="text-xs text-gray-500">{listing.owner_email}</div>
+                          )}
+                          <div className="text-xs text-gray-500">
+                            {listing.owner_website ? listing.owner_website : 'Web adresi belirtilmemiş'}
+                          </div>
                         </div>
                       </div>
                     </div>

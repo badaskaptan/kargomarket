@@ -531,6 +531,7 @@ const CreateTransportServiceSection: React.FC = () => {
     console.log('- serviceVehicleType:', formData.serviceVehicleType);
     console.log('- serviceContact:', formData.serviceContact);
 
+    // origin, destination, available_from_date, available_until_date artık opsiyonel
     if (!formData.serviceTitle || !formData.serviceDescription || !formData.serviceTransportMode) {
       console.log('❌ Validation failed: Missing required fields');
       toast.error('Lütfen tüm zorunlu alanları doldurun!');
@@ -868,7 +869,7 @@ const CreateTransportServiceSection: React.FC = () => {
               <div>
                 <label htmlFor="serviceOrigin" className="block text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="inline w-4 h-4 mr-1" />
-                  {getDynamicFieldLabels().origin} *
+                  {getDynamicFieldLabels().origin} (Opsiyonel)
                 </label>
                 <input
                   type="text"
@@ -877,7 +878,7 @@ const CreateTransportServiceSection: React.FC = () => {
                   value={String(formData.serviceOrigin || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  required
+                  // required
                   placeholder={getDynamicPlaceholders().origin}
                 />
               </div>
@@ -886,7 +887,7 @@ const CreateTransportServiceSection: React.FC = () => {
               <div>
                 <label htmlFor="serviceDestination" className="block text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="inline w-4 h-4 mr-1" />
-                  {getDynamicFieldLabels().destination} *
+                  {getDynamicFieldLabels().destination} (Opsiyonel)
                 </label>
                 <input
                   type="text"
@@ -895,7 +896,7 @@ const CreateTransportServiceSection: React.FC = () => {
                   value={String(formData.serviceDestination || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  required
+                  // required
                   placeholder={getDynamicPlaceholders().destination}
                 />
               </div>
@@ -933,7 +934,7 @@ const CreateTransportServiceSection: React.FC = () => {
               <div>
                 <label htmlFor="serviceAvailableDate" className="block text-sm font-medium text-gray-700 mb-2">
                   <Calendar className="inline w-4 h-4 mr-1" />
-                  {getDynamicFieldLabels().availableDate} *
+                  {getDynamicFieldLabels().availableDate} (Opsiyonel)
                 </label>
                 <input
                   type="date"
@@ -942,7 +943,7 @@ const CreateTransportServiceSection: React.FC = () => {
                   value={String(formData.serviceAvailableDate || '')}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors shadow-sm"
-                  required
+                  // required
                 />
               </div>
 

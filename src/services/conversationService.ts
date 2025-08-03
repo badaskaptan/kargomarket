@@ -71,13 +71,62 @@ export const conversationService: ConversationServiceInterface = {
 
   // STUB: createConversation
 
-  async createConversation(_title: string, _creatorId: string, _listingId?: number | null): Promise<Conversation> {
-    throw new Error('Not implemented');
+  async createConversation(title: string, creatorId: string, listingId?: number | null): Promise<Conversation> {
+    try {
+      console.log('🆕 Creating conversation:', { title, creatorId, listingId });
+      
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert({
+          title,
+          creator_id: creatorId,
+          listing_id: listingId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error creating conversation:', error);
+        throw error;
+      }
+
+      console.log('✅ Conversation created:', data);
+      return data as Conversation;
+    } catch (error) {
+      console.error('❌ createConversation error:', error);
+      throw error;
+    }
   },
 
   // STUB: addParticipant
-  async addParticipant(_conversationId: number, _userId: string): Promise<ConversationParticipant> {
-    throw new Error('Not implemented');
+  async addParticipant(conversationId: number, userId: string): Promise<ConversationParticipant> {
+    try {
+      console.log('👤 Adding participant:', { conversationId, userId });
+      
+      const { data, error } = await supabase
+        .from('conversation_participants')
+        .insert({
+          conversation_id: conversationId,
+          user_id: userId,
+          is_active: true,
+          joined_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error adding participant:', error);
+        throw error;
+      }
+
+      console.log('✅ Participant added:', data);
+      return data as ConversationParticipant;
+    } catch (error) {
+      console.error('❌ addParticipant error:', error);
+      throw error;
+    }
   },
 
 

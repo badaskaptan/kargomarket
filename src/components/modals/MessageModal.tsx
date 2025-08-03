@@ -23,11 +23,18 @@ const MessageModal: React.FC<MessageModalProps> = ({ isOpen, onClose, target, cu
     if (!target) return;
     setLoading(true);
     try {
-      const receiverId = target.user_id || target.id;
+      // user_id alanını kullan, bu ilan sahibinin user_id'si
+      const receiverId = target.user_id;
+      if (!receiverId) {
+        throw new Error('Alıcı bilgisi bulunamadı');
+      }
+      console.log('MessageModal - Sending to:', receiverId, 'Message:', messageText);
       await sendOrStartConversationAndMessage(receiverId, messageText, target.id ? Number(target.id) : null);
+      alert('Mesaj başarıyla gönderildi!');
       setMessageText('');
       onClose();
     } catch (err: unknown) {
+      console.error('MessageModal - Send error:', err);
       let errorMsg = 'Mesaj gönderilemedi.';
       if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
         errorMsg += ' ' + (err as { message: string }).message;

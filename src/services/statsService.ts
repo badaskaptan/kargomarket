@@ -91,24 +91,74 @@ export async function fetchListingCategoryCounts(): Promise<{
   return { yuk, nakliyeTalebi, nakliyeHizmeti };
 }
 
-// Toplam teklif sayısını çekme
+// Toplam teklif sayısını çekme (offers + service_offers)
 export async function fetchTotalOffersCount(): Promise<number | null> {
-  const { data, error } = await supabase.rpc('get_total_offers_count');
-  if (error) {
-    console.error('Error fetching total offers count:', error);
+  try {
+    // offers tablosundan say
+    const { count: offersCount, error: offersError } = await supabase
+      .from('offers')
+      .select('*', { count: 'exact', head: true });
+    
+    if (offersError) {
+      console.error('Error fetching offers count:', offersError);
+      throw offersError;
+    }
+
+    // service_offers tablosundan say
+    const { count: serviceOffersCount, error: serviceOffersError } = await supabase
+      .from('service_offers')
+      .select('*', { count: 'exact', head: true });
+    
+    if (serviceOffersError) {
+      console.error('Error fetching service_offers count:', serviceOffersError);
+      throw serviceOffersError;
+    }
+
+    // İki tablonun toplamını döndür
+    const totalCount = (offersCount || 0) + (serviceOffersCount || 0);
+    console.log('Total offers count:', { offersCount, serviceOffersCount, totalCount });
+    
+    return totalCount;
+  } catch (error) {
+    console.error('Error in fetchTotalOffersCount:', error);
     throw error;
   }
-  return data ? Number(data) : 0;
 }
 
-// Toplam tamamlanmış iş sayısını çekme
+// Toplam tamamlanmış iş sayısını çekme (kabul edilmiş teklifler: offers + service_offers)
 export async function fetchTotalCompletedTransactionsCount(): Promise<number | null> {
-  const { data, error } = await supabase.rpc('get_total_completed_transactions_count');
-  if (error) {
-    console.error('Error fetching total completed transactions count:', error);
+  try {
+    // offers tablosundan kabul edilmiş teklifleri say
+    const { count: acceptedOffersCount, error: offersError } = await supabase
+      .from('offers')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'accepted');
+    
+    if (offersError) {
+      console.error('Error fetching accepted offers count:', offersError);
+      throw offersError;
+    }
+
+    // service_offers tablosundan kabul edilmiş teklifleri say
+    const { count: acceptedServiceOffersCount, error: serviceOffersError } = await supabase
+      .from('service_offers')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'accepted');
+    
+    if (serviceOffersError) {
+      console.error('Error fetching accepted service_offers count:', serviceOffersError);
+      throw serviceOffersError;
+    }
+
+    // İki tablonun toplamını döndür
+    const totalCompleted = (acceptedOffersCount || 0) + (acceptedServiceOffersCount || 0);
+    console.log('Total completed transactions:', { acceptedOffersCount, acceptedServiceOffersCount, totalCompleted });
+    
+    return totalCompleted;
+  } catch (error) {
+    console.error('Error in fetchTotalCompletedTransactionsCount:', error);
     throw error;
   }
-  return data ? Number(data) : 0;
 }
 
 // Toplam kullanıcı sayısını çekme (profiles tablosundan)

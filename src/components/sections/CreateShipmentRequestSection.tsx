@@ -417,7 +417,7 @@ const CreateShipmentRequestSection: React.FC = () => {
       return;
     }
 
-    // Form validasyonu
+    // Form validasyonu (origin ve destination tekrar zorunlu)
     if (!formData.requestTitle || !formData.requestDescription || !formData.requestOrigin || !formData.requestDestination || !transportMode) {
       toast.error('Lütfen tüm zorunlu alanları doldurun!');
       return;
