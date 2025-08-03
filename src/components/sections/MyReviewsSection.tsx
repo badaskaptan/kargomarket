@@ -56,12 +56,12 @@ const MyReviewsSection: React.FC = () => {
   const [responseStates, setResponseStates] = useState<Record<string, ResponseState>>({});
 
   // Response state helpers
-  const initResponseState = (reviewId: string, initialText: string = '') => {
+  const initResponseState = useCallback((reviewId: string, initialText: string = '') => {
     setResponseStates(prev => ({
       ...prev,
       [reviewId]: { text: initialText, isEditing: false, isSubmitting: false }
     }));
-  };
+  }, []);
 
   const updateResponseState = (reviewId: string, updates: Partial<ResponseState>) => {
     setResponseStates(prev => ({
@@ -151,12 +151,10 @@ const MyReviewsSection: React.FC = () => {
   useEffect(() => {
     if (receivedReviews) {
       receivedReviews.forEach(review => {
-        if (!responseStates[review.id]) {
-          initResponseState(review.id, review.response || '');
-        }
+        initResponseState(review.id, review.response || '');
       });
     }
-  }, [receivedReviews]);
+  }, [receivedReviews, initResponseState]); // Only depend on receivedReviews and initResponseState
 
   // Form state'leri
   const [editFormData, setEditFormData] = useState({
