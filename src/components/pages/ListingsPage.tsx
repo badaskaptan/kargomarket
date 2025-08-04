@@ -5,8 +5,8 @@ import AuthModal from '../auth/AuthModal';
 import LoadListingDetailModal from '../modals/listings/detail/LoadListingDetailModal';
 import ShipmentRequestDetailModal from '../modals/listings/detail/ShipmentRequestDetailModal';
 import TransportServiceDetailModal from '../modals/listings/detail/TransportServiceDetailModal';
-import CreateOfferModal from '../modals/offers/regular/CreateOfferModal';
-import EnhancedServiceOfferModal from '../modals/offers/service/EnhancedServiceOfferModal';
+import CreateOfferModal from '../modals/CreateOfferModal';
+import EnhancedServiceOfferModal from '../modals/EnhancedServiceOfferModal';
 import { useListings } from '../../hooks/useListings';
 import { useMessaging } from '../../hooks/useMessaging.ts';
 import { OfferService } from '../../services/offerService';
@@ -262,13 +262,10 @@ const ListingsPage: React.FC = () => {
       return;
     }
 
-    // Transport service için ayrı modal
+    setSelectedListing(listing);
     if (listing.listing_type === 'transport_service') {
-      setSelectedListing(listing);
       setShowCreateServiceOfferModal(true);
     } else {
-      // Load listing ve shipment request için normal offer modal
-      setSelectedListing(listing);
       setShowCreateOfferModal(true);
     }
   };
@@ -612,12 +609,15 @@ const ListingsPage: React.FC = () => {
                     <div className="p-6 pt-4 border-t border-gray-100">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleShowOffer(listing)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShowOffer(listing);
+                          }}
                           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors transform hover:scale-105 ${isOwnListing(listing)
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             : 'bg-primary-600 text-white hover:bg-primary-700'
                             }`}
-                          disabled={isOwnListing(listing)}
+                          disabled={isOwnListing(listing) || showCreateOfferModal || showCreateServiceOfferModal}
                         >
                           {isLoggedIn
                             ? isOwnListing(listing)

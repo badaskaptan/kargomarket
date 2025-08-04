@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  MapPin, 
-  Calendar, 
-  Truck, 
+import {
+  X,
+  MapPin,
+  Calendar,
+  Truck,
   Check,
   Ship,
   Plane,
@@ -29,12 +29,12 @@ interface EnhancedServiceOfferFormData {
   price_currency: 'TRY' | 'USD' | 'EUR';
   price_per: 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle';
   message: string;
-  
+
   // Taşıma bilgileri
   transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
   cargo_type: 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery';
   service_scope: 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only';
-  
+
   // Tarih bilgileri
   pickup_date_preferred: string;
   pickup_date_latest: string;
@@ -42,15 +42,15 @@ interface EnhancedServiceOfferFormData {
   delivery_date_latest: string;
   transit_time_estimate: string;
   expires_at: string;
-  
+
   // Kapasite bilgileri
   weight_capacity_kg: string;
   volume_capacity_m3: string;
-  
+
   // Sigorta ve güvenceler
   insurance_coverage_amount: string;
   insurance_provider: string;
-  
+
   // Hizmet kapsamı
   customs_handling_included: boolean;
   documentation_handling_included: boolean;
@@ -58,27 +58,27 @@ interface EnhancedServiceOfferFormData {
   tracking_system_provided: boolean;
   express_service: boolean;
   weekend_service: boolean;
-  
+
   // Ücret dahil edilenler
   fuel_surcharge_included: boolean;
   toll_fees_included: boolean;
   port_charges_included: boolean;
   airport_charges_included: boolean;
-  
+
   // Garantiler
   on_time_guarantee: boolean;
   damage_free_guarantee: boolean;
   temperature_guarantee: boolean;
-  
+
   // İletişim bilgileri
   contact_person: string;
   contact_phone: string;
   emergency_contact: string;
-  
+
   // Ödeme şartları
   payment_terms: string;
   payment_method: string;
-  
+
   // Risk yönetimi
   contingency_plan: string;
 }
@@ -90,7 +90,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
   onSuccess
 }) => {
   const { user } = useAuth();
-  
+
   const [formData, setFormData] = useState<EnhancedServiceOfferFormData>({
     price_amount: '',
     price_currency: 'TRY',
@@ -213,7 +213,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user) {
       alert('Teklif verebilmek için giriş yapmalısınız');
       return;
@@ -231,7 +231,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         price_currency: formData.price_currency,
         price_per: formData.price_per,
         message: formData.message.trim(),
-        
+
         // Enhanced fields - service_offers tablosuna eklenecek alanlar
         transport_mode: formData.transport_mode,
         cargo_type: formData.cargo_type,
@@ -242,33 +242,33 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         delivery_date_latest: formData.delivery_date_latest || null,
         transit_time_estimate: formData.transit_time_estimate,
         expires_at: formData.expires_at,
-        
+
         weight_capacity_kg: formData.weight_capacity_kg ? parseFloat(formData.weight_capacity_kg) : null,
         volume_capacity_m3: formData.volume_capacity_m3 ? parseFloat(formData.volume_capacity_m3) : null,
-        
+
         insurance_coverage_amount: formData.insurance_coverage_amount ? parseFloat(formData.insurance_coverage_amount) : null,
         insurance_provider: formData.insurance_provider || null,
-        
+
         customs_handling_included: formData.customs_handling_included,
         documentation_handling_included: formData.documentation_handling_included,
         loading_unloading_included: formData.loading_unloading_included,
         tracking_system_provided: formData.tracking_system_provided,
         express_service: formData.express_service,
         weekend_service: formData.weekend_service,
-        
+
         fuel_surcharge_included: formData.fuel_surcharge_included,
         toll_fees_included: formData.toll_fees_included,
         port_charges_included: formData.port_charges_included,
         airport_charges_included: formData.airport_charges_included,
-        
+
         on_time_guarantee: formData.on_time_guarantee,
         damage_free_guarantee: formData.damage_free_guarantee,
         temperature_guarantee: formData.temperature_guarantee,
-        
+
         contact_person: formData.contact_person,
         contact_phone: formData.contact_phone,
         emergency_contact: formData.emergency_contact || null,
-        
+
         payment_terms: formData.payment_terms,
         payment_method: formData.payment_method,
         contingency_plan: formData.contingency_plan || null
@@ -276,10 +276,10 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
       console.log('✅ Enhanced service offer created successfully');
       alert('Gelişmiş teklifiniz başarıyla gönderildi!');
-      
+
       onClose();
       onSuccess?.();
-      
+
       // Form'u sıfırla
       setFormData({
         price_amount: '',
@@ -369,19 +369,17 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         {[1, 2, 3, 4].map((step) => (
           <div key={step} className="flex items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= step
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${currentStep >= step
                   ? 'bg-orange-600 text-white'
                   : 'bg-gray-200 text-gray-600'
-              }`}
+                }`}
             >
               {step}
             </div>
             {step < 4 && (
               <div
-                className={`w-12 h-1 ml-2 ${
-                  currentStep > step ? 'bg-orange-600' : 'bg-gray-200'
-                }`}
+                className={`w-12 h-1 ml-2 ${currentStep > step ? 'bg-orange-600' : 'bg-gray-200'
+                  }`}
               />
             )}
           </div>
@@ -396,7 +394,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         <DollarSign className="w-6 h-6 mr-2 text-orange-600" />
         Fiyat ve Temel Bilgiler
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Fiyat Bilgileri */}
         <div className="space-y-4">
@@ -411,9 +409,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 step="0.01"
                 value={formData.price_amount}
                 onChange={(e) => updateFormData('price_amount', e.target.value)}
-                className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                  errors.price_amount ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.price_amount ? 'border-red-300' : 'border-gray-300'
+                  }`}
                 placeholder="0,00"
               />
               <select
@@ -506,7 +503,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         <Calendar className="w-6 h-6 mr-2 text-orange-600" />
         Tarih ve Süre Bilgileri
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
@@ -575,9 +572,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
               type="text"
               value={formData.transit_time_estimate}
               onChange={(e) => updateFormData('transit_time_estimate', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                errors.transit_time_estimate ? 'border-red-300' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.transit_time_estimate ? 'border-red-300' : 'border-gray-300'
+                }`}
               placeholder="örn: 2-3 gün, 1 hafta, sürekli"
             />
             {errors.transit_time_estimate && (
@@ -587,7 +583,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Teklifin Geçerlilik Tarihi * 
+              Teklifin Geçerlilik Tarihi *
               <span className="text-gray-500 font-normal">(maksimum 6 ay)</span>
             </label>
             <input
@@ -596,9 +592,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
               max={getMaxExpiryDate()}
               value={formData.expires_at || getDefaultExpiryDate()}
               onChange={(e) => updateFormData('expires_at', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                errors.expires_at ? 'border-red-300' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.expires_at ? 'border-red-300' : 'border-gray-300'
+                }`}
               title="Teklifin geçerlilik tarihi seçin (maksimum 6 ay)"
             />
             {errors.expires_at && (
@@ -616,7 +611,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         <Shield className="w-6 h-6 mr-2 text-orange-600" />
         Hizmetler ve Garantiler
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Dahil Edilen Hizmetler */}
         <div className="bg-gray-50 rounded-lg p-6">
@@ -708,7 +703,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         <User className="w-6 h-6 mr-2 text-orange-600" />
         İletişim ve Mesaj
       </h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* İletişim Bilgileri */}
         <div className="space-y-4">
@@ -720,9 +715,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
               type="text"
               value={formData.contact_person}
               onChange={(e) => updateFormData('contact_person', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                errors.contact_person ? 'border-red-300' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.contact_person ? 'border-red-300' : 'border-gray-300'
+                }`}
               placeholder="Ad Soyad"
             />
             {errors.contact_person && (
@@ -738,9 +732,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
               type="tel"
               value={formData.contact_phone}
               onChange={(e) => updateFormData('contact_phone', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                errors.contact_phone ? 'border-red-300' : 'border-gray-300'
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.contact_phone ? 'border-red-300' : 'border-gray-300'
+                }`}
               placeholder="+90 xxx xxx xx xx"
             />
             {errors.contact_phone && (
@@ -831,9 +824,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
           rows={6}
           value={formData.message}
           onChange={(e) => updateFormData('message', e.target.value)}
-          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none ${
-            errors.message ? 'border-red-300' : 'border-gray-300'
-          }`}
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none ${errors.message ? 'border-red-300' : 'border-gray-300'
+            }`}
           placeholder="Nakliye hizmet teklifinizle ilgili detayları, özel durumları ve avantajlarınızı belirtiniz..."
         />
         {errors.message && (
@@ -889,16 +881,16 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 <MapPin className="w-4 h-4 mr-2" />
                 <span>{transportService.origin} → {transportService.destination}</span>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center">
                   {getTransportIcon(transportService.transport_mode)}
                   <span className="ml-2 capitalize">
                     {transportService.transport_mode === 'road' ? 'Karayolu' :
-                     transportService.transport_mode === 'sea' ? 'Denizyolu' :
-                     transportService.transport_mode === 'air' ? 'Havayolu' :
-                     transportService.transport_mode === 'rail' ? 'Demiryolu' :
-                     transportService.transport_mode}
+                      transportService.transport_mode === 'sea' ? 'Denizyolu' :
+                        transportService.transport_mode === 'air' ? 'Havayolu' :
+                          transportService.transport_mode === 'rail' ? 'Demiryolu' :
+                            transportService.transport_mode}
                   </span>
                 </div>
                 <div className="flex items-center">
@@ -936,7 +928,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
               >
                 {currentStep > 1 ? 'Önceki Adım' : 'İptal'}
               </button>
-              
+
               {currentStep < 4 ? (
                 <button
                   type="button"
