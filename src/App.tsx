@@ -1,10 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { Toaster } from 'react-hot-toast';
-import PublicLayout from './components/layout/PublicLayout';
-import DashboardLayout from './components/layout/DashboardLayout';
 import { DashboardProvider } from './context/DashboardContext';
 import { AuthProvider, useAuth } from './context/SupabaseAuthContext';
 import debugAuth from './utils/debugAuth';
+
+// Lazy load major components
+const PublicLayout = lazy(() => import('./components/layout/PublicLayout'));
+const DashboardLayout = lazy(() => import('./components/layout/DashboardLayout'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+  </div>
+);
 
 function AppContent() {
   const { loading } = useAuth();
@@ -22,30 +31,30 @@ function AppContent() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (showDashboard) {
     return (
       <DashboardProvider>
-        <DashboardLayout onBackToPublic={() => {
-          setShowDashboard(false);
-          setTimeout(() => setPublicLayoutKey(prev => prev + 1), 0); // PublicLayout'u sıfırla ve ana sayfaya dön
-        }} />
+        <Suspense fallback={<LoadingSpinner />}>
+          <DashboardLayout onBackToPublic={() => {
+            setShowDashboard(false);
+            setTimeout(() => setPublicLayoutKey(prev => prev + 1), 0); // PublicLayout'u sıfırla ve ana sayfaya dön
+          }} />
+        </Suspense>
       </DashboardProvider>
     );
   }
 
   return (
-    <PublicLayout
-      key={publicLayoutKey}
-      onShowDashboard={() => setShowDashboard(true)}
-      onBackToHome={() => { }}
-    />
+    <Suspense fallback={<LoadingSpinner />}>
+      <PublicLayout
+        key={publicLayoutKey}
+        onShowDashboard={() => setShowDashboard(true)}
+        onBackToHome={() => { }}
+      />
+    </Suspense>
   );
 }
 
