@@ -767,9 +767,9 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     </div>
                     {/* İlan Tipi İşareti */}
                     <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${offer.listing.listing_type === 'load_listing' ? 'bg-blue-100 text-blue-800' :
-                        offer.listing.listing_type === 'shipment_request' ? 'bg-green-100 text-green-800' :
-                          offer.listing.listing_type === 'transport_service' ? 'bg-orange-100 text-orange-800' :
-                            'bg-gray-100 text-gray-800'
+                      offer.listing.listing_type === 'shipment_request' ? 'bg-green-100 text-green-800' :
+                        offer.listing.listing_type === 'transport_service' ? 'bg-orange-100 text-orange-800' :
+                          'bg-gray-100 text-gray-800'
                       }`}>
                       {offer.listing.listing_type === 'load_listing' ? 'Yük İlanı' :
                         offer.listing.listing_type === 'shipment_request' ? 'Nakliye Talebi' :

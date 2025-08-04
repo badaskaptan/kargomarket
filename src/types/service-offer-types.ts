@@ -3,6 +3,13 @@ export interface ServiceOffer {
   id: string;
   user_id: string;
   transport_service_id: string;
+  
+  // 🚨 ACİL EKLENDİ: Kritik coğrafi ve referans bilgiler
+  pickup_location?: string | null;
+  delivery_location?: string | null;
+  service_reference_title?: string | null;
+  offered_vehicle_type?: string | null;
+  
   price_amount: number | null;
   price_currency: 'TRY' | 'USD' | 'EUR';
   price_per?: string | null; // Database'de var ama interface'de eksikti
@@ -15,6 +22,13 @@ export interface ServiceOffer {
 export interface ServiceOfferInsert {
   user_id: string;
   transport_service_id: string;
+  
+  // 🚨 ACİL EKLENDİ: Kritik coğrafi ve referans bilgiler
+  pickup_location?: string | null;
+  delivery_location?: string | null;
+  service_reference_title?: string | null;
+  offered_vehicle_type?: string | null;
+  
   price_amount?: number | null;
   price_currency?: 'TRY' | 'USD' | 'EUR';
   price_per?: string | null;

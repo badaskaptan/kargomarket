@@ -24,6 +24,12 @@ interface EnhancedServiceOfferModalProps {
 }
 
 interface EnhancedServiceOfferFormData {
+    // 🚨 ACİL EKLENDİ: Kritik coğrafi bilgiler
+    pickup_location: string;
+    delivery_location: string;
+    service_reference_title: string;
+    offered_vehicle_type: string;
+    
     // Temel teklif bilgileri
     price_amount: string;
     price_currency: 'TRY' | 'USD' | 'EUR';
@@ -92,6 +98,12 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
     const { user } = useAuth();
 
     const [formData, setFormData] = useState<EnhancedServiceOfferFormData>({
+        // 🚨 ACİL EKLENDİ: Otomatik doldurma ile kritik alanlar
+        pickup_location: transportService.origin || '',
+        delivery_location: transportService.destination || '',
+        service_reference_title: transportService.title || '',
+        offered_vehicle_type: '',
+        
         price_amount: '',
         price_currency: 'TRY',
         price_per: 'total',
@@ -182,6 +194,19 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
 
+        // 🚨 ACİL EKLENDİ: Kritik alan validasyonları
+        if (!formData.pickup_location.trim()) {
+            newErrors.pickup_location = 'Alım noktası zorunludur';
+        }
+
+        if (!formData.delivery_location.trim()) {
+            newErrors.delivery_location = 'Teslimat noktası zorunludur';
+        }
+
+        if (!formData.service_reference_title.trim()) {
+            newErrors.service_reference_title = 'Hizmet referansı zorunludur';
+        }
+
         // Temel validasyonlar
         if (!formData.price_amount || parseFloat(formData.price_amount) <= 0) {
             newErrors.price_amount = 'Geçerli bir fiyat giriniz';
@@ -227,6 +252,13 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
             await ServiceOfferService.createServiceOffer({
                 user_id: user.id,
                 transport_service_id: transportService.id,
+                
+                // 🚨 ACİL EKLENDİ: Kritik coğrafi ve referans bilgiler
+                pickup_location: formData.pickup_location.trim(),
+                delivery_location: formData.delivery_location.trim(),
+                service_reference_title: formData.service_reference_title.trim(),
+                offered_vehicle_type: formData.offered_vehicle_type.trim() || null,
+                
                 price_amount: parseFloat(formData.price_amount),
                 price_currency: formData.price_currency,
                 price_per: formData.price_per,
@@ -282,6 +314,12 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
             // Form'u sıfırla
             setFormData({
+                // 🚨 ACİL EKLENDİ: Kritik alanları reset'te de dahil et
+                pickup_location: transportService.origin || '',
+                delivery_location: transportService.destination || '',
+                service_reference_title: transportService.title || '',
+                offered_vehicle_type: '',
+                
                 price_amount: '',
                 price_currency: 'TRY',
                 price_per: 'total',
@@ -395,8 +433,53 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 Fiyat ve Temel Bilgiler
             </h3>
 
+            {/* 🚨 YENİ EKLENDİ: Hizmet Bilgi Özeti */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-center mb-3">
+                    <Truck className="w-5 h-5 mr-2 text-blue-600" />
+                    <h4 className="font-semibold text-blue-900">Teklif Verdiğiniz Hizmet</h4>
+                </div>
+                <div className="space-y-2 text-sm">
+                    <p><span className="font-medium">Hizmet:</span> {transportService.title}</p>
+                    <p><span className="font-medium">Güzergah:</span> {transportService.origin} → {transportService.destination}</p>
+                    <p><span className="font-medium">Taşıma Modu:</span> {transportService.transport_mode}</p>
+                </div>
+            </div>
+
+            {/* 🚨 YENİ EKLENDİ: Kritik Lokasyon Bilgileri */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Fiyat Bilgileri */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Alım Noktası *
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.pickup_location}
+                        onChange={(e) => updateFormData('pickup_location', e.target.value)}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.pickup_location ? 'border-red-300' : 'border-gray-300'}`}
+                        placeholder="Ör: İstanbul, Türkiye"
+                        readOnly
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Bu alan otomatik dolduruldu</p>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Teslimat Noktası *
+                    </label>
+                    <input
+                        type="text"
+                        value={formData.delivery_location}
+                        onChange={(e) => updateFormData('delivery_location', e.target.value)}
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.delivery_location ? 'border-red-300' : 'border-gray-300'}`}
+                        placeholder="Ör: Ankara, Türkiye"
+                        readOnly
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Bu alan otomatik dolduruldu</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">{/* Fiyat Bilgileri */}
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
