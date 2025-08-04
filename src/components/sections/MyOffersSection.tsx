@@ -21,7 +21,7 @@ import { OfferService, type ExtendedOffer } from '../../services/offerService';
 import { ServiceOfferService } from '../../services/serviceOfferService';
 import type { ExtendedServiceOffer } from '../../types/service-offer-types';
 import OfferDetailModal from '../modals/offers/regular/OfferDetailModal';
-import CreateOfferModal from '../modals/offers/regular/CreateOfferModal';
+import CreateOfferModal from '../modals/CreateOfferModal';
 import EditOfferModal from '../modals/offers/regular/EditOfferModal';
 import AcceptRejectOfferModal from '../modals/offers/regular/AcceptRejectOfferModal';
 import ServiceOfferDetailModal from '../modals/offers/service/ServiceOfferDetailModal';
