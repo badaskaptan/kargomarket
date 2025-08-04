@@ -13,9 +13,12 @@ import {
     MessageSquare
 } from 'lucide-react';
 import type { Database } from '../../types/database-types';
+import { OfferDocumentService } from '../../services/offerDocumentService';
 
 type Listing = Database['public']['Tables']['listings']['Row'];
 type OfferInsert = Database['public']['Tables']['offers']['Insert'];
+
+type CargoType = 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery' | 'box_package' | 'pallet_standard' | 'pallet_euro' | 'pallet_industrial' | 'sack_bigbag' | 'barrel_drum' | 'appliances_electronics' | 'furniture_decor' | 'textile_products' | 'automotive_parts' | 'machinery_parts' | 'construction_materials' | 'packaged_food' | 'consumer_goods' | 'ecommerce_cargo' | 'other_general' | 'grain' | 'ore' | 'coal' | 'cement_bulk' | 'sand_gravel' | 'fertilizer_bulk' | 'soil_excavation' | 'scrap_metal' | 'other_bulk' | 'crude_oil' | 'chemical_liquids' | 'vegetable_oils' | 'fuel' | 'lpg_lng' | 'water' | 'milk_dairy' | 'wine_concentrate' | 'other_liquid' | 'tbm' | 'transformer_generator' | 'heavy_machinery' | 'boat_yacht' | 'industrial_parts' | 'prefab_elements' | 'wind_turbine' | 'other_oversized' | 'art_antiques' | 'glass_ceramic' | 'electronic_devices' | 'medical_devices' | 'lab_equipment' | 'flowers_plants' | 'other_sensitive' | 'dangerous_class1' | 'dangerous_class2' | 'dangerous_class3' | 'dangerous_class4' | 'dangerous_class5' | 'dangerous_class6' | 'dangerous_class7' | 'dangerous_class8' | 'dangerous_class9' | 'frozen_food' | 'fresh_produce' | 'meat_dairy' | 'pharma_vaccine' | 'chemical_temp' | 'other_cold_chain' | 'small_livestock' | 'large_livestock' | 'poultry' | 'pets' | 'other_livestock' | 'factory_setup' | 'power_plant' | 'infrastructure' | 'other_project';
 
 interface CreateOfferModalProps {
     listing: Listing;
@@ -33,8 +36,8 @@ interface FormData {
     price_per: 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle';
 
     // Step 2: Nakliye Detayları  
-    transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
-    cargo_type: 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery';
+    transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal' | 'negotiable';
+    cargo_type: CargoType;
     service_scope: 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only';
     pickup_date_preferred: string;
     delivery_date_preferred: string;
@@ -57,6 +60,10 @@ interface FormData {
     payment_method: string;
     special_conditions: string;
     message: string;
+    
+    // Evrak Yükleme (Opsiyonel)
+    documents_description: string;
+    uploaded_documents: File[];
 
     // Geçerlilik
     expires_at: string;
@@ -81,7 +88,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
         price_per: 'total',
 
         // Step 2: Nakliye Detayları
-        transport_mode: 'road',
+        transport_mode: 'negotiable',
         cargo_type: 'general_cargo',
         service_scope: 'door_to_door',
         pickup_date_preferred: '',
@@ -105,6 +112,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
         payment_method: '',
         special_conditions: '',
         message: '',
+        
+        // Evrak Yükleme (Opsiyonel)
+        documents_description: '',
+        uploaded_documents: [],
 
         // Geçerlilik
         expires_at: '',
@@ -146,10 +157,12 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
             } else {
                 const expiryDate = new Date(formData.expires_at);
                 const now = new Date();
+                // Sadece geçmiş tarih kontrolü - gelecekteki herhangi bir tarih kabul edilir
                 if (expiryDate <= now) {
                     newErrors.expires_at = 'Geçerlilik tarihi gelecekte olmalıdır';
                 }
             }
+            // valid_until için herhangi bir zaman sınırlaması yok - isteğe bağlı alan
         }
 
         setErrors(newErrors);
@@ -173,6 +186,28 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
 
         setIsSubmitting(true);
         try {
+            // Önce teklifin ID'sini oluşturalım (geçici - gerçekte backend'den gelecek)
+            const tempOfferId = crypto.randomUUID();
+            
+            // Dosyaları yükleyelim (listings pattern'i takip ederek)
+            const documentUrls: string[] = [];
+            const imageUrls: string[] = [];
+            
+            if (formData.uploaded_documents.length > 0) {
+                try {
+                    const uploadResults = await OfferDocumentService.uploadOfferDocuments(
+                        formData.uploaded_documents, 
+                        currentUserId, 
+                        tempOfferId
+                    );
+                    documentUrls.push(...uploadResults.documentUrls);
+                    imageUrls.push(...uploadResults.imageUrls);
+                } catch (error) {
+                    console.error('Dosya yükleme hatası:', error);
+                    // Hata durumunda da teklifi gönderebiliriz, sadece dosyalar olmaz
+                }
+            }
+
             const offerData: Omit<OfferInsert, 'id' | 'created_at' | 'updated_at'> = {
                 listing_id: listing.id,
                 user_id: currentUserId,
@@ -202,6 +237,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                 weekend_service: formData.weekend_service,
                 fuel_surcharge_included: formData.fuel_surcharge_included,
                 toll_fees_included: formData.toll_fees_included,
+                // Evrak bilgileri (listings pattern'i takip ederek)
+                documents_description: formData.documents_description.trim() || null,  
+                document_urls: documentUrls.length > 0 ? documentUrls : null,
+                image_urls: imageUrls.length > 0 ? imageUrls : null,
                 status: 'pending'
             };
 
@@ -249,6 +288,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
             payment_method: '',
             special_conditions: '',
             message: '',
+            
+            // Evrak Yükleme (Opsiyonel)
+            documents_description: '',
+            uploaded_documents: [],
 
             // Geçerlilik
             expires_at: '',
@@ -257,7 +300,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
         setErrors({});
     };
 
-    const updateFormData = (field: keyof FormData, value: string | boolean) => {
+    const updateFormData = (field: keyof FormData, value: string | boolean | File[]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
@@ -342,40 +385,101 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
 
                     {/* İlan Özeti */}
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">İlan Detayları</h3>
-                        <div className="space-y-3">
-                            <h4 className="font-medium text-gray-900">{listing.title}</h4>
-                            <div className="flex items-center text-gray-600">
-                                <MapPin className="w-4 h-4 mr-2" />
-                                <span>{listing.origin} → {listing.destination}</span>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">İlan Detayları</h3>
+                            {/* İlan Tipi İşareti */}
+                            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                                listing.listing_type === 'load_listing' ? 'bg-blue-100 text-blue-800' :
+                                listing.listing_type === 'shipment_request' ? 'bg-green-100 text-green-800' :
+                                listing.listing_type === 'transport_service' ? 'bg-orange-100 text-orange-800' :
+                                'bg-gray-100 text-gray-800'
+                            }`}>
+                                {listing.listing_type === 'load_listing' ? 'Yük İlanı' :
+                                 listing.listing_type === 'shipment_request' ? 'Nakliye Talebi' :
+                                 listing.listing_type === 'transport_service' ? 'Nakliye Hizmeti' :
+                                 'İlan'}
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            {/* İlan No */}
+                            {listing.listing_number && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500">İlan No:</span>
+                                    <span className="text-sm font-semibold text-blue-600">{listing.listing_number}</span>
+                                </div>
+                            )}
+
+                            {/* Başlık */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-500">Başlık:</span>
+                                <span className="text-sm font-semibold text-gray-900">{listing.title}</span>
                             </div>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                {listing.weight_value && (
-                                    <div className="flex items-center">
-                                        <Package className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span>{listing.weight_value} kg</span>
-                                    </div>
-                                )}
-                                {listing.volume_value && (
-                                    <div className="flex items-center">
-                                        <Package className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span>{listing.volume_value} m³</span>
-                                    </div>
-                                )}
-                                {listing.loading_date && (
-                                    <div className="flex items-center">
-                                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span>{formatDate(listing.loading_date)}</span>
-                                    </div>
-                                )}
-                                {listing.transport_mode && (
-                                    <div className="flex items-center">
-                                        <Truck className="w-4 h-4 mr-2 text-gray-400" />
-                                        <span className="capitalize">{listing.transport_mode}</span>
-                                    </div>
-                                )}
+                            {/* Güzergah */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-500">Güzergah:</span>
+                                <div className="flex items-center text-gray-600">
+                                    <MapPin className="w-4 h-4 mr-1" />
+                                    <span className="text-sm font-medium">{listing.origin} → {listing.destination}</span>
+                                </div>
                             </div>
+
+                            {/* Yük Tipi */}
+                            {listing.load_category && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500">Yük Tipi:</span>
+                                    <span className="text-sm font-medium text-gray-900">{listing.load_category}</span>
+                                </div>
+                            )}
+
+                            {/* Ağırlık */}
+                            {listing.weight_value && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500">Ağırlık:</span>
+                                    <div className="flex items-center">
+                                        <Package className="w-4 h-4 mr-1 text-gray-400" />
+                                        <span className="text-sm font-medium text-gray-900">
+                                            {listing.weight_value >= 1000 
+                                                ? `${(listing.weight_value / 1000).toFixed(0)} ton`
+                                                : `${listing.weight_value} kg`
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Hacim */}
+                            {listing.volume_value && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500">Hacim:</span>
+                                    <div className="flex items-center">
+                                        <Package className="w-4 h-4 mr-1 text-gray-400" />
+                                        <span className="text-sm font-medium text-gray-900">{listing.volume_value} m³</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Yükleme Tarihi */}
+                            {listing.loading_date && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500">Yükleme Tarihi:</span>
+                                    <div className="flex items-center">
+                                        <Calendar className="w-4 h-4 mr-1 text-gray-400" />
+                                        <span className="text-sm font-medium text-gray-900">{formatDate(listing.loading_date)}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Taşıma Modu - Sadece nakliye talebi ve nakliye hizmeti için göster */}
+                            {listing.transport_mode && listing.listing_type !== 'load_listing' && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500">Taşıma Modu:</span>
+                                    <div className="flex items-center">
+                                        <Truck className="w-4 h-4 mr-1 text-gray-400" />
+                                        <span className="text-sm font-medium text-gray-900 capitalize">{listing.transport_mode}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -483,7 +587,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                             </label>
                                             <select
                                                 value={formData.transport_mode}
-                                                onChange={(e) => updateFormData('transport_mode', e.target.value as 'road' | 'sea' | 'air' | 'rail' | 'multimodal')}
+                                                onChange={(e) => updateFormData('transport_mode', e.target.value as 'road' | 'sea' | 'air' | 'rail' | 'multimodal' | 'negotiable')}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 title="Taşıma türü seçin"
                                                 aria-label="Taşıma türü seçin"
@@ -493,6 +597,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                                 <option value="air">Hava</option>
                                                 <option value="rail">Demir Yolu</option>
                                                 <option value="multimodal">Çok Modlu</option>
+                                                <option value="negotiable">Görüşülecek</option>
                                             </select>
                                         </div>
 
@@ -503,18 +608,103 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                             </label>
                                             <select
                                                 value={formData.cargo_type}
-                                                onChange={(e) => updateFormData('cargo_type', e.target.value as 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery')}
+                                                onChange={(e) => updateFormData('cargo_type', e.target.value as CargoType)}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                 title="Kargo türü seçin"
                                                 aria-label="Kargo türü seçin"
                                             >
-                                                <option value="general_cargo">Genel Kargo</option>
-                                                <option value="bulk_cargo">Dökme Kargo</option>
-                                                <option value="container">Konteyner</option>
-                                                <option value="liquid">Sıvı</option>
-                                                <option value="refrigerated">Soğutmalı</option>
-                                                <option value="hazardous">Tehlikeli Madde</option>
-                                                <option value="oversized">Büyük Boy</option>
+                                                <option value="">Seçiniz</option>
+                                                <optgroup label="Genel Kargo / Paletli Ürünler">
+                                                  <option value="box_package">📦 Koli / Paket</option>
+                                                  <option value="pallet_standard">🏗️ Paletli Yükler - Standart Palet</option>
+                                                  <option value="pallet_euro">🇪🇺 Paletli Yükler - Euro Palet</option>
+                                                  <option value="pallet_industrial">🏭 Paletli Yükler - Endüstriyel Palet</option>
+                                                  <option value="sack_bigbag">🛍️ Çuval / Bigbag (Dökme Olmayan)</option>
+                                                  <option value="barrel_drum">🛢️ Varil / Fıçı</option>
+                                                  <option value="appliances_electronics">📱 Beyaz Eşya / Elektronik</option>
+                                                  <option value="furniture_decor">🪑 Mobilya / Dekorasyon Ürünleri</option>
+                                                  <option value="textile_products">👕 Tekstil Ürünleri</option>
+                                                  <option value="automotive_parts">🚗 Otomotiv Parçaları / Yedek Parça</option>
+                                                  <option value="machinery_parts">⚙️ Makine / Ekipman Parçaları (Büyük Olmayan)</option>
+                                                  <option value="construction_materials">🏗️ İnşaat Malzemeleri (Torbalı Çimento, Demir Bağlar vb.)</option>
+                                                  <option value="packaged_food">🥫 Ambalajlı Gıda Ürünleri (Kuru Gıda, Konserve vb.)</option>
+                                                  <option value="consumer_goods">🛒 Tüketim Ürünleri (Market Ürünleri)</option>
+                                                  <option value="ecommerce_cargo">📱 E-ticaret Kargo</option>
+                                                  <option value="other_general">📋 Diğer Genel Kargo</option>
+                                                </optgroup>
+                                                <optgroup label="Dökme Yükler">
+                                                  <option value="grain">🌾 Tahıl (Buğday, Mısır, Arpa, Pirinç vb.)</option>
+                                                  <option value="ore">⛏️ Maden Cevheri (Demir, Bakır, Boksit vb.)</option>
+                                                  <option value="coal">⚫ Kömür</option>
+                                                  <option value="cement_bulk">🏗️ Çimento (Dökme)</option>
+                                                  <option value="sand_gravel">🏖️ Kum / Çakıl</option>
+                                                  <option value="fertilizer_bulk">🌱 Gübre (Dökme)</option>
+                                                  <option value="soil_excavation">🏗️ Toprak / Hafriyat</option>
+                                                  <option value="scrap_metal">♻️ Hurda Metal</option>
+                                                  <option value="other_bulk">📋 Diğer Dökme Yükler</option>
+                                                </optgroup>
+                                                <optgroup label="Sıvı Yükler (Dökme Sıvı)">
+                                                  <option value="crude_oil">🛢️ Ham Petrol / Petrol Ürünleri</option>
+                                                  <option value="chemical_liquids">🧪 Kimyasal Sıvılar (Asit, Baz, Solvent vb.)</option>
+                                                  <option value="vegetable_oils">🌻 Bitkisel Yağlar (Ayçiçek Yağı, Zeytinyağı vb.)</option>
+                                                  <option value="fuel">⛽ Yakıt (Dizel, Benzin vb.)</option>
+                                                  <option value="lpg_lng">🔥 LPG / LNG (Sıvılaştırılmış Gazlar)</option>
+                                                  <option value="water">💧 Su (İçme Suyu, Endüstriyel Su)</option>
+                                                  <option value="milk_dairy">🥛 Süt / Süt Ürünleri (Dökme)</option>
+                                                  <option value="wine_concentrate">🍷 Şarap / İçecek Konsantresi</option>
+                                                  <option value="other_liquid">💧 Diğer Sıvı Yükler</option>
+                                                </optgroup>
+                                                <optgroup label="Ağır Yük / Gabari Dışı Yük">
+                                                  <option value="tbm">🚇 Tünel Açma Makinesi (TBM)</option>
+                                                  <option value="transformer_generator">⚡ Trafo / Jeneratör</option>
+                                                  <option value="heavy_machinery">🏗️ Büyük İş Makineleri (Ekskavatör, Vinç vb.)</option>
+                                                  <option value="boat_yacht">⛵ Tekne / Yat</option>
+                                                  <option value="industrial_parts">🏭 Büyük Endüstriyel Parçalar</option>
+                                                  <option value="prefab_elements">🏗️ Prefabrik Yapı Elemanları</option>
+                                                  <option value="wind_turbine">💨 Rüzgar Türbini Kanatları / Kuleleri</option>
+                                                  <option value="other_oversized">📏 Diğer Gabari Dışı Yükler</option>
+                                                </optgroup>
+                                                <optgroup label="Hassas / Kırılabilir Kargo">
+                                                  <option value="art_antiques">🎨 Sanat Eserleri / Antikalar</option>
+                                                  <option value="glass_ceramic">🏺 Cam / Seramik Ürünler</option>
+                                                  <option value="electronic_devices">💻 Elektronik Cihaz</option>
+                                                  <option value="medical_devices">🏥 Tıbbi Cihazlar</option>
+                                                  <option value="lab_equipment">🔬 Laboratuvar Ekipmanları</option>
+                                                  <option value="flowers_plants">🌸 Çiçek / Canlı Bitki</option>
+                                                  <option value="other_sensitive">🔒 Diğer Hassas Kargo</option>
+                                                </optgroup>
+                                                <optgroup label="Tehlikeli Madde (ADR / IMDG / IATA Sınıflandırması)">
+                                                  <option value="dangerous_class1">💥 Patlayıcılar (Sınıf 1)</option>
+                                                  <option value="dangerous_class2">💨 Gazlar (Sınıf 2)</option>
+                                                  <option value="dangerous_class3">🔥 Yanıcı Sıvılar (Sınıf 3)</option>
+                                                  <option value="dangerous_class4">🔥 Yanıcı Katılar (Sınıf 4)</option>
+                                                  <option value="dangerous_class5">⚗️ Oksitleyici Maddeler (Sınıf 5)</option>
+                                                  <option value="dangerous_class6">☠️ Zehirli ve Bulaşıcı Maddeler (Sınıf 6)</option>
+                                                  <option value="dangerous_class7">☢️ Radyoaktif Maddeler (Sınıf 7)</option>
+                                                  <option value="dangerous_class8">🧪 Aşındırıcı Maddeler (Sınıf 8)</option>
+                                                  <option value="dangerous_class9">⚠️ Diğer Tehlikeli Maddeler (Sınıf 9)</option>
+                                                </optgroup>
+                                                <optgroup label="Soğuk Zincir / Isı Kontrollü Yük">
+                                                  <option value="frozen_food">🧊 Donmuş Gıda</option>
+                                                  <option value="fresh_produce">🥬 Taze Meyve / Sebze</option>
+                                                  <option value="meat_dairy">🥩 Et / Süt Ürünleri</option>
+                                                  <option value="pharma_vaccine">💊 İlaç / Aşı</option>
+                                                  <option value="chemical_temp">🌡️ Kimyasal Maddeler (Isı Kontrollü)</option>
+                                                  <option value="other_cold_chain">❄️ Diğer Soğuk Zincir Kargo</option>
+                                                </optgroup>
+                                                <optgroup label="Canlı Hayvan">
+                                                  <option value="small_livestock">🐑 Küçük Baş Hayvan (Koyun, Keçi vb.)</option>
+                                                  <option value="large_livestock">🐄 Büyük Baş Hayvan (Sığır, At vb.)</option>
+                                                  <option value="poultry">🐔 Kanatlı Hayvan</option>
+                                                  <option value="pets">🐕 Evcil Hayvan</option>
+                                                  <option value="other_livestock">🐾 Diğer Canlı Hayvanlar</option>
+                                                </optgroup>
+                                                <optgroup label="Proje Yükleri">
+                                                  <option value="factory_setup">🏭 Fabrika Kurulumu</option>
+                                                  <option value="power_plant">⚡ Enerji Santrali Ekipmanları</option>
+                                                  <option value="infrastructure">🏗️ Altyapı Proje Malzemeleri</option>
+                                                  <option value="other_project">📋 Diğer Proje Yükleri</option>
+                                                </optgroup>
                                             </select>
                                         </div>
 
@@ -837,9 +1027,10 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                                 onChange={(e) => updateFormData('expires_at', e.target.value)}
                                                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.expires_at ? 'border-red-300' : 'border-gray-300'
                                                     }`}
-                                                title="Teklifin geçerlilik tarihi"
+                                                title="Teklifin geçerlilik tarihi - herhangi bir gelecek tarih seçilebilir"
                                                 aria-label="Teklifin geçerlilik tarihi"
                                             />
+                                            <p className="mt-1 text-xs text-gray-500">Herhangi bir gelecek tarih seçebilirsiniz</p>
                                             {errors.expires_at && <p className="mt-1 text-sm text-red-600">{errors.expires_at}</p>}
                                         </div>
 
@@ -850,13 +1041,13 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                             </label>
                                             <input
                                                 type="date"
-                                                min={formData.expires_at || getMinDate()}
                                                 value={formData.valid_until}
                                                 onChange={(e) => updateFormData('valid_until', e.target.value)}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                title="Teklifin son geçerli tarihi"
+                                                title="Teklifin son geçerli tarihi - opsiyonel, süre sınırlaması yok"
                                                 aria-label="Teklifin son geçerli tarihi"
                                             />
+                                            <p className="mt-1 text-xs text-gray-500">Opsiyonel - Süre sınırlaması yoktur</p>
                                         </div>
 
                                         {/* Özel Koşullar */}
@@ -887,6 +1078,101 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                                 placeholder="Teklifinizle ilgili detayları, özel durumları ve avantajlarınızı belirtiniz..."
                                             />
                                             {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
+                                        </div>
+
+                                        {/* Evrak Açıklaması */}
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Yüklenen Evrakların Açıklaması (Opsiyonel)
+                                            </label>
+                                            <textarea
+                                                rows={3}
+                                                value={formData.documents_description}
+                                                onChange={(e) => updateFormData('documents_description', e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                                placeholder="Lütfen yüklenen evrakları yazınız (örn: Sigorta belgesi, Yetki belgesi, İş sözleşmesi vb.)"
+                                            />
+                                        </div>
+
+                                        {/* Evrak Yükleme */}
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Evrak Yükleme (Opsiyonel)
+                                            </label>
+                                            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400 transition-colors">
+                                                <div className="space-y-1 text-center">
+                                                    <svg
+                                                        className="mx-auto h-12 w-12 text-gray-400"
+                                                        stroke="currentColor"
+                                                        fill="none"
+                                                        viewBox="0 0 48 48"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <path
+                                                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                                            strokeWidth={2}
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                        />
+                                                    </svg>
+                                                    <div className="flex text-sm text-gray-600">
+                                                        <label
+                                                            htmlFor="file-upload"
+                                                            className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                                                        >
+                                                            <span>Dosya yükleyin</span>
+                                                            <input
+                                                                id="file-upload"
+                                                                name="file-upload"
+                                                                type="file"
+                                                                multiple
+                                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                                className="sr-only"
+                                                                onChange={(e) => {
+                                                                    const files = Array.from(e.target.files || []);
+                                                                    updateFormData('uploaded_documents', [...formData.uploaded_documents, ...files]);
+                                                                }}
+                                                            />
+                                                        </label>
+                                                        <p className="pl-1">veya sürükleyip bırakın</p>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500">
+                                                        PDF, DOC, DOCX, JPG, JPEG, PNG dosyaları kabul edilir
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {/* Yüklenen Dosyalar Listesi */}
+                                            {formData.uploaded_documents.length > 0 && (
+                                                <div className="mt-4">
+                                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Yüklenen Dosyalar:</h4>
+                                                    <div className="space-y-2">
+                                                        {formData.uploaded_documents.map((file, index) => (
+                                                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                                                <div className="flex items-center">
+                                                                    <svg className="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                    <span className="text-sm text-gray-700">{file.name}</span>
+                                                                    <span className="text-xs text-gray-500 ml-2">({Math.round(file.size / 1024)} KB)</span>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newFiles = formData.uploaded_documents.filter((_, i) => i !== index);
+                                                                        updateFormData('uploaded_documents', newFiles);
+                                                                    }}
+                                                                    className="text-red-600 hover:text-red-700 p-1"
+                                                                    title="Dosyayı kaldır"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

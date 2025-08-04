@@ -902,7 +902,7 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
 
       {/* User Profile Card Modal */}
       {selectedMapUser && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="relative bg-white rounded-2xl p-6 max-w-md w-full transform scale-100 transition-all duration-300 shadow-2xl">
             <button
               onClick={() => setSelectedMapUser(null)}

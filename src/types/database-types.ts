@@ -672,6 +672,10 @@ export interface Database {
           weekend_service: boolean | null
           fuel_surcharge_included: boolean | null
           toll_fees_included: boolean | null
+          // Document handling fields (listings pattern)
+          documents_description: string | null
+          document_urls: string[] | null
+          image_urls: string[] | null
         }
         Insert: {
           id?: string
@@ -718,6 +722,10 @@ export interface Database {
           weekend_service?: boolean | null
           fuel_surcharge_included?: boolean | null
           toll_fees_included?: boolean | null
+          // Document handling fields (listings pattern)
+          documents_description?: string | null
+          document_urls?: string[] | null
+          image_urls?: string[] | null
         }
         Update: {
           id?: string

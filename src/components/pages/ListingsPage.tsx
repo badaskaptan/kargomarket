@@ -700,7 +700,7 @@ const ListingsPage: React.FC = () => {
 
       {/* Listing Detail Modal */}
       {selectedListing && !showDetailModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="relative bg-white rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedListing(null)}
@@ -876,7 +876,7 @@ const ListingsPage: React.FC = () => {
 
       {/* Mesaj Gönder Modalı */}
       {showMessageModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-sm relative">
             <button onClick={() => setShowMessageModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700" title="Kapat" aria-label="Kapat">
               <X size={24} />
