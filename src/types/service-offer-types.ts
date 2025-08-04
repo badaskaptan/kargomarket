@@ -10,6 +10,21 @@ export interface ServiceOffer {
   service_reference_title?: string | null;
   offered_vehicle_type?: string | null;
   
+  // 🚨 YENİ: Şirket bilgileri
+  company_name?: string | null;
+  company_website?: string | null;
+  company_tax_number?: string | null;
+  
+  // 🚨 YENİ: Sigorta bilgileri
+  insurance_company?: string | null;
+  insurance_policy_number?: string | null;
+  
+  // 🚨 YENİ: Yük miktarı ve hacim bilgileri
+  cargo_weight?: number | null;
+  cargo_weight_unit?: 'kg' | 'ton' | 'lb' | null;
+  cargo_volume?: number | null;
+  cargo_volume_unit?: 'm3' | 'ft3' | 'l' | null;
+  
   price_amount: number | null;
   price_currency: 'TRY' | 'USD' | 'EUR';
   price_per?: string | null; // Database'de var ama interface'de eksikti
@@ -29,6 +44,21 @@ export interface ServiceOfferInsert {
   service_reference_title?: string | null;
   offered_vehicle_type?: string | null;
   
+  // 🚨 YENİ: Şirket bilgileri
+  company_name?: string | null;
+  company_website?: string | null;
+  company_tax_number?: string | null;
+  
+  // 🚨 YENİ: Sigorta bilgileri
+  insurance_company?: string | null;
+  insurance_policy_number?: string | null;
+  
+  // 🚨 YENİ: Yük miktarı ve hacim bilgileri
+  cargo_weight?: number | null;
+  cargo_weight_unit?: 'kg' | 'ton' | 'lb' | null;
+  cargo_volume?: number | null;
+  cargo_volume_unit?: 'm3' | 'ft3' | 'l' | null;
+  
   price_amount?: number | null;
   price_currency?: 'TRY' | 'USD' | 'EUR';
   price_per?: string | null;
@@ -46,12 +76,6 @@ export interface ServiceOfferInsert {
   transit_time_estimate?: string | null;
   expires_at?: string | null;
   
-  weight_capacity_kg?: number | null;
-  volume_capacity_m3?: number | null;
-  
-  insurance_coverage_amount?: number | null;
-  insurance_provider?: string | null;
-  
   customs_handling_included?: boolean;
   documentation_handling_included?: boolean;
   loading_unloading_included?: boolean;
@@ -75,6 +99,10 @@ export interface ServiceOfferInsert {
   payment_terms?: string | null;
   payment_method?: string | null;
   contingency_plan?: string | null;
+  
+  // 🚨 YENİ: Route ve kapasite kontrolleri
+  matches_service_route?: boolean;
+  capacity_meets_requirement?: boolean;
 }
 
 export interface ServiceOfferUpdate {
@@ -84,10 +112,7 @@ export interface ServiceOfferUpdate {
   message?: string | null;
   payment_terms?: string | null;
   payment_method?: string | null;
-  service_description?: string | null;
-  validity_period?: number | null;
   expires_at?: string | null;
-  special_conditions?: string | null;
   transport_mode?: string | null;
   cargo_type?: string | null;
   service_scope?: string | null;
@@ -111,10 +136,24 @@ export interface ServiceOfferUpdate {
   temperature_guarantee?: boolean;
   emergency_contact?: string | null;
   contingency_plan?: string | null;
-  weight_capacity_kg?: number | null;
-  volume_capacity_m3?: number | null;
-  insurance_coverage_amount?: number | null;
-  insurance_provider?: string | null;
+
+  // 🚨 YENİ: Temizlenmiş schema'ya uygun alanlar
+  pickup_location?: string | null;
+  delivery_location?: string | null;
+  service_reference_title?: string | null;
+  offered_vehicle_type?: string | null;
+  company_name?: string | null;
+  company_website?: string | null;
+  company_tax_number?: string | null;
+  insurance_company?: string | null;
+  insurance_policy_number?: string | null;
+  cargo_weight?: number | null;
+  cargo_weight_unit?: 'kg' | 'ton' | 'lb' | null;
+  cargo_volume?: number | null;
+  cargo_volume_unit?: 'm3' | 'ft3' | 'l' | null;
+  matches_service_route?: boolean;
+  capacity_meets_requirement?: boolean;
+  
   status?: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'countered';
   updated_at?: string;
 }
@@ -167,6 +206,23 @@ export interface ExtendedServiceOffer extends ServiceOffer {
   temperature_guarantee?: boolean;
   emergency_contact?: string | null;
   contingency_plan?: string | null;
+  
+  // 🚨 YENİ: Temizlenmiş schema'ya uygun alanlar
+  pickup_location?: string | null;
+  delivery_location?: string | null;
+  service_reference_title?: string | null;
+  offered_vehicle_type?: string | null;
+  company_name?: string | null;
+  company_website?: string | null;
+  company_tax_number?: string | null;
+  insurance_company?: string | null;
+  insurance_policy_number?: string | null;
+  cargo_weight?: number | null;
+  cargo_weight_unit?: 'kg' | 'ton' | 'lb' | null;
+  cargo_volume?: number | null;
+  cargo_volume_unit?: 'm3' | 'ft3' | 'l' | null;
+  matches_service_route?: boolean;
+  capacity_meets_requirement?: boolean;
   // Eski alanlar
   transport_service?: {
     id: string;

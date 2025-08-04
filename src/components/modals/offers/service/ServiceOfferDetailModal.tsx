@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  X, 
-  MapPin, 
-  Package, 
-  Calendar, 
-  Truck, 
-  User, 
-  Phone, 
+import {
+  X,
+  MapPin,
+  Package,
+  Calendar,
+  Truck,
+  User,
+  Phone,
   Mail,
   Clock,
   Star,
@@ -43,11 +43,11 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
 
   const handleWithdraw = async () => {
     if (!onWithdraw || !isOfferOwner) return;
-    
+
     const confirmed = window.confirm(
       'Teklifinizi geri çekmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'
     );
-    
+
     if (confirmed) {
       try {
         await onWithdraw(offer.id);
@@ -130,11 +130,6 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const formatJSON = (data: Record<string, unknown> | null | undefined) => {
-    if (!data || Object.keys(data).length === 0) return 'Belirtilmemiş';
-    return JSON.stringify(data, null, 2);
   };
 
   return (
@@ -271,7 +266,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   Finansal Detaylar
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Ödeme Şartları</span>
@@ -289,7 +284,20 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     <div className="bg-white/60 rounded-xl p-4 md:col-span-2">
                       <span className="text-gray-700 font-medium">Fiyat Dağılımı</span>
                       <div className="font-semibold text-gray-900 mt-1 text-sm">
-                        <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded">{formatJSON(offer.price_breakdown)}</pre>
+                        <div className="bg-gray-100 p-3 rounded">
+                          {typeof offer.price_breakdown === 'object' ? (
+                            <div className="space-y-1">
+                              {Object.entries(offer.price_breakdown).map(([key, value]) => (
+                                <div key={key} className="flex justify-between">
+                                  <span className="text-gray-700">{key}:</span>
+                                  <span className="text-gray-900 font-medium">{String(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span>{String(offer.price_breakdown)}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -304,8 +312,34 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   Lojistik Bilgileri
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* 🚨 YENİ: Coğrafi bilgiler */}
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <MapPin className="w-5 h-5 text-green-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Alım Noktası</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">{offer.pickup_location || 'Belirtilmemiş'}</div>
+                  </div>
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <MapPin className="w-5 h-5 text-red-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Teslimat Noktası</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">{offer.delivery_location || 'Belirtilmemiş'}</div>
+                  </div>
+
+                  {/* 🚨 YENİ: Hizmet referans bilgileri */}
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <span className="text-gray-700 font-medium">Hizmet Referans Başlığı</span>
+                    <div className="font-semibold text-gray-900 mt-1">{offer.service_reference_title || 'Belirtilmemiş'}</div>
+                  </div>
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <span className="text-gray-700 font-medium">Önerilen Araç Tipi</span>
+                    <div className="font-semibold text-gray-900 mt-1">{offer.offered_vehicle_type || 'Belirtilmemiş'}</div>
+                  </div>
+
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Taşıma Modu</span>
                     <div className="font-semibold text-gray-900 mt-1">{offer.transport_mode || 'Belirtilmemiş'}</div>
@@ -322,13 +356,39 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     <span className="text-gray-700 font-medium">Tahmini Transit Süre</span>
                     <div className="font-semibold text-gray-900 mt-1">{offer.transit_time_estimate || 'Belirtilmemiş'}</div>
                   </div>
+
+                  {/* 🚨 YENİ: Kargo ağırlık ve hacim bilgileri */}
                   <div className="bg-white/60 rounded-xl p-4">
-                    <span className="text-gray-700 font-medium">Ağırlık Kapasitesi (kg)</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.weight_capacity_kg || 'Belirtilmemiş'}</div>
+                    <div className="flex items-center mb-2">
+                      <Package className="w-5 h-5 text-blue-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Kargo Ağırlığı</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">
+                      {offer.cargo_weight ? `${offer.cargo_weight} ${offer.cargo_weight_unit || 'kg'}` : 'Belirtilmemiş'}
+                    </div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
-                    <span className="text-gray-700 font-medium">Hacim Kapasitesi (m³)</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.volume_capacity_m3 || 'Belirtilmemiş'}</div>
+                    <div className="flex items-center mb-2">
+                      <Package className="w-5 h-5 text-purple-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Kargo Hacmi</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">
+                      {offer.cargo_volume ? `${offer.cargo_volume} ${offer.cargo_volume_unit || 'm3'}` : 'Belirtilmemiş'}
+                    </div>
+                  </div>
+
+                  {/* 🚨 GÜNCELLENDİ: Route ve kapasite kontrolleri */}
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <span className="text-gray-700 font-medium">Güzergah Uygunluğu</span>
+                    <div className="font-semibold text-gray-900 mt-1">
+                      {offer.matches_service_route ? '✅ Uygun' : '❌ Uygun Değil'}
+                    </div>
+                  </div>
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <span className="text-gray-700 font-medium">Kapasite Yeterliliği</span>
+                    <div className="font-semibold text-gray-900 mt-1">
+                      {offer.capacity_meets_requirement ? '✅ Yeterli' : '❌ Yetersiz'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -341,7 +401,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   Tarih Planlaması
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Alım Tarihi (Tercih)</span>
@@ -371,7 +431,25 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     <div className="bg-white/60 rounded-xl p-4 md:col-span-2">
                       <span className="text-gray-700 font-medium">Önerilen Tarihler</span>
                       <div className="font-semibold text-gray-900 mt-1 text-sm">
-                        <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded">{formatJSON(offer.proposed_dates)}</pre>
+                        <div className="bg-gray-100 p-3 rounded">
+                          {typeof offer.proposed_dates === 'object' ? (
+                            <div className="space-y-2">
+                              {Object.entries(offer.proposed_dates).map(([key, value]) => (
+                                <div key={key} className="flex justify-between">
+                                  <span className="text-gray-700 capitalize">{key.replace('_', ' ')}:</span>
+                                  <span className="text-gray-900 font-medium">
+                                    {typeof value === 'string' && value.includes('T')
+                                      ? formatDate(value)
+                                      : String(value)
+                                    }
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span>{String(offer.proposed_dates)}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -386,40 +464,78 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   Sigorta ve Güvenlik
                 </h3>
-                
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* 🚨 YENİ: Güncellenmiş sigorta bilgileri */}
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <Shield className="w-5 h-5 text-blue-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Sigorta Şirketi</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">{offer.insurance_company || 'Belirtilmemiş'}</div>
+                  </div>
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <FileText className="w-5 h-5 text-green-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Sigorta Poliçe No</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">{offer.insurance_policy_number || 'Belirtilmemiş'}</div>
+                  </div>
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <Phone className="w-5 h-5 text-red-600 mr-2" />
+                      <span className="text-gray-700 font-medium">Acil Durum İletişim</span>
+                    </div>
+                    <div className="font-semibold text-gray-900">{offer.emergency_contact || 'Belirtilmemiş'}</div>
+                  </div>
+                  {offer.contingency_plan && (
+                    <div className="bg-white/60 rounded-xl p-4">
+                      <div className="flex items-center mb-2">
+                        <AlertCircle className="w-5 h-5 text-orange-600 mr-2" />
+                        <span className="text-gray-700 font-medium">Acil Durum Planı</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">{offer.contingency_plan}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 🚨 YENİ: Şirket Bilgileri */}
+              <div className="bg-gradient-to-br from-indigo-50 via-indigo-50 to-blue-50 rounded-2xl p-8 border border-indigo-200 shadow-lg">
+                <h3 className="text-2xl font-bold text-gray-900 flex items-center mb-6">
+                  <div className="bg-indigo-600 p-2 rounded-lg mr-3">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  Şirket Bilgileri
+                </h3>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white/60 rounded-xl p-4">
-                    <span className="text-gray-700 font-medium">Sigorta Tutarı</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.insurance_coverage_amount || 'Belirtilmemiş'}</div>
+                    <span className="text-gray-700 font-medium">Şirket Adı</span>
+                    <div className="font-semibold text-gray-900 mt-1">{offer.company_name || 'Belirtilmemiş'}</div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
-                    <span className="text-gray-700 font-medium">Sigorta Sağlayıcı</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.insurance_provider || 'Belirtilmemiş'}</div>
+                    <span className="text-gray-700 font-medium">Şirket Web Sitesi</span>
+                    <div className="font-semibold text-gray-900 mt-1">
+                      {offer.company_website ? (
+                        <a href={offer.company_website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {offer.company_website}
+                        </a>
+                      ) : 'Belirtilmemiş'}
+                    </div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
-                    <span className="text-gray-700 font-medium">Acil Durum İletişim</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.emergency_contact || 'Belirtilmemiş'}</div>
+                    <span className="text-gray-700 font-medium">Vergi Numarası</span>
+                    <div className="font-semibold text-gray-900 mt-1">{offer.company_tax_number || 'Belirtilmemiş'}</div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
-                    <span className="text-gray-700 font-medium">Acil Durum Planı</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.contingency_plan || 'Belirtilmemiş'}</div>
+                    <span className="text-gray-700 font-medium">İletişim Kişisi</span>
+                    <div className="font-semibold text-gray-900 mt-1">{offer.contact_person || 'Belirtilmemiş'}</div>
                   </div>
-                </div>
-
-                {/* Güvenlik Garantileri */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-                  <label className="flex items-center gap-2 bg-white/60 rounded-lg p-3 cursor-default">
-                    <input type="checkbox" checked={!!offer.on_time_guarantee} readOnly className="pointer-events-none" />
-                    <span className="text-sm font-medium">Zamanında Teslim Garantisi</span>
-                  </label>
-                  <label className="flex items-center gap-2 bg-white/60 rounded-lg p-3 cursor-default">
-                    <input type="checkbox" checked={!!offer.damage_free_guarantee} readOnly className="pointer-events-none" />
-                    <span className="text-sm font-medium">Hasarsız Teslim Garantisi</span>
-                  </label>
-                  <label className="flex items-center gap-2 bg-white/60 rounded-lg p-3 cursor-default">
-                    <input type="checkbox" checked={!!offer.temperature_guarantee} readOnly className="pointer-events-none" />
-                    <span className="text-sm font-medium">Sıcaklık Garantisi</span>
-                  </label>
+                  <div className="bg-white/60 rounded-xl p-4">
+                    <span className="text-gray-700 font-medium">İletişim Telefonu</span>
+                    <div className="font-semibold text-gray-900 mt-1">{offer.contact_phone || 'Belirtilmemiş'}</div>
+                  </div>
                 </div>
               </div>
 
@@ -431,7 +547,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   Dahil Edilen Hizmetler
                 </h3>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <label className="flex items-center gap-2 bg-white/60 rounded-lg p-3 cursor-default">
                     <input type="checkbox" checked={!!offer.customs_handling_included} readOnly className="pointer-events-none" />
@@ -482,7 +598,20 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                       <div className="bg-white/60 rounded-xl p-4">
                         <span className="text-gray-700 font-medium">Ekstra Hizmetler</span>
                         <div className="font-semibold text-gray-900 mt-1 text-sm">
-                          <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded">{formatJSON(offer.additional_services)}</pre>
+                          <div className="bg-gray-100 p-3 rounded">
+                            {typeof offer.additional_services === 'object' ? (
+                              <div className="space-y-1">
+                                {Object.entries(offer.additional_services).map(([key, value]) => (
+                                  <div key={key} className="flex justify-between">
+                                    <span className="text-gray-700 capitalize">{key.replace('_', ' ')}:</span>
+                                    <span className="text-gray-900 font-medium">{String(value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span>{String(offer.additional_services)}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -490,7 +619,20 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                       <div className="bg-white/60 rounded-xl p-4">
                         <span className="text-gray-700 font-medium">Ekstra Şartlar</span>
                         <div className="font-semibold text-gray-900 mt-1 text-sm">
-                          <pre className="whitespace-pre-wrap bg-gray-100 p-2 rounded">{formatJSON(offer.additional_terms)}</pre>
+                          <div className="bg-gray-100 p-3 rounded">
+                            {typeof offer.additional_terms === 'object' ? (
+                              <div className="space-y-1">
+                                {Object.entries(offer.additional_terms).map(([key, value]) => (
+                                  <div key={key} className="flex justify-between">
+                                    <span className="text-gray-700 capitalize">{key.replace('_', ' ')}:</span>
+                                    <span className="text-gray-900 font-medium">{String(value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span>{String(offer.additional_terms)}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -507,7 +649,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     </div>
                     Ek Bilgiler
                   </h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {offer.contact_person && (
                       <div className="bg-white/60 rounded-xl p-4">
@@ -533,10 +675,10 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                         <div className="font-semibold text-gray-900 mt-1">
                           {offer.attachments.map((attachment: string, index: number) => (
                             <div key={index} className="mb-1">
-                              <a 
-                                href={attachment} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
+                              <a
+                                href={attachment}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="text-blue-600 underline hover:text-blue-800"
                               >
                                 Dosya {index + 1}
@@ -562,7 +704,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-xl font-bold text-gray-900">Nakliye Hizmeti</h3>
                   </div>
-                  
+
                   <div className="space-y-6">
                     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6">
                       <h4 className="font-bold text-lg text-gray-900 mb-3">{offer.transport_service.title}</h4>
@@ -570,7 +712,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                         <MapPin className="w-5 h-5 mr-2" />
                         <span>{offer.transport_service.origin} → {offer.transport_service.destination}</span>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 gap-3">
                         {offer.transport_service.vehicle_type && (
                           <div className="bg-white/60 rounded-lg p-3">
@@ -615,7 +757,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                       {isOfferOwner ? 'Sizin Bilgileriniz' : 'Teklif Veren'}
                     </h3>
                   </div>
-                  
+
                   <div className="space-y-6">
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6">
                       <div className="flex items-center space-x-4 mb-4">
@@ -676,7 +818,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-xl font-bold text-gray-900">Hizmet Sahibi</h3>
                   </div>
-                  
+
                   <div className="space-y-6">
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6">
                       <div className="flex items-center space-x-4 mb-4">

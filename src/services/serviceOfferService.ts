@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { ServiceOffer, ServiceOfferInsert, ServiceOfferUpdate, ExtendedServiceOffer } from '../types/service-offer-types';
+import type { ServiceOffer, ServiceOfferInsert, ExtendedServiceOffer } from '../types/service-offer-types';
 
 export class ServiceOfferService {
   // Kullanıcının gönderdiği service tekliflerini getir (sent service offers)
@@ -208,39 +208,6 @@ export class ServiceOfferService {
     }
   }
 
-  // Service teklifi güncelle
-  static async updateServiceOffer(offerId: string, updates: ServiceOfferUpdate): Promise<ServiceOffer> {
-    console.log('📝 Updating service offer:', offerId, 'with updates:', JSON.stringify(updates, null, 2));
-
-    try {
-      const { data, error } = await supabase
-        .from('service_offers')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', offerId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ Service offer update failed:', error);
-        throw new Error(`Service offer update failed: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error('Service offer not found');
-      }
-
-      console.log('✅ Service offer updated successfully:', data.id);
-      return data;
-
-    } catch (error) {
-      console.error('❌ Full service offer update error:', error);
-      throw error;
-    }
-  }
-
   // Service teklifi sil
   static async deleteServiceOffer(offerId: string): Promise<void> {
     console.log('🗑️ Deleting service offer:', offerId);
@@ -384,6 +351,74 @@ export class ServiceOfferService {
 
     } catch (error) {
       console.error('❌ Full transport service offers fetch error:', error);
+      throw error;
+    }
+  }
+
+  // Kullanıcının belirli bir transport service için mevcut teklifi var mı kontrol et
+  static async getUserOfferForService(userId: string, transportServiceId: string): Promise<ServiceOffer | null> {
+    console.log('🔍 Checking existing offer for user:', userId, 'service:', transportServiceId);
+
+    try {
+      const { data: existingOffer, error } = await supabase
+        .from('service_offers')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('transport_service_id', transportServiceId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ Existing offer check failed:', error);
+        throw new Error(`Existing offer check failed: ${error.message}`);
+      }
+
+      console.log('✅ Existing offer check result:', existingOffer ? 'Found' : 'Not found');
+      return existingOffer;
+
+    } catch (error) {
+      console.error('❌ Full existing offer check error:', error);
+      throw error;
+    }
+  }
+
+  // Mevcut teklifi güncelle
+  static async updateServiceOffer(offerId: string, offerData: Partial<ServiceOfferInsert>): Promise<ServiceOffer> {
+    console.log('📝 Updating service offer:', offerId, 'with data:', JSON.stringify(offerData, null, 2));
+
+    try {
+      // Önce teklif var mı kontrol et
+      const { data: existingOffer, error: checkError } = await supabase
+        .from('service_offers')
+        .select('*')
+        .eq('id', offerId)
+        .single();
+
+      if (checkError || !existingOffer) {
+        console.error('❌ Service offer not found:', checkError);
+        throw new Error('Güncellenecek teklif bulunamadı');
+      }
+
+      // Teklifi güncelle
+      const { data, error } = await supabase
+        .from('service_offers')
+        .update({
+          ...offerData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', offerId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Service offer update failed:', error);
+        throw new Error(`Service offer update failed: ${error.message}`);
+      }
+
+      console.log('✅ Service offer updated successfully:', data.id);
+      return data;
+
+    } catch (error) {
+      console.error('❌ Full service offer update error:', error);
       throw error;
     }
   }

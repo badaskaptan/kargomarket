@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     X,
     MapPin,
@@ -15,6 +15,10 @@ import {
 import { ServiceOfferService } from '../../services/serviceOfferService';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import type { ExtendedListing } from '../../types/database-types';
+import type { ExtendedServiceOffer } from '../../types/service-offer-types';
+
+// TypeScript types
+type CargoType = 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery' | 'box_package' | 'pallet_standard' | 'pallet_euro' | 'pallet_industrial' | 'sack_bigbag' | 'barrel_drum' | 'appliances_electronics' | 'furniture_decor' | 'textile_products' | 'automotive_parts' | 'machinery_parts' | 'construction_materials' | 'packaged_food' | 'consumer_goods' | 'ecommerce_cargo' | 'other_general' | 'grain' | 'ore' | 'coal' | 'cement_bulk' | 'sand_gravel' | 'fertilizer_bulk' | 'soil_excavation' | 'scrap_metal' | 'other_bulk' | 'crude_oil' | 'chemical_liquids' | 'vegetable_oils' | 'fuel' | 'lpg_lng' | 'water' | 'milk_dairy' | 'wine_concentrate' | 'other_liquid' | 'tbm' | 'transformer_generator' | 'heavy_machinery' | 'boat_yacht' | 'industrial_parts' | 'prefab_elements' | 'wind_turbine' | 'other_oversized' | 'art_antiques' | 'glass_ceramic' | 'electronic_devices' | 'medical_devices' | 'lab_equipment' | 'flowers_plants' | 'other_sensitive' | 'dangerous_class1' | 'dangerous_class2' | 'dangerous_class3' | 'dangerous_class4' | 'dangerous_class5' | 'dangerous_class6' | 'dangerous_class7' | 'dangerous_class8' | 'dangerous_class9' | 'frozen_food' | 'fresh_produce' | 'meat_dairy' | 'pharma_vaccine' | 'chemical_temp' | 'other_cold_chain' | 'small_livestock' | 'large_livestock' | 'poultry' | 'pets' | 'other_livestock' | 'factory_setup' | 'power_plant' | 'infrastructure' | 'other_project';
 
 interface EnhancedServiceOfferModalProps {
     transportService: ExtendedListing;
@@ -30,6 +34,21 @@ interface EnhancedServiceOfferFormData {
     service_reference_title: string;
     offered_vehicle_type: string;
     
+    // 🚨 YENİ: Şirket bilgileri
+    company_name: string;
+    company_website: string;
+    company_tax_number: string;
+    
+    // 🚨 YENİ: Sigorta bilgileri
+    insurance_company: string;
+    insurance_policy_number: string;
+    
+    // 🚨 YENİ: Yük miktarı ve hacim bilgileri
+    cargo_weight: string;
+    cargo_weight_unit: 'kg' | 'ton' | 'lb';
+    cargo_volume: string;
+    cargo_volume_unit: 'm3' | 'ft3' | 'l';
+    
     // Temel teklif bilgileri
     price_amount: string;
     price_currency: 'TRY' | 'USD' | 'EUR';
@@ -38,7 +57,7 @@ interface EnhancedServiceOfferFormData {
 
     // Taşıma bilgileri
     transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
-    cargo_type: 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery';
+    cargo_type: CargoType;
     service_scope: 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only';
 
     // Tarih bilgileri
@@ -48,14 +67,6 @@ interface EnhancedServiceOfferFormData {
     delivery_date_latest: string;
     transit_time_estimate: string;
     expires_at: string;
-
-    // Kapasite bilgileri
-    weight_capacity_kg: string;
-    volume_capacity_m3: string;
-
-    // Sigorta ve güvenceler
-    insurance_coverage_amount: string;
-    insurance_provider: string;
 
     // Hizmet kapsamı
     customs_handling_included: boolean;
@@ -104,6 +115,21 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         service_reference_title: transportService.title || '',
         offered_vehicle_type: '',
         
+        // 🚨 YENİ: Şirket bilgileri
+        company_name: '',
+        company_website: '',
+        company_tax_number: '',
+        
+        // 🚨 YENİ: Sigorta bilgileri
+        insurance_company: '',
+        insurance_policy_number: '',
+        
+        // 🚨 YENİ: Yük miktarı ve hacim
+        cargo_weight: '',
+        cargo_weight_unit: 'kg',
+        cargo_volume: '',
+        cargo_volume_unit: 'm3',
+        
         price_amount: '',
         price_currency: 'TRY',
         price_per: 'total',
@@ -117,10 +143,6 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         delivery_date_latest: '',
         transit_time_estimate: '',
         expires_at: '',
-        weight_capacity_kg: '',
-        volume_capacity_m3: '',
-        insurance_coverage_amount: '',
-        insurance_provider: '',
         customs_handling_included: false,
         documentation_handling_included: false,
         loading_unloading_included: false,
@@ -145,8 +167,83 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
     const [currentStep, setCurrentStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [existingOffer, setExistingOffer] = useState<ExtendedServiceOffer | null>(null);
+
+    // Mevcut teklifi kontrol et
+    useEffect(() => {
+        const checkExistingOffer = async () => {
+            if (!user || !transportService?.id) return;
+            
+            try {
+                const offer = await ServiceOfferService.getUserOfferForService(user.id, transportService.id);
+                if (offer) {
+                    setExistingOffer(offer);
+                    // Form'u mevcut teklif bilgileriyle doldur
+                    setFormData(prev => ({
+                        ...prev,
+                        pickup_location: offer.pickup_location || prev.pickup_location,
+                        delivery_location: offer.delivery_location || prev.delivery_location,
+                        service_reference_title: offer.service_reference_title || prev.service_reference_title,
+                        offered_vehicle_type: offer.offered_vehicle_type || prev.offered_vehicle_type,
+                        price_amount: offer.price_amount?.toString() || prev.price_amount,
+                        price_currency: offer.price_currency || prev.price_currency,
+                        price_per: (offer.price_per as 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle') || prev.price_per,
+                        message: offer.message || prev.message,
+                        company_name: offer.company_name || prev.company_name,
+                        company_website: offer.company_website || prev.company_website,
+                        company_tax_number: offer.company_tax_number || prev.company_tax_number,
+                        insurance_company: offer.insurance_company || prev.insurance_company,
+                        insurance_policy_number: offer.insurance_policy_number || prev.insurance_policy_number,
+                        cargo_weight: offer.cargo_weight?.toString() || prev.cargo_weight,
+                        cargo_weight_unit: offer.cargo_weight_unit || prev.cargo_weight_unit,
+                        cargo_volume: offer.cargo_volume?.toString() || prev.cargo_volume,
+                        cargo_volume_unit: offer.cargo_volume_unit || prev.cargo_volume_unit
+                    }));
+                }
+            } catch (error) {
+                console.error('Mevcut teklif kontrol hatası:', error);
+            }
+        };
+
+        checkExistingOffer();
+    }, [user, transportService?.id]);
 
     if (!isOpen) return null;
+
+    // 🚨 YENİ: Taşıma moduna göre dinamik label'lar
+    const getLocationLabels = () => {
+        switch (formData.transport_mode) {
+            case 'sea':
+                return {
+                    pickup: 'Yükleme Limanı',
+                    delivery: 'Boşaltma Limanı',
+                    pickupIcon: '⚓',
+                    deliveryIcon: '🏴'
+                };
+            case 'air':
+                return {
+                    pickup: 'Kalkış Havaalanı',
+                    delivery: 'Varış Havaalanı', 
+                    pickupIcon: '🛫',
+                    deliveryIcon: '🛬'
+                };
+            case 'rail':
+                return {
+                    pickup: 'Yükleme İstasyonu',
+                    delivery: 'Boşaltma İstasyonu',
+                    pickupIcon: '🚂',
+                    deliveryIcon: '🚉'
+                };
+            case 'road':
+            default:
+                return {
+                    pickup: 'Alım Noktası',
+                    delivery: 'Teslimat Noktası',
+                    pickupIcon: '📍',
+                    deliveryIcon: '🎯'
+                };
+        }
+    };
 
     // Taşıma moduna göre price_per seçeneklerini ayarla
     const getPricePerOptions = () => {
@@ -193,14 +290,15 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
+        const locationLabels = getLocationLabels();
 
-        // 🚨 ACİL EKLENDİ: Kritik alan validasyonları
+        // 🚨 ACİL EKLENDİ: Kritik alan validasyonları - Dinamik mesajlar
         if (!formData.pickup_location.trim()) {
-            newErrors.pickup_location = 'Alım noktası zorunludur';
+            newErrors.pickup_location = `${locationLabels.pickup} zorunludur`;
         }
 
         if (!formData.delivery_location.trim()) {
-            newErrors.delivery_location = 'Teslimat noktası zorunludur';
+            newErrors.delivery_location = `${locationLabels.delivery} zorunludur`;
         }
 
         if (!formData.service_reference_title.trim()) {
@@ -248,8 +346,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
         setIsSubmitting(true);
         try {
-            // ServiceOfferService'e uygun format
-            await ServiceOfferService.createServiceOffer({
+            // Teklif verisi hazırla
+            const offerData = {
                 user_id: user.id,
                 transport_service_id: transportService.id,
                 
@@ -264,51 +362,77 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 price_per: formData.price_per,
                 message: formData.message.trim(),
 
-                // Enhanced fields - service_offers tablosuna eklenecek alanlar
+                // 🚨 YENİ: Şirket bilgileri
+                company_name: formData.company_name.trim() || null,
+                company_website: formData.company_website.trim() || null,
+                company_tax_number: formData.company_tax_number.trim() || null,
+
+                // 🚨 YENİ: Sigorta bilgileri
+                insurance_company: formData.insurance_company.trim() || null,
+                insurance_policy_number: formData.insurance_policy_number.trim() || null,
+
+                // 🚨 YENİ: Yük miktarı ve hacim
+                cargo_weight: formData.cargo_weight ? parseFloat(formData.cargo_weight) : null,
+                cargo_weight_unit: formData.cargo_weight_unit,
+                cargo_volume: formData.cargo_volume ? parseFloat(formData.cargo_volume) : null,
+                cargo_volume_unit: formData.cargo_volume_unit,
+
+                // 🚨 EKSİK ALANLAR - Boş giden alanları düzelt
                 transport_mode: formData.transport_mode,
                 cargo_type: formData.cargo_type,
                 service_scope: formData.service_scope,
-                pickup_date_preferred: formData.pickup_date_preferred || null,
-                pickup_date_latest: formData.pickup_date_latest || null,
-                delivery_date_preferred: formData.delivery_date_preferred || null,
-                delivery_date_latest: formData.delivery_date_latest || null,
-                transit_time_estimate: formData.transit_time_estimate,
-                expires_at: formData.expires_at,
-
-                weight_capacity_kg: formData.weight_capacity_kg ? parseFloat(formData.weight_capacity_kg) : null,
-                volume_capacity_m3: formData.volume_capacity_m3 ? parseFloat(formData.volume_capacity_m3) : null,
-
-                insurance_coverage_amount: formData.insurance_coverage_amount ? parseFloat(formData.insurance_coverage_amount) : null,
-                insurance_provider: formData.insurance_provider || null,
-
+                pickup_date_preferred: formData.pickup_date_preferred ? new Date(formData.pickup_date_preferred).toISOString() : null,
+                pickup_date_latest: formData.pickup_date_latest ? new Date(formData.pickup_date_latest).toISOString() : null,
+                delivery_date_preferred: formData.delivery_date_preferred ? new Date(formData.delivery_date_preferred).toISOString() : null,
+                delivery_date_latest: formData.delivery_date_latest ? new Date(formData.delivery_date_latest).toISOString() : null,
+                transit_time_estimate: formData.transit_time_estimate.trim() || null,
+                expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
+                
+                // Ödeme bilgileri
+                payment_terms: formData.payment_terms,
+                payment_method: formData.payment_method,
+                
+                // Servis seçenekleri
                 customs_handling_included: formData.customs_handling_included,
                 documentation_handling_included: formData.documentation_handling_included,
                 loading_unloading_included: formData.loading_unloading_included,
                 tracking_system_provided: formData.tracking_system_provided,
                 express_service: formData.express_service,
                 weekend_service: formData.weekend_service,
-
                 fuel_surcharge_included: formData.fuel_surcharge_included,
                 toll_fees_included: formData.toll_fees_included,
                 port_charges_included: formData.port_charges_included,
                 airport_charges_included: formData.airport_charges_included,
-
+                
+                // Garantiler
                 on_time_guarantee: formData.on_time_guarantee,
                 damage_free_guarantee: formData.damage_free_guarantee,
                 temperature_guarantee: formData.temperature_guarantee,
+                
+                // İletişim bilgileri
+                contact_person: formData.contact_person.trim() || null,
+                contact_phone: formData.contact_phone.trim() || null,
+                emergency_contact: formData.emergency_contact.trim() || null,
+                contingency_plan: formData.contingency_plan.trim() || null,
 
-                contact_person: formData.contact_person,
-                contact_phone: formData.contact_phone,
-                emergency_contact: formData.emergency_contact || null,
+                // Route ve kapasite kontrolleri
+                matches_service_route: Boolean(formData.pickup_location.trim() && formData.delivery_location.trim()),
+                capacity_meets_requirement: Boolean(formData.cargo_weight || formData.cargo_volume)
+            };
 
-                payment_terms: formData.payment_terms,
-                payment_method: formData.payment_method,
-                contingency_plan: formData.contingency_plan || null
-            });
+            console.log('🔍 offerData being sent:', JSON.stringify(offerData, null, 2));
 
-            console.log('✅ Enhanced service offer created successfully');
-            alert('Gelişmiş teklifiniz başarıyla gönderildi!');
+            if (existingOffer) {
+                // Mevcut teklifi güncelle
+                await ServiceOfferService.updateServiceOffer(existingOffer.id, offerData);
+                alert('✅ Teklifiniz başarıyla güncellendi!');
+            } else {
+                // Yeni teklif oluştur
+                await ServiceOfferService.createServiceOffer(offerData);
+                alert('✅ Teklifiniz başarıyla gönderildi!');
+            }
 
+            console.log('✅ Service offer operation completed successfully');
             onClose();
             onSuccess?.();
 
@@ -319,6 +443,21 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 delivery_location: transportService.destination || '',
                 service_reference_title: transportService.title || '',
                 offered_vehicle_type: '',
+                
+                // 🚨 YENİ: Şirket bilgileri
+                company_name: '',
+                company_website: '',
+                company_tax_number: '',
+                
+                // 🚨 YENİ: Sigorta bilgileri
+                insurance_company: '',
+                insurance_policy_number: '',
+                
+                // 🚨 YENİ: Yük miktarı ve hacim
+                cargo_weight: '',
+                cargo_weight_unit: 'kg',
+                cargo_volume: '',
+                cargo_volume_unit: 'm3',
                 
                 price_amount: '',
                 price_currency: 'TRY',
@@ -333,10 +472,6 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 delivery_date_latest: '',
                 transit_time_estimate: '',
                 expires_at: '',
-                weight_capacity_kg: '',
-                volume_capacity_m3: '',
-                insurance_coverage_amount: '',
-                insurance_provider: '',
                 customs_handling_included: false,
                 documentation_handling_included: false,
                 loading_unloading_included: false,
@@ -433,49 +568,48 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 Fiyat ve Temel Bilgiler
             </h3>
 
-            {/* 🚨 YENİ EKLENDİ: Hizmet Bilgi Özeti */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-                <div className="flex items-center mb-3">
-                    <Truck className="w-5 h-5 mr-2 text-blue-600" />
-                    <h4 className="font-semibold text-blue-900">Teklif Verdiğiniz Hizmet</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Hizmet:</span> {transportService.title}</p>
-                    <p><span className="font-medium">Güzergah:</span> {transportService.origin} → {transportService.destination}</p>
-                    <p><span className="font-medium">Taşıma Modu:</span> {transportService.transport_mode}</p>
-                </div>
-            </div>
-
-            {/* 🚨 YENİ EKLENDİ: Kritik Lokasyon Bilgileri */}
+            {/* 🚨 YENİ EKLENDİ: Kritik Lokasyon Bilgileri - Dinamik Label'lar */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Alım Noktası *
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <span className="mr-2">{getLocationLabels().pickupIcon}</span>
+                        {getLocationLabels().pickup} *
                     </label>
                     <input
                         type="text"
                         value={formData.pickup_location}
                         onChange={(e) => updateFormData('pickup_location', e.target.value)}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.pickup_location ? 'border-red-300' : 'border-gray-300'}`}
-                        placeholder="Ör: İstanbul, Türkiye"
-                        readOnly
+                        placeholder={`Ör: ${formData.transport_mode === 'sea' ? 'Mersin Limanı' : formData.transport_mode === 'air' ? 'İstanbul Havalimanı' : formData.transport_mode === 'rail' ? 'Haydarpaşa İstasyonu' : 'İstanbul, Türkiye'}`}
                     />
-                    <p className="mt-1 text-xs text-gray-500">Bu alan otomatik dolduruldu</p>
+                    <p className="mt-1 text-xs text-blue-600 flex items-center">
+                        <span className="mr-1">ℹ️</span>
+                        Otomatik dolduruldu, değiştirebilirsiniz
+                    </p>
+                    {errors.pickup_location && (
+                        <p className="mt-1 text-xs text-red-600">{errors.pickup_location}</p>
+                    )}
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Teslimat Noktası *
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <span className="mr-2">{getLocationLabels().deliveryIcon}</span>
+                        {getLocationLabels().delivery} *
                     </label>
                     <input
                         type="text"
                         value={formData.delivery_location}
                         onChange={(e) => updateFormData('delivery_location', e.target.value)}
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.delivery_location ? 'border-red-300' : 'border-gray-300'}`}
-                        placeholder="Ör: Ankara, Türkiye"
-                        readOnly
+                        placeholder={`Ör: ${formData.transport_mode === 'sea' ? 'İzmir Limanı' : formData.transport_mode === 'air' ? 'Ankara Esenboğa' : formData.transport_mode === 'rail' ? 'Ankara İstasyonu' : 'Ankara, Türkiye'}`}
                     />
-                    <p className="mt-1 text-xs text-gray-500">Bu alan otomatik dolduruldu</p>
+                    <p className="mt-1 text-xs text-blue-600 flex items-center">
+                        <span className="mr-1">ℹ️</span>
+                        Otomatik dolduruldu, değiştirebilirsiniz
+                    </p>
+                    {errors.delivery_location && (
+                        <p className="mt-1 text-xs text-red-600">{errors.delivery_location}</p>
+                    )}
                 </div>
             </div>
 
@@ -561,19 +695,276 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             aria-label="Yük türü seçin"
                         >
-                            <option value="general_cargo">Genel Kargo</option>
-                            <option value="bulk_cargo">Dökme Yük</option>
-                            <option value="container">Konteyner</option>
-                            <option value="liquid">Sıvı Yük</option>
-                            <option value="dry_bulk">Kuru Dökme</option>
-                            <option value="refrigerated">Soğuk Zincir</option>
-                            <option value="hazardous">Tehlikeli Madde</option>
-                            <option value="oversized">Aşırı Boyutlu</option>
-                            <option value="project_cargo">Proje Kargo</option>
-                            <option value="livestock">Canlı Hayvan</option>
-                            <option value="vehicles">Araç Taşıma</option>
-                            <option value="machinery">Makine/Ekipman</option>
+                            {/* Genel Kargo Türleri */}
+                            <optgroup label="🚛 Genel Kargo">
+                                <option value="general_cargo">Genel Kargo</option>
+                                <option value="box_package">Kutu/Paket</option>
+                                <option value="pallet_standard">Standart Palet</option>
+                                <option value="pallet_euro">Euro Palet</option>
+                                <option value="pallet_industrial">Endüstriyel Palet</option>
+                                <option value="sack_bigbag">Çuval/BigBag</option>
+                                <option value="barrel_drum">Varil/Bidon</option>
+                                <option value="appliances_electronics">Beyaz Eşya/Elektronik</option>
+                                <option value="furniture_decor">Mobilya/Dekorasyon</option>
+                                <option value="textile_products">Tekstil Ürünleri</option>
+                                <option value="automotive_parts">Otomotiv Parçaları</option>
+                                <option value="machinery_parts">Makine Parçaları</option>
+                                <option value="construction_materials">İnşaat Malzemeleri</option>
+                                <option value="packaged_food">Paketli Gıda</option>
+                                <option value="consumer_goods">Tüketici Ürünleri</option>
+                                <option value="ecommerce_cargo">E-ticaret Kargo</option>
+                                <option value="other_general">Diğer Genel Kargo</option>
+                            </optgroup>
+
+                            {/* Dökme Yük Türleri */}
+                            <optgroup label="🏗️ Dökme Yük">
+                                <option value="bulk_cargo">Dökme Yük</option>
+                                <option value="grain">Tahıl</option>
+                                <option value="ore">Maden Cevheri</option>
+                                <option value="coal">Kömür</option>
+                                <option value="cement_bulk">Çimento (Dökme)</option>
+                                <option value="sand_gravel">Kum/Çakıl</option>
+                                <option value="fertilizer_bulk">Gübre (Dökme)</option>
+                                <option value="soil_excavation">Toprak/Hafriyat</option>
+                                <option value="scrap_metal">Hurda Metal</option>
+                                <option value="other_bulk">Diğer Dökme Yük</option>
+                            </optgroup>
+
+                            {/* Sıvı Yük Türleri */}
+                            <optgroup label="🛢️ Sıvı Yük">
+                                <option value="liquid">Sıvı Yük</option>
+                                <option value="crude_oil">Ham Petrol</option>
+                                <option value="chemical_liquids">Kimyasal Sıvılar</option>
+                                <option value="vegetable_oils">Bitkisel Yağlar</option>
+                                <option value="fuel">Yakıt</option>
+                                <option value="lpg_lng">LPG/LNG</option>
+                                <option value="water">Su</option>
+                                <option value="milk_dairy">Süt/Süt Ürünleri</option>
+                                <option value="wine_concentrate">Şarap/Konsantre</option>
+                                <option value="other_liquid">Diğer Sıvı Yük</option>
+                            </optgroup>
+
+                            {/* Konteyner */}
+                            <optgroup label="📦 Konteyner">
+                                <option value="container">Konteyner</option>
+                            </optgroup>
+
+                            {/* Aşırı Boyutlu Yük */}
+                            <optgroup label="📏 Aşırı Boyutlu">
+                                <option value="oversized">Aşırı Boyutlu</option>
+                                <option value="tbm">TBM/Tünel Makinesi</option>
+                                <option value="transformer_generator">Trafo/Jeneratör</option>
+                                <option value="heavy_machinery">Ağır Makine</option>
+                                <option value="boat_yacht">Tekne/Yat</option>
+                                <option value="industrial_parts">Endüstriyel Parçalar</option>
+                                <option value="prefab_elements">Prefabrik Elemanlar</option>
+                                <option value="wind_turbine">Rüzgar Türbini</option>
+                                <option value="other_oversized">Diğer Aşırı Boyutlu</option>
+                            </optgroup>
+
+                            {/* Hassas Yük */}
+                            <optgroup label="🔬 Hassas Yük">
+                                <option value="art_antiques">Sanat Eseri/Antika</option>
+                                <option value="glass_ceramic">Cam/Seramik</option>
+                                <option value="electronic_devices">Elektronik Cihazlar</option>
+                                <option value="medical_devices">Tıbbi Cihazlar</option>
+                                <option value="lab_equipment">Laboratuvar Ekipmanı</option>
+                                <option value="flowers_plants">Çiçek/Bitki</option>
+                                <option value="other_sensitive">Diğer Hassas Yük</option>
+                            </optgroup>
+
+                            {/* Tehlikeli Madde */}
+                            <optgroup label="⚠️ Tehlikeli Madde">
+                                <option value="hazardous">Tehlikeli Madde</option>
+                                <option value="dangerous_class1">Sınıf 1 (Patlayıcı)</option>
+                                <option value="dangerous_class2">Sınıf 2 (Gaz)</option>
+                                <option value="dangerous_class3">Sınıf 3 (Yanıcı Sıvı)</option>
+                                <option value="dangerous_class4">Sınıf 4 (Yanıcı Katı)</option>
+                                <option value="dangerous_class5">Sınıf 5 (Oksitleyici)</option>
+                                <option value="dangerous_class6">Sınıf 6 (Zehirli)</option>
+                                <option value="dangerous_class7">Sınıf 7 (Radyoaktif)</option>
+                                <option value="dangerous_class8">Sınıf 8 (Aşındırıcı)</option>
+                                <option value="dangerous_class9">Sınıf 9 (Diğer)</option>
+                            </optgroup>
+
+                            {/* Soğuk Zincir */}
+                            <optgroup label="❄️ Soğuk Zincir">
+                                <option value="refrigerated">Soğuk Zincir</option>
+                                <option value="frozen_food">Dondurulmuş Gıda</option>
+                                <option value="fresh_produce">Taze Ürün</option>
+                                <option value="meat_dairy">Et/Süt Ürünü</option>
+                                <option value="pharma_vaccine">İlaç/Aşı</option>
+                                <option value="chemical_temp">Sıcaklık Hassas Kimyasal</option>
+                                <option value="other_cold_chain">Diğer Soğuk Zincir</option>
+                            </optgroup>
+
+                            {/* Canlı Hayvan */}
+                            <optgroup label="🐄 Canlı Hayvan">
+                                <option value="livestock">Canlı Hayvan</option>
+                                <option value="small_livestock">Küçük Hayvan</option>
+                                <option value="large_livestock">Büyük Hayvan</option>
+                                <option value="poultry">Kümes Hayvanı</option>
+                                <option value="pets">Evcil Hayvan</option>
+                                <option value="other_livestock">Diğer Canlı Hayvan</option>
+                            </optgroup>
+
+                            {/* Araç Taşıma */}
+                            <optgroup label="🚗 Araç Taşıma">
+                                <option value="vehicles">Araç Taşıma</option>
+                            </optgroup>
+
+                            {/* Makine/Ekipman */}
+                            <optgroup label="⚙️ Makine/Ekipman">
+                                <option value="machinery">Makine/Ekipman</option>
+                            </optgroup>
+
+                            {/* Proje Kargo */}
+                            <optgroup label="🏗️ Proje Kargo">
+                                <option value="project_cargo">Proje Kargo</option>
+                                <option value="factory_setup">Fabrika Kurulumu</option>
+                                <option value="power_plant">Enerji Santrali</option>
+                                <option value="infrastructure">Altyapı Projesi</option>
+                                <option value="other_project">Diğer Proje</option>
+                            </optgroup>
                         </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* 🚨 YENİ: Yük Miktarı ve Hacim Bilgileri */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ⚖️ Yük Ağırlığı
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.cargo_weight}
+                            onChange={(e) => updateFormData('cargo_weight', e.target.value)}
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="0.00"
+                        />
+                        <select
+                            value={formData.cargo_weight_unit}
+                            onChange={(e) => updateFormData('cargo_weight_unit', e.target.value)}
+                            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            aria-label="Ağırlık birimi seçin"
+                        >
+                            <option value="kg">kg</option>
+                            <option value="ton">ton</option>
+                            <option value="lb">lb</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        📦 Yük Hacmi
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.cargo_volume}
+                            onChange={(e) => updateFormData('cargo_volume', e.target.value)}
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="0.00"
+                        />
+                        <select
+                            value={formData.cargo_volume_unit}
+                            onChange={(e) => updateFormData('cargo_volume_unit', e.target.value)}
+                            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            aria-label="Hacim birimi seçin"
+                        >
+                            <option value="m3">m³</option>
+                            <option value="ft3">ft³</option>
+                            <option value="l">litre</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* 🚨 YENİ: Şirket Bilgileri */}
+            <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 flex items-center">
+                    🏢 Şirket Bilgileri
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Şirket Adı
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.company_name}
+                            onChange={(e) => updateFormData('company_name', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="Ör: ABC Lojistik A.Ş."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Web Sitesi
+                        </label>
+                        <input
+                            type="url"
+                            value={formData.company_website}
+                            onChange={(e) => updateFormData('company_website', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="https://www.sirketiniz.com"
+                        />
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Vergi Numarası
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.company_tax_number}
+                            onChange={(e) => updateFormData('company_tax_number', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="1234567890"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* 🚨 YENİ: Sigorta Bilgileri */}
+            <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 flex items-center">
+                    🛡️ Sigorta Bilgileri
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Sigorta Şirketi
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.insurance_company}
+                            onChange={(e) => updateFormData('insurance_company', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="Ör: Allianz Sigorta A.Ş."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Poliçe Numarası
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.insurance_policy_number}
+                            onChange={(e) => updateFormData('insurance_policy_number', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            placeholder="POL-2025-123456"
+                        />
                     </div>
                 </div>
             </div>
@@ -942,7 +1333,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                             <div className="flex items-center space-x-2">
                                 {getTransportIcon(formData.transport_mode)}
                                 <h2 className="text-2xl font-bold text-gray-900">
-                                    Gelişmiş Nakliye Hizmet Teklifi
+                                    {existingOffer ? '✏️ Teklif Güncelle' : '📝 Yeni Teklif Ver'}
                                 </h2>
                             </div>
                         </div>
@@ -1034,7 +1425,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                                     ) : (
                                         <>
                                             <Check className="w-4 h-4" />
-                                            <span>Teklifi Gönder</span>
+                                            <span>{existingOffer ? 'Teklifi Güncelle' : 'Teklifi Gönder'}</span>
                                         </>
                                     )}
                                 </button>

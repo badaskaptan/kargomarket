@@ -20,10 +20,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, is
     message: offer.message || '',
     payment_terms: offer.payment_terms || '',
     payment_method: offer.payment_method || '',
-    service_description: offer.service_description || '',
-    validity_period: offer.validity_period?.toString() || '',
     expires_at: offer.expires_at ? offer.expires_at.split('T')[0] : '',
-    special_conditions: offer.special_conditions || '',
     transport_mode: offer.transport_mode || '',
     cargo_type: offer.cargo_type || '',
     service_scope: offer.service_scope || '',
@@ -47,10 +44,12 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, is
     temperature_guarantee: offer.temperature_guarantee || false,
     emergency_contact: offer.emergency_contact || '',
     contingency_plan: offer.contingency_plan || '',
-    weight_capacity_kg: offer.weight_capacity_kg?.toString() || '',
-    volume_capacity_m3: offer.volume_capacity_m3?.toString() || '',
-    insurance_coverage_amount: offer.insurance_coverage_amount?.toString() || '',
-    insurance_provider: offer.insurance_provider || '',
+    cargo_weight: offer.cargo_weight?.toString() || '',
+    cargo_weight_unit: offer.cargo_weight_unit || 'kg',
+    cargo_volume: offer.cargo_volume?.toString() || '',
+    cargo_volume_unit: offer.cargo_volume_unit || 'm3',
+    insurance_company: offer.insurance_company || '',
+    insurance_policy_number: offer.insurance_policy_number || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,20 +85,13 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, is
         price_currency: formData.price_currency,
         price_per: formData.price_per,
         message: formData.message.trim(),
-        payment_terms: formData.payment_terms,
-        payment_method: formData.payment_method,
-        service_description: formData.service_description,
-        validity_period: formData.validity_period ? parseInt(formData.validity_period) : null,
         expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
-        special_conditions: formData.special_conditions,
         transport_mode: formData.transport_mode,
         cargo_type: formData.cargo_type,
         service_scope: formData.service_scope,
         pickup_date_preferred: formData.pickup_date_preferred ? new Date(formData.pickup_date_preferred).toISOString() : null,
         delivery_date_preferred: formData.delivery_date_preferred ? new Date(formData.delivery_date_preferred).toISOString() : null,
         transit_time_estimate: formData.transit_time_estimate,
-        contact_person: formData.contact_person,
-        contact_phone: formData.contact_phone,
         customs_handling_included: formData.customs_handling_included,
         documentation_handling_included: formData.documentation_handling_included,
         loading_unloading_included: formData.loading_unloading_included,
@@ -113,12 +105,12 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, is
         on_time_guarantee: formData.on_time_guarantee,
         damage_free_guarantee: formData.damage_free_guarantee,
         temperature_guarantee: formData.temperature_guarantee,
-        emergency_contact: formData.emergency_contact,
-        contingency_plan: formData.contingency_plan,
-        weight_capacity_kg: formData.weight_capacity_kg ? parseFloat(formData.weight_capacity_kg) : null,
-        volume_capacity_m3: formData.volume_capacity_m3 ? parseFloat(formData.volume_capacity_m3) : null,
-        insurance_coverage_amount: formData.insurance_coverage_amount ? parseFloat(formData.insurance_coverage_amount) : null,
-        insurance_provider: formData.insurance_provider,
+        cargo_weight: formData.cargo_weight ? parseFloat(formData.cargo_weight) : null,
+        cargo_weight_unit: formData.cargo_weight_unit,
+        cargo_volume: formData.cargo_volume ? parseFloat(formData.cargo_volume) : null,
+        cargo_volume_unit: formData.cargo_volume_unit,
+        insurance_company: formData.insurance_company,
+        insurance_policy_number: formData.insurance_policy_number
       });
       alert('Teklif başarıyla güncellendi!');
       onClose();
@@ -193,22 +185,8 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, is
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Hizmet Açıklaması</label>
-                  <textarea rows={2} value={formData.service_description} onChange={e => updateFormData('service_description', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none" placeholder="Hizmet detayları..." title="Hizmet Açıklaması" aria-label="Hizmet Açıklaması" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Geçerlilik Süresi (gün)</label>
-                    <input type="number" min="1" value={formData.validity_period} onChange={e => updateFormData('validity_period', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 7" title="Geçerlilik Süresi" aria-label="Geçerlilik Süresi" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Son Geçerlilik Tarihi</label>
-                    <input type="date" value={formData.expires_at} onChange={e => updateFormData('expires_at', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Son Geçerlilik Tarihi" aria-label="Son Geçerlilik Tarihi" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Özel Koşullar</label>
-                  <textarea rows={2} value={formData.special_conditions} onChange={e => updateFormData('special_conditions', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none" placeholder="Varsa özel koşullar..." title="Özel Koşullar" aria-label="Özel Koşullar" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Son Geçerlilik Tarihi</label>
+                  <input type="date" value={formData.expires_at} onChange={e => updateFormData('expires_at', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Son Geçerlilik Tarihi" aria-label="Son Geçerlilik Tarihi" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -296,22 +274,36 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, is
                 {/* KAPASİTE, SİGORTA, EK HİZMETLER */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Ağırlık Kapasitesi (kg)</label>
-                    <input type="number" min="0" step="0.01" value={formData.weight_capacity_kg} onChange={e => updateFormData('weight_capacity_kg', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 10000" title="Ağırlık Kapasitesi" aria-label="Ağırlık Kapasitesi" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Kargo Ağırlığı</label>
+                    <div className="flex gap-2">
+                      <input type="number" min="0" step="0.01" value={formData.cargo_weight} onChange={e => updateFormData('cargo_weight', e.target.value)} className="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 1500" title="Kargo Ağırlığı" aria-label="Kargo Ağırlığı" />
+                      <select value={formData.cargo_weight_unit} onChange={e => updateFormData('cargo_weight_unit', e.target.value)} className="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Ağırlık Birimi" aria-label="Ağırlık Birimi">
+                        <option value="kg">kg</option>
+                        <option value="ton">ton</option>
+                        <option value="lb">lb</option>
+                      </select>
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Hacim Kapasitesi (m³)</label>
-                    <input type="number" min="0" step="0.001" value={formData.volume_capacity_m3} onChange={e => updateFormData('volume_capacity_m3', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 50" title="Hacim Kapasitesi" aria-label="Hacim Kapasitesi" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Kargo Hacmi</label>
+                    <div className="flex gap-2">
+                      <input type="number" min="0" step="0.001" value={formData.cargo_volume} onChange={e => updateFormData('cargo_volume', e.target.value)} className="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 25" title="Kargo Hacmi" aria-label="Kargo Hacmi" />
+                      <select value={formData.cargo_volume_unit} onChange={e => updateFormData('cargo_volume_unit', e.target.value)} className="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Hacim Birimi" aria-label="Hacim Birimi">
+                        <option value="m3">m³</option>
+                        <option value="ft3">ft³</option>
+                        <option value="l">l</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sigorta Tutarı</label>
-                    <input type="number" min="0" step="0.01" value={formData.insurance_coverage_amount} onChange={e => updateFormData('insurance_coverage_amount', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 100000" title="Sigorta Tutarı" aria-label="Sigorta Tutarı" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sigorta Şirketi</label>
+                    <input type="text" value={formData.insurance_company} onChange={e => updateFormData('insurance_company', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: Allianz, Axa" title="Sigorta Şirketi" aria-label="Sigorta Şirketi" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sigorta Sağlayıcı</label>
-                    <input type="text" value={formData.insurance_provider} onChange={e => updateFormData('insurance_provider', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Sigorta şirketi" title="Sigorta Sağlayıcı" aria-label="Sigorta Sağlayıcı" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sigorta Poliçe No</label>
+                    <input type="text" value={formData.insurance_policy_number} onChange={e => updateFormData('insurance_policy_number', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Poliçe numarası" title="Sigorta Poliçe No" aria-label="Sigorta Poliçe No" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
