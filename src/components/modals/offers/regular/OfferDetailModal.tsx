@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  X, 
-  MapPin, 
-  Package, 
-  Calendar, 
-  Truck, 
-  User, 
-  Phone, 
+import {
+  X,
+  MapPin,
+  Package,
+  Calendar,
+  Truck,
+  User,
+  Phone,
   Mail,
   Clock,
   Star,
@@ -186,10 +186,10 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
   const previewFile = async (filePath: string) => {
     try {
       const signedUrl = await getSignedUrl(filePath);
-      
+
       // Dosya tipini belirle
       const fileType = getFileType(filePath);
-      
+
       if (fileType === 'image') {
         // Resimler için ayrı bir işlem - inline gösterim
         const newWindow = window.open('', '_blank');
@@ -236,7 +236,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
         link.href = signedUrl;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        
+
         // Eğer PDF ise, browser'ın built-in PDF viewer'ını kullan
         if (fileType === 'pdf') {
           link.click();
@@ -301,22 +301,22 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     {offer.price_per && (
                       <div className="text-sm text-gray-500 mt-1">
                         {offer.price_per === 'total' ? 'Toplam' :
-                         offer.price_per === 'per_kg' ? 'Kg başına' :
-                         offer.price_per === 'per_km' ? 'Km başına' :
-                         offer.price_per === 'per_m3' ? 'M³ başına' :
-                         offer.price_per}
+                          offer.price_per === 'per_kg' ? 'Kg başına' :
+                            offer.price_per === 'per_km' ? 'Km başına' :
+                              offer.price_per === 'per_m3' ? 'M³ başına' :
+                                offer.price_per}
                       </div>
                     )}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white/60 rounded-xl p-4 text-center">
                     <Calendar className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                     <div className="text-sm text-gray-600">Teklif Tarihi</div>
                     <div className="font-semibold text-gray-900 text-sm">{formatDate(offer.created_at)}</div>
                   </div>
-                  
+
                   {offer.expires_at && (
                     <div className="bg-white/60 rounded-xl p-4 text-center">
                       <Clock className="w-6 h-6 text-orange-600 mx-auto mb-2" />
@@ -324,7 +324,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                       <div className="font-semibold text-gray-900 text-sm">{formatDate(offer.expires_at)}</div>
                     </div>
                   )}
-                  
+
                   {offer.cargo_type && (
                     <div className="bg-white/60 rounded-xl p-4 text-center">
                       <Truck className="w-6 h-6 text-green-600 mx-auto mb-2" />
@@ -343,7 +343,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">📋 Temel Bilgiler</h3>
                 </div>
-                
+
                 <div className="space-y-4">
                   {/* Hizmet Açıklaması ve Mesaj */}
                   {(offer.service_description || offer.message) && (
@@ -354,7 +354,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           <div className="text-gray-900 leading-relaxed">{offer.service_description}</div>
                         </div>
                       )}
-                      
+
                       {offer.message && (
                         <div className="bg-gray-50 rounded-xl p-4">
                           <div className="text-sm text-gray-600 mb-2">Teklif Mesajı</div>
@@ -375,7 +375,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">💰 Fiyat ve Ödeme Detayları</h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {offer.price_breakdown && typeof offer.price_breakdown === 'object' && offer.price_breakdown !== null && (
                       <div className="bg-emerald-50 rounded-xl p-4">
@@ -390,7 +390,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                         </div>
                       </div>
                     )}
-                    
+
                     {(offer.payment_terms || offer.payment_method) && (
                       <div className="bg-amber-50 rounded-xl p-4">
                         <div className="text-sm text-gray-600 mb-2">Ödeme Koşulları</div>
@@ -421,7 +421,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">🚛 Taşıma ve Zaman Detayları</h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* Transport Details Grid */}
                     {(offer.transport_mode || offer.pickup_date_preferred || offer.delivery_date_preferred || offer.transit_time_estimate) && (
@@ -433,11 +433,11 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                               <div className="text-xs text-gray-600">Taşıma Modu</div>
                               <div className="font-semibold text-gray-900 text-sm">
                                 {offer.transport_mode === 'road' ? 'Karayolu' :
-                                 offer.transport_mode === 'sea' ? 'Deniz' :
-                                 offer.transport_mode === 'air' ? 'Hava' :
-                                 offer.transport_mode === 'rail' ? 'Demir Yolu' :
-                                 offer.transport_mode === 'multimodal' ? 'Çok Modlu' :
-                                 offer.transport_mode}
+                                  offer.transport_mode === 'sea' ? 'Deniz' :
+                                    offer.transport_mode === 'air' ? 'Hava' :
+                                      offer.transport_mode === 'rail' ? 'Demir Yolu' :
+                                        offer.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                                          offer.transport_mode}
                               </div>
                             </div>
                           </div>
@@ -488,8 +488,8 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                             <div key={key} className="flex items-center justify-between bg-white rounded-lg p-2">
                               <span className="text-gray-700 font-medium text-sm capitalize">{key.replace(/_/g, ' ')}</span>
                               <span className="font-semibold text-gray-900 text-sm">
-                                {typeof value === 'string' && value.includes('T') 
-                                  ? new Date(value).toLocaleDateString('tr-TR') 
+                                {typeof value === 'string' && value.includes('T')
+                                  ? new Date(value).toLocaleDateString('tr-TR')
                                   : String(value)
                                 }
                               </span>
@@ -503,58 +503,58 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
               )}
 
               {/* Step 4: Hizmetler ve Özellikler */}
-              {(offer.customs_handling_included || offer.documentation_handling_included || 
-                offer.loading_unloading_included || offer.tracking_system_provided || 
+              {(offer.customs_handling_included || offer.documentation_handling_included ||
+                offer.loading_unloading_included || offer.tracking_system_provided ||
                 offer.express_service || offer.weekend_service) && (
-                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
-                  <div className="flex items-center mb-4">
-                    <div className="bg-green-600 p-2 rounded-lg mr-3">
-                      <CheckCircle className="w-5 h-5 text-white" />
+                  <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-green-600 p-2 rounded-lg mr-3">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900">✅ Dahil Edilen Hizmetler</h3>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900">✅ Dahil Edilen Hizmetler</h3>
-                  </div>
-                  <div className="bg-green-50 rounded-xl p-4">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      {offer.customs_handling_included && (
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Gümrük İşlemleri
-                        </div>
-                      )}
-                      {offer.documentation_handling_included && (
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Evrak İşlemleri
-                        </div>
-                      )}
-                      {offer.loading_unloading_included && (
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Yükleme/Boşaltma
-                        </div>
-                      )}
-                      {offer.tracking_system_provided && (
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Takip Sistemi
-                        </div>
-                      )}
-                      {offer.express_service && (
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Ekspres Hizmet
-                        </div>
-                      )}
-                      {offer.weekend_service && (
-                        <div className="flex items-center text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Hafta Sonu Hizmeti
-                        </div>
-                      )}
+                    <div className="bg-green-50 rounded-xl p-4">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        {offer.customs_handling_included && (
+                          <div className="flex items-center text-green-700">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Gümrük İşlemleri
+                          </div>
+                        )}
+                        {offer.documentation_handling_included && (
+                          <div className="flex items-center text-green-700">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Evrak İşlemleri
+                          </div>
+                        )}
+                        {offer.loading_unloading_included && (
+                          <div className="flex items-center text-green-700">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Yükleme/Boşaltma
+                          </div>
+                        )}
+                        {offer.tracking_system_provided && (
+                          <div className="flex items-center text-green-700">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Takip Sistemi
+                          </div>
+                        )}
+                        {offer.express_service && (
+                          <div className="flex items-center text-green-700">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Ekspres Hizmet
+                          </div>
+                        )}
+                        {offer.weekend_service && (
+                          <div className="flex items-center text-green-700">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Hafta Sonu Hizmeti
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Step 5: Şartlar ve Koşullar */}
               {(offer.special_conditions || offer.additional_terms) && (
@@ -565,7 +565,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">📋 Şartlar ve Koşullar</h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {offer.special_conditions && (
                       <div className="bg-amber-50 rounded-xl p-4">
@@ -573,21 +573,21 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                         <div className="text-gray-900 leading-relaxed">{offer.special_conditions}</div>
                       </div>
                     )}
-                    
+
                     {offer.additional_terms && (
                       <div className="bg-blue-50 rounded-xl p-4">
                         <div className="text-sm text-gray-600 mb-2">Ek Şartlar</div>
                         <div className="text-gray-900 leading-relaxed">
-                          {typeof offer.additional_terms === 'string' 
+                          {typeof offer.additional_terms === 'string'
                             ? offer.additional_terms
                             : typeof offer.additional_terms === 'object' && offer.additional_terms !== null
-                            ? Object.entries(offer.additional_terms).map(([key, value]) => (
+                              ? Object.entries(offer.additional_terms).map(([key, value]) => (
                                 <div key={key} className="mb-2 flex justify-between">
-                                  <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span> 
+                                  <span className="font-medium capitalize">{key.replace(/_/g, ' ')}:</span>
                                   <span>{typeof value === 'boolean' ? (value ? '✓ Evet' : '✗ Hayır') : String(value)}</span>
                                 </div>
                               ))
-                            : 'Bilgi bulunamadı'
+                              : 'Bilgi bulunamadı'
                           }
                         </div>
                       </div>
@@ -605,7 +605,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">📄 Belgeler ve Dokümanlar</h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* Belge Açıklaması */}
                     {offer.documents_description && (
@@ -614,7 +614,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                         <div className="text-gray-900 leading-relaxed">{offer.documents_description}</div>
                       </div>
                     )}
-                    
+
                     {/* Dokümanlar */}
                     {offer.document_urls && offer.document_urls.length > 0 && (
                       <div>
@@ -623,7 +623,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           {offer.document_urls.map((url, index) => {
                             const fileName = getFileNameFromUrl(url);
                             const fileType = getFileType(url);
-                            
+
                             return (
                               <div key={index} className="flex items-center justify-between bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center flex-1">
@@ -634,10 +634,10 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                                     </span>
                                     <span className="text-xs text-gray-500 capitalize">
                                       {fileType === 'pdf' ? 'PDF Dosyası' :
-                                       fileType === 'document' ? 'Word Belgesi' :
-                                       fileType === 'spreadsheet' ? 'Excel Dosyası' :
-                                       fileType === 'image' ? 'Resim Dosyası' :
-                                       'Dosya'}
+                                        fileType === 'document' ? 'Word Belgesi' :
+                                          fileType === 'spreadsheet' ? 'Excel Dosyası' :
+                                            fileType === 'image' ? 'Resim Dosyası' :
+                                              'Dosya'}
                                     </span>
                                   </div>
                                 </div>
@@ -673,7 +673,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Resimler */}
                     {offer.image_urls && offer.image_urls.length > 0 && (
                       <div>
@@ -741,7 +741,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           <span className="text-gray-700 font-medium text-sm capitalize">{key.replace(/_/g, ' ')}</span>
                         </div>
                         <span className="font-semibold text-gray-900 text-sm">
-                          {typeof value === 'boolean' 
+                          {typeof value === 'boolean'
                             ? (value ? '✓ Dahil' : '✗ Dahil Değil')
                             : String(value)
                           }
@@ -766,19 +766,18 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                       <h3 className="text-lg font-bold text-gray-900">İlan Detayları</h3>
                     </div>
                     {/* İlan Tipi İşareti */}
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                      offer.listing.listing_type === 'load_listing' ? 'bg-blue-100 text-blue-800' :
-                      offer.listing.listing_type === 'shipment_request' ? 'bg-green-100 text-green-800' :
-                      offer.listing.listing_type === 'transport_service' ? 'bg-orange-100 text-orange-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${offer.listing.listing_type === 'load_listing' ? 'bg-blue-100 text-blue-800' :
+                        offer.listing.listing_type === 'shipment_request' ? 'bg-green-100 text-green-800' :
+                          offer.listing.listing_type === 'transport_service' ? 'bg-orange-100 text-orange-800' :
+                            'bg-gray-100 text-gray-800'
+                      }`}>
                       {offer.listing.listing_type === 'load_listing' ? 'Yük İlanı' :
-                       offer.listing.listing_type === 'shipment_request' ? 'Nakliye Talebi' :
-                       offer.listing.listing_type === 'transport_service' ? 'Nakliye Hizmeti' :
-                       'İlan'}
+                        offer.listing.listing_type === 'shipment_request' ? 'Nakliye Talebi' :
+                          offer.listing.listing_type === 'transport_service' ? 'Nakliye Hizmeti' :
+                            'İlan'}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* Başlık ve Güzergah */}
                     <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-4">
@@ -790,13 +789,13 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                             <span className="text-xs font-bold text-blue-600">{offer.listing.listing_number}</span>
                           </div>
                         )}
-                        
+
                         {/* Başlık */}
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-gray-500">Başlık:</span>
                           <span className="text-xs font-bold text-gray-900">{offer.listing.title}</span>
                         </div>
-                        
+
                         {/* Güzergah */}
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-gray-500">Güzergah:</span>
@@ -817,7 +816,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           <div>
                             <div className="text-xs text-gray-600">Ağırlık</div>
                             <div className="font-semibold text-gray-900 text-sm">
-                              {offer.listing.weight_value >= 1000 
+                              {offer.listing.weight_value >= 1000
                                 ? `${(offer.listing.weight_value / 1000).toFixed(0)} ton`
                                 : `${offer.listing.weight_value} kg`
                               }
@@ -825,7 +824,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           </div>
                         </div>
                       )}
-                      
+
                       {offer.listing.volume_value && (
                         <div className="bg-gray-50 rounded-xl p-3 flex items-center">
                           <Package className="w-4 h-4 mr-2 text-green-600" />
@@ -835,7 +834,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Yükleme Tarihi - Sadece nakliye talebi ve yük ilanı için */}
                       {offer.listing.loading_date && (
                         <div className="bg-gray-50 rounded-xl p-3 flex items-center">
@@ -851,7 +850,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           </div>
                         </div>
                       )}
-                      
+
                       {/* Taşıma Modu - Sadece nakliye talebi ve nakliye hizmeti için */}
                       {offer.listing.transport_mode && offer.listing.listing_type !== 'load_listing' && (
                         <div className="bg-gray-50 rounded-xl p-3 flex items-center">
@@ -860,12 +859,12 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                             <div className="text-xs text-gray-600">Taşıma Modu</div>
                             <div className="font-semibold text-gray-900 text-sm capitalize">
                               {offer.listing.transport_mode === 'road' ? 'Karayolu' :
-                               offer.listing.transport_mode === 'sea' ? 'Deniz' :
-                               offer.listing.transport_mode === 'air' ? 'Hava' :
-                               offer.listing.transport_mode === 'rail' ? 'Demir Yolu' :
-                               offer.listing.transport_mode === 'multimodal' ? 'Çok Modlu' :
-                               offer.listing.transport_mode === 'negotiable' ? 'Görüşülecek' :
-                               offer.listing.transport_mode}
+                                offer.listing.transport_mode === 'sea' ? 'Deniz' :
+                                  offer.listing.transport_mode === 'air' ? 'Hava' :
+                                    offer.listing.transport_mode === 'rail' ? 'Demir Yolu' :
+                                      offer.listing.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                                        offer.listing.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                          offer.listing.transport_mode}
                             </div>
                           </div>
                         </div>
@@ -894,7 +893,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                       {isOfferOwner ? 'Sizin Bilgileriniz' : 'Teklif Veren'}
                     </h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* Kullanıcı Profil Kartı */}
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4">
@@ -976,7 +975,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">İlan Sahibi</h3>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* İlan Sahibi Profil Kartı */}
                     <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-4">
