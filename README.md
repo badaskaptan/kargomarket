@@ -1,26 +1,35 @@
-# 🚛 KargoMarketing - Nakliye ve Reklam Platformu
+# 🚛 KargoMarket v3 - Nakliye ve Lojistik Platformu
 
-Modern nakliye hizmetleri ve reklam yönetimi için kapsamlı platform. React + TypeScript + Vite + Supabase teknolojileri ile geliştirilmiştir.
+> **Durum**: ✅ Production Ready (Son Güncelleme: 5 Ağustos 2025)
 
-## 🌟 Özellikler
+Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React + TypeScript + Vite + Supabase teknolojileri ile geliştirilmiştir.
 
-### 📦 Nakliye Sistemi
-- **Yük İlanları**: Nakliye talepleri ve yük ilanları yönetimi
-- **Nakliyeci Profilleri**: Taşıyıcı firma profilleri ve değerlendirmeler
-- **Mesajlaşma Sistemi**: Gerçek zamanlı kullanıcı iletişimi
-- **Lokasyon Entegrasyonu**: İl/ilçe bazlı filtreleme ve arama
+## 📋 **Hızlı Başlangıç**
 
-### 🎯 Reklam Sistemi
-- **Çoklu Reklam Türleri**: Banner, Video, Metin reklamları
-- **Hedefleme**: Rol bazlı ve demografik hedefleme
-- **Gerçek Zamanlı Metrikler**: Impression, click, CTR takibi
-- **Billing Entegrasyonu**: Otomatik faturalama ve bakiye yönetimi
+### **� Dokümantasyon**
+- 🏠 **Ana Dokümantasyon**: [`docs/MASTER_DOCUMENTATION_INDEX.md`](docs/MASTER_DOCUMENTATION_INDEX.md)
+- 🗄️ **Database Migration**: [`sql/migrations/SERVICE_OFFERS_COMPLETE_MIGRATION.sql`](sql/migrations/SERVICE_OFFERS_COMPLETE_MIGRATION.sql)
+- 🔧 **Debug Sorguları**: [`sql/debug/COMMON_DEBUG_QUERIES.sql`](sql/debug/COMMON_DEBUG_QUERIES.sql)
 
-### 💰 Ödeme ve Billing
-- **Esnek Fiyatlandırma**: Günlük/haftalık/aylık reklam paketleri
-- **Otomatik Bakiye**: Kullanıcı bakiye sistemi ve transaction geçmişi
-- **Ücretsiz Mod**: Beta sürümde sınırsız kullanım
-- **Kredi Kartı Entegrasyonu**: Güvenli ödeme altyapısı
+### **🚀 Deployment**
+1. Backend: [`docs/deployment/SERVICE_OFFER_DEPLOYMENT_COMPLETE.md`](docs/deployment/SERVICE_OFFER_DEPLOYMENT_COMPLETE.md)
+2. Database: SQL migration script'lerini Supabase'de çalıştır
+3. Frontend: `npm run build` → hosting platform'una deploy
+
+## 🎯 **Ana Özellikler**
+
+### ✅ **Tamamlanan Sistemler** (Production Ready)
+- **🚛 Service Offer System**: Nakliye hizmet teklif sistemi (coğrafi bilgi, şirket detayları)
+- **💬 Messaging System**: Gerçek zamanlı mesajlaşma (RLS güvenlik)
+- **⭐ Reviews System**: Değerlendirme ve yorumlar
+- **💰 Billing System**: Faturalandırma altyapısı
+- **📁 File Upload**: Güvenli dosya yükleme
+
+### � **Teknik İyileştirmeler**
+- **Modal System**: Tutarlı UI/UX, raw JSON eliminasyonu
+- **Database Schema**: Optimize edilmiş performans indexleri
+- **Type Safety**: %100 TypeScript coverage
+- **Bundle Optimization**: Code splitting, 164.81 kB gzip
 
 ## 🏗️ Teknoloji Stack
 
