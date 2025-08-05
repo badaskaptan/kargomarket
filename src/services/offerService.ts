@@ -3,7 +3,7 @@ import type { Database } from '../types/database-types';
 
 type Offer = Database['public']['Tables']['offers']['Row'];
 type OfferInsert = Database['public']['Tables']['offers']['Insert'];
-type OfferUpdate = Database['public']['Tables']['offers']['Update'];
+export type OfferUpdate = Database['public']['Tables']['offers']['Update'];
 
 // Extended Offer with related data
 export interface ExtendedOffer extends Offer {
@@ -17,6 +17,7 @@ export interface ExtendedOffer extends Offer {
     listing_type: string;
     transport_mode?: string;
     weight_value?: number;
+    weight_unit?: string;
     volume_value?: number;
     loading_date?: string;
     delivery_date?: string;
@@ -64,6 +65,7 @@ export class OfferService {
             listing_type,
             transport_mode,
             weight_value,
+            weight_unit,
             volume_value,
             loading_date,
             delivery_date,
@@ -141,6 +143,7 @@ export class OfferService {
             listing_type,
             transport_mode,
             weight_value,
+            weight_unit,
             volume_value,
             loading_date,
             delivery_date,

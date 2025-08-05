@@ -437,7 +437,8 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                                     offer.transport_mode === 'air' ? 'Hava' :
                                       offer.transport_mode === 'rail' ? 'Demir Yolu' :
                                         offer.transport_mode === 'multimodal' ? 'Çok Modlu' :
-                                          offer.transport_mode}
+                                          offer.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                            offer.transport_mode}
                               </div>
                             </div>
                           </div>
@@ -816,10 +817,7 @@ const OfferDetailModal: React.FC<OfferDetailModalProps> = ({
                           <div>
                             <div className="text-xs text-gray-600">Ağırlık</div>
                             <div className="font-semibold text-gray-900 text-sm">
-                              {offer.listing.weight_value >= 1000
-                                ? `${(offer.listing.weight_value / 1000).toFixed(0)} ton`
-                                : `${offer.listing.weight_value} kg`
-                              }
+                              {offer.listing.weight_value} {offer.listing.weight_unit || 'kg'}
                             </div>
                           </div>
                         </div>

@@ -439,10 +439,7 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                     <div className="flex items-center">
                                         <Package className="w-4 h-4 mr-1 text-gray-400" />
                                         <span className="text-sm font-medium text-gray-900">
-                                            {listing.weight_value >= 1000 
-                                                ? `${(listing.weight_value / 1000).toFixed(0)} ton`
-                                                : `${listing.weight_value} kg`
-                                            }
+                                            {listing.weight_value} {listing.weight_unit || 'kg'}
                                         </span>
                                     </div>
                                 </div>
@@ -476,7 +473,15 @@ const CreateOfferModal: React.FC<CreateOfferModalProps> = ({
                                     <span className="text-sm font-medium text-gray-500">Taşıma Modu:</span>
                                     <div className="flex items-center">
                                         <Truck className="w-4 h-4 mr-1 text-gray-400" />
-                                        <span className="text-sm font-medium text-gray-900 capitalize">{listing.transport_mode}</span>
+                                        <span className="text-sm font-medium text-gray-900 capitalize">
+                                          {listing.transport_mode === 'road' ? 'Karayolu' :
+                                            listing.transport_mode === 'sea' ? 'Deniz' :
+                                              listing.transport_mode === 'air' ? 'Hava' :
+                                                listing.transport_mode === 'rail' ? 'Demir Yolu' :
+                                                  listing.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                                                    listing.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                                      listing.transport_mode}
+                                        </span>
                                     </div>
                                 </div>
                             )}

@@ -122,7 +122,7 @@ const AcceptRejectOfferModal: React.FC<AcceptRejectOfferModalProps> = ({
                     {offer.listing.weight_value && (
                       <div className="flex items-center">
                         <Package className="w-4 h-4 mr-2 text-gray-400" />
-                        <span>{offer.listing.weight_value} kg</span>
+                        <span>{offer.listing.weight_value} {offer.listing.weight_unit || 'kg'}</span>
                       </div>
                     )}
                     {offer.listing.volume_value && (
@@ -140,7 +140,15 @@ const AcceptRejectOfferModal: React.FC<AcceptRejectOfferModalProps> = ({
                     {offer.listing.transport_mode && (
                       <div className="flex items-center">
                         <Truck className="w-4 h-4 mr-2 text-gray-400" />
-                        <span className="capitalize">{offer.listing.transport_mode}</span>
+                        <span className="capitalize">
+                          {offer.listing.transport_mode === 'road' ? 'Karayolu' :
+                            offer.listing.transport_mode === 'sea' ? 'Deniz' :
+                              offer.listing.transport_mode === 'air' ? 'Hava' :
+                                offer.listing.transport_mode === 'rail' ? 'Demir Yolu' :
+                                  offer.listing.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                                    offer.listing.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                      offer.listing.transport_mode}
+                        </span>
                       </div>
                     )}
                   </div>

@@ -183,14 +183,19 @@ export class ServiceOfferService {
         throw new Error('Kendi nakliye hizmetinize teklif veremezsiniz');
       }
 
+      // Boş string'leri null'a çevir (database constraint'leri için)
+      const cleanedOfferData = {
+        ...offerData,
+        pickup_location: offerData.pickup_location?.trim() || null,
+        delivery_location: offerData.delivery_location?.trim() || null,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
       // Service offer oluştur
       const { data, error } = await supabase
         .from('service_offers')
-        .insert([{
-          ...offerData,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        }])
+        .insert([cleanedOfferData])
         .select()
         .single();
 
@@ -398,11 +403,20 @@ export class ServiceOfferService {
         throw new Error('Güncellenecek teklif bulunamadı');
       }
 
+      // Boş string'leri null'a çevir (database constraint'leri için)
+      const cleanedOfferData = { ...offerData };
+      if ('pickup_location' in cleanedOfferData) {
+        cleanedOfferData.pickup_location = cleanedOfferData.pickup_location?.trim() || null;
+      }
+      if ('delivery_location' in cleanedOfferData) {
+        cleanedOfferData.delivery_location = cleanedOfferData.delivery_location?.trim() || null;
+      }
+
       // Teklifi güncelle
       const { data, error } = await supabase
         .from('service_offers')
         .update({
-          ...offerData,
+          ...cleanedOfferData,
           updated_at: new Date().toISOString()
         })
         .eq('id', offerId)

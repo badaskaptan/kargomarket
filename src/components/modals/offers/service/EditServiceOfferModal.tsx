@@ -1,395 +1,668 @@
 import React, { useState } from 'react';
-import { X, Check } from 'lucide-react';
+import {
+  X,
+  Truck,
+  Check,
+  DollarSign,
+  User
+} from 'lucide-react';
 import { ServiceOfferService } from '../../../../services/serviceOfferService';
 import { useAuth } from '../../../../context/SupabaseAuthContext';
 import type { ExtendedServiceOffer } from '../../../../types/service-offer-types';
 
+// TypeScript types (cargo types)
+type CargoType = 'general_cargo' | 'bulk_cargo' | 'container' | 'liquid' | 'dry_bulk' | 'refrigerated' | 'hazardous' | 'oversized' | 'project_cargo' | 'livestock' | 'vehicles' | 'machinery' | 'box_package' | 'pallet_standard' | 'pallet_euro' | 'pallet_industrial' | 'sack_bigbag' | 'barrel_drum' | 'appliances_electronics' | 'furniture_decor' | 'textile_products' | 'automotive_parts' | 'machinery_parts' | 'construction_materials' | 'packaged_food' | 'consumer_goods' | 'ecommerce_cargo' | 'other_general' | 'grain' | 'ore' | 'coal' | 'cement_bulk' | 'sand_gravel' | 'fertilizer_bulk' | 'soil_excavation' | 'scrap_metal' | 'other_bulk' | 'crude_oil' | 'chemical_liquids' | 'vegetable_oils' | 'fuel' | 'lpg_lng' | 'water' | 'milk_dairy' | 'wine_concentrate' | 'other_liquid' | 'tbm' | 'transformer_generator' | 'heavy_machinery' | 'boat_yacht' | 'industrial_parts' | 'prefab_elements' | 'wind_turbine' | 'other_oversized' | 'art_antiques' | 'glass_ceramic' | 'electronic_devices' | 'medical_devices' | 'lab_equipment' | 'flowers_plants' | 'other_sensitive' | 'dangerous_class1' | 'dangerous_class2' | 'dangerous_class3' | 'dangerous_class4' | 'dangerous_class5' | 'dangerous_class6' | 'dangerous_class7' | 'dangerous_class8' | 'dangerous_class9' | 'frozen_food' | 'fresh_produce' | 'meat_dairy' | 'pharma_vaccine' | 'chemical_temp' | 'other_cold_chain' | 'small_livestock' | 'large_livestock' | 'poultry' | 'pets' | 'other_livestock' | 'factory_setup' | 'power_plant' | 'infrastructure' | 'other_project';
+
+// Service Ad type for getting transport_mode
+interface ServiceAd {
+  transport_mode?: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
+}
+
+// Vehicle type structure
+interface VehicleOption {
+  value: string;
+  label: string;
+}
+
+interface VehicleGroup {
+  group: string;
+  vehicles: VehicleOption[];
+}
+
 interface EditServiceOfferModalProps {
   offer: ExtendedServiceOffer;
+  serviceAd: ServiceAd; // Service ad for getting transport_mode
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({ offer, isOpen, onClose, onSuccess }) => {
+interface EditServiceOfferFormData {
+  // Coğrafi bilgiler
+  pickup_location: string;
+  delivery_location: string;
+  service_reference_title: string;
+  offered_vehicle_type: string;
+  
+  // Şirket bilgileri
+  company_name: string;
+  company_website: string;
+  company_tax_number: string;
+  
+  // Sigorta bilgileri
+  insurance_company: string;
+  insurance_policy_number: string;
+  
+  // Yük miktarı ve hacim bilgileri
+  cargo_weight: string;
+  cargo_weight_unit: 'kg' | 'ton' | 'lb';
+  cargo_volume: string;
+  cargo_volume_unit: 'm3' | 'ft3' | 'l';
+  
+  // Fiyat bilgileri
+  price_amount: string;
+  price_currency: 'USD' | 'EUR' | 'TRY';
+  price_per: 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle';
+  message: string;
+  
+  // Hizmet özellikleri
+  transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
+  cargo_type: CargoType;
+  service_scope: 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only';
+  
+  // Tarih bilgileri
+  pickup_date_preferred: string;
+  pickup_date_latest: string;
+  delivery_date_preferred: string;
+  delivery_date_latest: string;
+  transit_time_estimate: string;
+  expires_at: string;
+  
+  // Ek hizmetler
+  customs_handling_included: boolean;
+  documentation_handling_included: boolean;
+  loading_unloading_included: boolean;
+  tracking_system_provided: boolean;
+  express_service: boolean;
+  weekend_service: boolean;
+  
+  // Ek ücretler
+  fuel_surcharge_included: boolean;
+  toll_fees_included: boolean;
+  port_charges_included: boolean;
+  airport_charges_included: boolean;
+  
+  // Garantiler
+  on_time_guarantee: boolean;
+  damage_free_guarantee: boolean;
+  temperature_guarantee: boolean;
+  
+  // İletişim bilgileri
+  contact_person: string;
+  contact_phone: string;
+  emergency_contact: string;
+  
+  // Ödeme koşulları
+  payment_terms: string;
+}
+
+const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
+  isOpen,
+  onClose,
+  serviceAd,
+  offer
+}) => {
+  // Vehicle types configuration for dynamic dropdown
+  const vehicleTypes = {
+    road: [
+      {
+        group: 'Kamyonlar',
+        vehicles: [
+          { value: 'truck_3_5_open', label: 'Kamyon - 3.5 Ton (Açık Kasa)' },
+          { value: 'truck_3_5_closed', label: 'Kamyon - 3.5 Ton (Kapalı Kasa)' },
+          { value: 'truck_5_open', label: 'Kamyon - 5 Ton (Açık Kasa)' },
+          { value: 'truck_5_closed', label: 'Kamyon - 5 Ton (Kapalı Kasa)' },
+          { value: 'truck_10_open', label: 'Kamyon - 10 Ton (Açık Kasa)' },
+          { value: 'truck_10_closed', label: 'Kamyon - 10 Ton (Kapalı Kasa)' },
+          { value: 'truck_10_tent', label: 'Kamyon - 10 Ton (Tenteli)' },
+          { value: 'truck_15_open', label: 'Kamyon - 15 Ton (Açık Kasa)' },
+          { value: 'truck_15_closed', label: 'Kamyon - 15 Ton (Kapalı Kasa)' },
+          { value: 'truck_15_tent', label: 'Kamyon - 15 Ton (Tenteli)' }
+        ]
+      },
+      {
+        group: 'Tır ve Çekiciler (40 Tona Kadar)',
+        vehicles: [
+          { value: 'tir_standard', label: 'Tır (Standart Dorse) - 90m³ / 40t' },
+          { value: 'tir_mega', label: 'Tır (Mega Dorse) - 100m³ / 40t' },
+          { value: 'tir_jumbo', label: 'Tır (Jumbo Dorse) - 120m³ / 40t' },
+          { value: 'tir_tent', label: 'Tır (Tenteli Dorse) - 40t' },
+          { value: 'tir_frigo', label: 'Tır (Frigorifik Dorse - Isı Kontrollü) - 40t' },
+          { value: 'tir_container', label: 'Tır (Konteyner Taşıyıcı) - 40t' },
+          { value: 'tir_platform', label: 'Tır (Platform) - 40t' },
+          { value: 'tir_frigo_dual', label: 'Tır (Frigorifik Çift Isı) - 40t' }
+        ]
+      },
+      {
+        group: 'Kargo Araçları (Hafif Yükler)',
+        vehicles: [
+          { value: 'van_3', label: 'Kargo Van - 3m³ (1000kg)' },
+          { value: 'van_6', label: 'Kargo Van - 6m³ (1500kg)' },
+          { value: 'van_10', label: 'Kargo Van - 10m³ (2000kg)' },
+          { value: 'van_15', label: 'Kargo Van - 15m³ (2500kg)' }
+        ]
+      }
+    ],
+    sea: [
+      {
+        group: 'Konteyner Gemisi',
+        vehicles: [
+          { value: 'container_20dc', label: '20\' Standart (20DC) - 33m³ / 28t' },
+          { value: 'container_40dc', label: '40\' Standart (40DC) - 67m³ / 28t' },
+          { value: 'container_40hc', label: '40\' Yüksek (40HC) - 76m³ / 28t' },
+          { value: 'container_20ot', label: '20\' Open Top - 32m³ / 28t' },
+          { value: 'container_40ot', label: '40\' Open Top - 66m³ / 28t' },
+          { value: 'container_20fr', label: '20\' Flat Rack - 28t' },
+          { value: 'container_40fr', label: '40\' Flat Rack - 40t' },
+          { value: 'container_20rf', label: '20\' Reefer - 28m³ / 25t' },
+          { value: 'container_40rf', label: '40\' Reefer - 60m³ / 25t' }
+        ]
+      },
+      {
+        group: 'Dökme Yük Gemisi',
+        vehicles: [
+          { value: 'bulk_handysize', label: 'Handysize (10,000-35,000 DWT)' },
+          { value: 'bulk_handymax', label: 'Handymax (35,000-60,000 DWT)' },
+          { value: 'bulk_panamax', label: 'Panamax (60,000-80,000 DWT)' },
+          { value: 'bulk_capesize', label: 'Capesize (80,000+ DWT)' }
+        ]
+      },
+      {
+        group: 'Genel Kargo Gemisi',
+        vehicles: [
+          { value: 'general_small', label: 'Küçük Tonaj (1,000-5,000 DWT)' },
+          { value: 'general_medium', label: 'Orta Tonaj (5,000-15,000 DWT)' },
+          { value: 'general_large', label: 'Büyük Tonaj (15,000+ DWT)' }
+        ]
+      },
+      {
+        group: 'Tanker',
+        vehicles: [
+          { value: 'tanker_product', label: 'Ürün Tankeri (10,000-60,000 DWT)' },
+          { value: 'tanker_chemical', label: 'Kimyasal Tanker (5,000-40,000 DWT)' },
+          { value: 'tanker_crude', label: 'Ham Petrol Tankeri (60,000+ DWT)' },
+          { value: 'tanker_lpg', label: 'LPG Tankeri (5,000-80,000 m³)' },
+          { value: 'tanker_lng', label: 'LNG Tankeri (150,000-180,000 m³)' }
+        ]
+      },
+      {
+        group: 'RO-RO',
+        vehicles: [
+          { value: 'roro_small', label: 'Küçük RO-RO (100-200 araç)' },
+          { value: 'roro_medium', label: 'Orta RO-RO (200-500 araç)' },
+          { value: 'roro_large', label: 'Büyük RO-RO (500+ araç)' }
+        ]
+      },
+      {
+        group: 'Feribot ve Yük Teknesi',
+        vehicles: [
+          { value: 'ferry_cargo', label: 'Kargo Feribotu' },
+          { value: 'ferry_mixed', label: 'Karma Feribot (Yolcu+Yük)' },
+          { value: 'cargo_small', label: 'Küçük Yük Teknesi (500-1,000 DWT)' },
+          { value: 'cargo_large', label: 'Büyük Yük Teknesi (1,000+ DWT)' }
+        ]
+      }
+    ],
+    air: [
+      {
+        group: 'Kargo Tipleri',
+        vehicles: [
+          { value: 'standard_cargo', label: 'Standart Kargo' },
+          { value: 'large_cargo', label: 'Büyük Hacimli Kargo' },
+          { value: 'special_cargo', label: 'Özel Kargo' }
+        ]
+      }
+    ],
+    rail: [
+      {
+        group: 'Vagon Tipleri',
+        vehicles: [
+          { value: 'open_wagon', label: 'Açık Yük Vagonu' },
+          { value: 'closed_wagon', label: 'Kapalı Yük Vagonu' },
+          { value: 'container_wagon', label: 'Konteyner Vagonu' },
+          { value: 'tanker_wagon', label: 'Tanker Vagonu' }
+        ]
+      }
+    ]
+  };
+
   const { user } = useAuth();
-  const [formData, setFormData] = useState({
-    price_amount: offer.price_amount?.toString() || '',
-    price_currency: offer.price_currency || 'TRY',
-    price_per: offer.price_per || 'total',
-    message: offer.message || '',
-    payment_terms: offer.payment_terms || '',
-    payment_method: offer.payment_method || '',
-    expires_at: offer.expires_at ? offer.expires_at.split('T')[0] : '',
-    transport_mode: offer.transport_mode || '',
-    cargo_type: offer.cargo_type || '',
-    service_scope: offer.service_scope || '',
-    pickup_date_preferred: offer.pickup_date_preferred ? offer.pickup_date_preferred.split('T')[0] : '',
-    delivery_date_preferred: offer.delivery_date_preferred ? offer.delivery_date_preferred.split('T')[0] : '',
-    transit_time_estimate: offer.transit_time_estimate || '',
-    contact_person: offer.contact_person || '',
-    contact_phone: offer.contact_phone || '',
-    customs_handling_included: offer.customs_handling_included || false,
-    documentation_handling_included: offer.documentation_handling_included || false,
-    loading_unloading_included: offer.loading_unloading_included || false,
-    tracking_system_provided: offer.tracking_system_provided || false,
-    express_service: offer.express_service || false,
-    weekend_service: offer.weekend_service || false,
-    fuel_surcharge_included: offer.fuel_surcharge_included || false,
-    toll_fees_included: offer.toll_fees_included || false,
-    port_charges_included: offer.port_charges_included || false,
-    airport_charges_included: offer.airport_charges_included || false,
-    on_time_guarantee: offer.on_time_guarantee || false,
-    damage_free_guarantee: offer.damage_free_guarantee || false,
-    temperature_guarantee: offer.temperature_guarantee || false,
-    emergency_contact: offer.emergency_contact || '',
-    contingency_plan: offer.contingency_plan || '',
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<EditServiceOfferFormData>({
+    pickup_location: offer.pickup_location || '',
+    delivery_location: offer.delivery_location || '',
+    service_reference_title: offer.service_reference_title || '',
+    offered_vehicle_type: offer.offered_vehicle_type || '',
+    
+    company_name: offer.company_name || '',
+    company_website: offer.company_website || '',
+    company_tax_number: offer.company_tax_number || '',
+    
+    insurance_company: offer.insurance_company || '',
+    insurance_policy_number: offer.insurance_policy_number || '',
+    
     cargo_weight: offer.cargo_weight?.toString() || '',
     cargo_weight_unit: offer.cargo_weight_unit || 'kg',
     cargo_volume: offer.cargo_volume?.toString() || '',
     cargo_volume_unit: offer.cargo_volume_unit || 'm3',
-    insurance_company: offer.insurance_company || '',
-    insurance_policy_number: offer.insurance_policy_number || '',
+    
+    price_amount: offer.price_amount?.toString() || '',
+    price_currency: offer.price_currency || 'TRY',
+    price_per: (offer.price_per as 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle') || 'total',
+    message: offer.message || '',
+    
+    transport_mode: (offer.transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal') || 'road',
+    cargo_type: (offer.cargo_type as CargoType) || 'general_cargo',
+    service_scope: (offer.service_scope as 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only') || 'door_to_door',
+    
+    pickup_date_preferred: offer.pickup_date_preferred ? offer.pickup_date_preferred.split('T')[0] : '',
+    pickup_date_latest: offer.pickup_date_latest ? offer.pickup_date_latest.split('T')[0] : '',
+    delivery_date_preferred: offer.delivery_date_preferred ? offer.delivery_date_preferred.split('T')[0] : '',
+    delivery_date_latest: offer.delivery_date_latest ? offer.delivery_date_latest.split('T')[0] : '',
+    transit_time_estimate: offer.transit_time_estimate || '',
+    expires_at: offer.expires_at ? offer.expires_at.split('T')[0] : '',
+    
+    customs_handling_included: offer.customs_handling_included || false,
+    documentation_handling_included: offer.documentation_handling_included || false,
+    loading_unloading_included: offer.loading_unloading_included || false,
+    tracking_system_provided: offer.tracking_system_provided || true,
+    express_service: offer.express_service || false,
+    weekend_service: offer.weekend_service || false,
+    
+    fuel_surcharge_included: offer.fuel_surcharge_included || false,
+    toll_fees_included: offer.toll_fees_included || false,
+    port_charges_included: offer.port_charges_included || false,
+    airport_charges_included: offer.airport_charges_included || false,
+    
+    on_time_guarantee: offer.on_time_guarantee || false,
+    damage_free_guarantee: offer.damage_free_guarantee || false,
+    temperature_guarantee: offer.temperature_guarantee || false,
+    
+    contact_person: offer.contact_person || '',
+    contact_phone: offer.contact_phone || '',
+    emergency_contact: offer.emergency_contact || '',
+    
+    payment_terms: offer.payment_terms || 'after_delivery'
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [step, setStep] = useState(1); // 1: Temel Bilgiler, 2: Kapasite & Ekler
 
-  if (!isOpen) return null;
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (!formData.price_amount || parseFloat(formData.price_amount) <= 0) {
-      newErrors.price_amount = 'Geçerli bir fiyat giriniz';
-    }
-    if (!formData.message.trim()) {
-      newErrors.message = 'Teklif mesajı giriniz';
-    }
-    if (!formData.price_currency) {
-      newErrors.price_currency = 'Para birimi seçiniz';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  // Form data update handler
+  const updateFormData = (field: keyof EditServiceOfferFormData, value: string | number | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleUpdate = async () => {
-    if (!user) {
-      alert('Düzenleme için giriş yapmalısınız');
+  // Prevent form submission on Enter key in input fields
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+      e.preventDefault();
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user?.id) {
+      alert('Lütfen önce giriş yapın.');
       return;
     }
-    if (!validateForm()) return;
-    setIsSubmitting(true);
+
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+
+    // Validate numeric fields to prevent overflow
+    const validateNumericField = (value: string, fieldName: string, maxValue: number = 999999999) => {
+      if (!value) return null;
+      const numValue = parseFloat(value);
+      if (isNaN(numValue) || numValue < 0) {
+        throw new Error(`${fieldName} geçerli bir pozitif sayı olmalıdır.`);
+      }
+      if (numValue > maxValue) {
+        throw new Error(`${fieldName} çok büyük bir değer. Maksimum: ${maxValue.toLocaleString()}`);
+      }
+      return numValue;
+    };
+
     try {
-      await ServiceOfferService.updateServiceOffer(offer.id, {
-        price_amount: parseFloat(formData.price_amount),
-        price_currency: formData.price_currency,
-        price_per: formData.price_per,
-        message: formData.message.trim(),
-        expires_at: formData.expires_at ? new Date(formData.expires_at).toISOString() : null,
-        transport_mode: formData.transport_mode,
-        cargo_type: formData.cargo_type,
-        service_scope: formData.service_scope,
-        pickup_date_preferred: formData.pickup_date_preferred ? new Date(formData.pickup_date_preferred).toISOString() : null,
-        delivery_date_preferred: formData.delivery_date_preferred ? new Date(formData.delivery_date_preferred).toISOString() : null,
-        transit_time_estimate: formData.transit_time_estimate,
-        customs_handling_included: formData.customs_handling_included,
-        documentation_handling_included: formData.documentation_handling_included,
-        loading_unloading_included: formData.loading_unloading_included,
-        tracking_system_provided: formData.tracking_system_provided,
-        express_service: formData.express_service,
-        weekend_service: formData.weekend_service,
-        fuel_surcharge_included: formData.fuel_surcharge_included,
-        toll_fees_included: formData.toll_fees_included,
-        port_charges_included: formData.port_charges_included,
-        airport_charges_included: formData.airport_charges_included,
-        on_time_guarantee: formData.on_time_guarantee,
-        damage_free_guarantee: formData.damage_free_guarantee,
-        temperature_guarantee: formData.temperature_guarantee,
-        cargo_weight: formData.cargo_weight ? parseFloat(formData.cargo_weight) : null,
-        cargo_weight_unit: formData.cargo_weight_unit,
-        cargo_volume: formData.cargo_volume ? parseFloat(formData.cargo_volume) : null,
-        cargo_volume_unit: formData.cargo_volume_unit,
-        insurance_company: formData.insurance_company,
-        insurance_policy_number: formData.insurance_policy_number
-      });
-      alert('Teklif başarıyla güncellendi!');
+      // Validate before submission
+      const priceAmount = validateNumericField(formData.price_amount, 'Fiyat miktarı', 999999999);
+      const cargoWeight = validateNumericField(formData.cargo_weight, 'Yük ağırlığı', 999999);
+      const cargoVolume = validateNumericField(formData.cargo_volume, 'Yük hacmi', 999999);
+
+      setIsSubmitting(true);
+      
+      // Clean and prepare data for submission
+      const cleanedData = {
+        ...formData,
+        price_amount: priceAmount,
+        cargo_weight: cargoWeight,
+        cargo_volume: cargoVolume,
+        pickup_date_preferred: formData.pickup_date_preferred || null,
+        pickup_date_latest: formData.pickup_date_latest || null,
+        delivery_date_preferred: formData.delivery_date_preferred || null,
+        delivery_date_latest: formData.delivery_date_latest || null,
+        expires_at: formData.expires_at || null,
+        // Convert empty strings to null
+        pickup_location: formData.pickup_location || null,
+        delivery_location: formData.delivery_location || null,
+        service_reference_title: formData.service_reference_title || null,
+        offered_vehicle_type: formData.offered_vehicle_type || null,
+        company_name: formData.company_name || null,
+        company_website: formData.company_website || null,
+        company_tax_number: formData.company_tax_number || null,
+        insurance_company: formData.insurance_company || null,
+        insurance_policy_number: formData.insurance_policy_number || null,
+        message: formData.message || null,
+        transit_time_estimate: formData.transit_time_estimate || null,
+        contact_person: formData.contact_person || null,
+        contact_phone: formData.contact_phone || null,
+        emergency_contact: formData.emergency_contact || null,
+        payment_terms: formData.payment_terms || null
+      };
+
+      // Update the offer
+      await ServiceOfferService.updateServiceOffer(offer.id, cleanedData);
+      alert('Teklifiniz başarıyla güncellendi!');
       onClose();
-      onSuccess?.();
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Teklif güncellenirken bir hata oluştu');
+      console.error('Error updating offer:', error);
+      
+      // More specific error handling
+      if (error instanceof Error) {
+        if (error.message.includes('numeric field overflow')) {
+          alert('Girilen sayısal değerler çok büyük. Lütfen daha küçük değerler girin.');
+        } else if (error.message.includes('validation')) {
+          alert(error.message);
+        } else {
+          alert(`Teklif güncellenirken bir hata oluştu: ${error.message}`);
+        }
+      } else {
+        alert('Teklif güncellenirken bir hata oluştu.');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const updateFormData = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto shadow-2xl">
-        <div className="p-8">
-          <div className="flex items-center justify-between pb-4 border-b mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Nakliye Hizmeti Teklifi Düzenle</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" title="Kapat">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-          <div className="space-y-4">
-            {step === 1 && (
-              <>
-                {/* TEMEL BİLGİLER */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Teklif Tutarı *</label>
-                  <div className="flex gap-2">
-                    <input type="number" min="1" step="0.01" value={formData.price_amount} onChange={e => updateFormData('price_amount', e.target.value)} className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.price_amount ? 'border-red-300' : 'border-gray-300'}`} placeholder="0,00" title="Teklif Tutarı" aria-label="Teklif Tutarı" />
-                    <select value={formData.price_currency} onChange={e => updateFormData('price_currency', e.target.value)} className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" aria-label="Para birimi seçin" title="Para Birimi">
-                      <option value="TRY">₺ TRY</option>
-                      <option value="USD">$ USD</option>
-                      <option value="EUR">€ EUR</option>
-                    </select>
-                    <select value={formData.price_per} onChange={e => updateFormData('price_per', e.target.value)} className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" aria-label="Fiyatlandırma tipi" title="Fiyatlandırma Tipi">
-                      <option value="total">Toplam</option>
-                      <option value="per_km">Km Başına</option>
-                      <option value="per_ton">Ton Başına</option>
-                      <option value="per_ton_km">Ton-Km Başına</option>
-                      <option value="per_pallet">Palet Başına</option>
-                      <option value="per_hour">Saat Başına</option>
-                      <option value="per_day">Gün Başına</option>
-                      <option value="per_container">Konteyner Başına</option>
-                      <option value="per_teu">TEU Başına</option>
-                      <option value="per_cbm">CBM Başına</option>
-                      <option value="per_piece">Parça Başına</option>
-                      <option value="per_vehicle">Araç Başına</option>
-                    </select>
-                  </div>
-                  {errors.price_amount && <p className="mt-1 text-sm text-red-600">{errors.price_amount}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Teklif Mesajı *</label>
-                  <textarea rows={3} value={formData.message} onChange={e => updateFormData('message', e.target.value)} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none ${errors.message ? 'border-red-300' : 'border-gray-300'}`} placeholder="Teklif detayları..." title="Teklif Mesajı" aria-label="Teklif Mesajı" />
-                  {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Ödeme Şartları</label>
-                    <input type="text" value={formData.payment_terms} onChange={e => updateFormData('payment_terms', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: Hizmet sonrası, 30 gün vadeli" title="Ödeme Şartları" aria-label="Ödeme Şartları" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Ödeme Yöntemi</label>
-                    <input type="text" value={formData.payment_method} onChange={e => updateFormData('payment_method', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: Banka havalesi" title="Ödeme Yöntemi" aria-label="Ödeme Yöntemi" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Son Geçerlilik Tarihi</label>
-                  <input type="date" value={formData.expires_at} onChange={e => updateFormData('expires_at', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Son Geçerlilik Tarihi" aria-label="Son Geçerlilik Tarihi" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Taşıma Modu</label>
-                    <select value={formData.transport_mode} onChange={e => updateFormData('transport_mode', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Taşıma Modu" aria-label="Taşıma Modu">
-                      <option value="">Seçiniz</option>
-                      <option value="road">Karayolu</option>
-                      <option value="sea">Denizyolu</option>
-                      <option value="air">Havayolu</option>
-                      <option value="rail">Demiryolu</option>
-                      <option value="multimodal">Multimodal</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Yük Tipi</label>
-                    <select value={formData.cargo_type} onChange={e => updateFormData('cargo_type', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Yük Tipi" aria-label="Yük Tipi">
-                      <option value="">Seçiniz</option>
-                      <option value="general_cargo">Genel Yük</option>
-                      <option value="bulk_cargo">Dökme Yük</option>
-                      <option value="container">Konteyner</option>
-                      <option value="liquid">Sıvı</option>
-                      <option value="dry_bulk">Kuru Dökme</option>
-                      <option value="refrigerated">Soğutmalı</option>
-                      <option value="hazardous">Tehlikeli</option>
-                      <option value="oversized">Ağır/Ölçü Dışı</option>
-                      <option value="project_cargo">Proje Yükü</option>
-                      <option value="livestock">Canlı Hayvan</option>
-                      <option value="vehicles">Araç</option>
-                      <option value="machinery">Makine</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Hizmet Kapsamı</label>
-                    <select value={formData.service_scope} onChange={e => updateFormData('service_scope', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Hizmet Kapsamı" aria-label="Hizmet Kapsamı">
-                      <option value="">Seçiniz</option>
-                      <option value="door_to_door">Kapıdan Kapıya</option>
-                      <option value="port_to_port">Liman-Liman</option>
-                      <option value="terminal_to_terminal">Terminal-Terminal</option>
-                      <option value="warehouse_to_warehouse">Depodan Depoya</option>
-                      <option value="pickup_only">Sadece Alım</option>
-                      <option value="delivery_only">Sadece Teslim</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tahmini Transit Süre</label>
-                    <input type="text" value={formData.transit_time_estimate} onChange={e => updateFormData('transit_time_estimate', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="örn: 2-3 gün, 1 hafta" title="Tahmini Transit Süre" aria-label="Tahmini Transit Süre" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Alım Tarihi (Tercih)</label>
-                    <input type="date" value={formData.pickup_date_preferred} onChange={e => updateFormData('pickup_date_preferred', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Alım Tarihi (Tercih)" aria-label="Alım Tarihi (Tercih)" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Teslim Tarihi (Tercih)</label>
-                    <input type="date" value={formData.delivery_date_preferred} onChange={e => updateFormData('delivery_date_preferred', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Teslim Tarihi (Tercih)" aria-label="Teslim Tarihi (Tercih)" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">İletişim Kişisi</label>
-                    <input type="text" value={formData.contact_person} onChange={e => updateFormData('contact_person', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Ad Soyad" title="İletişim Kişisi" aria-label="İletişim Kişisi" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">İletişim Telefonu</label>
-                    <input type="tel" value={formData.contact_phone} onChange={e => updateFormData('contact_phone', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus-border-orange-500" placeholder="Telefon" title="İletişim Telefonu" aria-label="İletişim Telefonu" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Acil Durum İletişimi</label>
-                    <input type="text" value={formData.emergency_contact} onChange={e => updateFormData('emergency_contact', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Acil iletişim" title="Acil Durum İletişimi" aria-label="Acil Durum İletişimi" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Alternatif Plan</label>
-                    <input type="text" value={formData.contingency_plan} onChange={e => updateFormData('contingency_plan', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Alternatif plan" title="Alternatif Plan" aria-label="Alternatif Plan" />
-                  </div>
-                </div>
-              </>
-            )}
-            {step === 2 && (
-              <>
-                {/* KAPASİTE, SİGORTA, EK HİZMETLER */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Kargo Ağırlığı</label>
-                    <div className="flex gap-2">
-                      <input type="number" min="0" step="0.01" value={formData.cargo_weight} onChange={e => updateFormData('cargo_weight', e.target.value)} className="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 1500" title="Kargo Ağırlığı" aria-label="Kargo Ağırlığı" />
-                      <select value={formData.cargo_weight_unit} onChange={e => updateFormData('cargo_weight_unit', e.target.value)} className="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Ağırlık Birimi" aria-label="Ağırlık Birimi">
-                        <option value="kg">kg</option>
-                        <option value="ton">ton</option>
-                        <option value="lb">lb</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Kargo Hacmi</label>
-                    <div className="flex gap-2">
-                      <input type="number" min="0" step="0.001" value={formData.cargo_volume} onChange={e => updateFormData('cargo_volume', e.target.value)} className="flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: 25" title="Kargo Hacmi" aria-label="Kargo Hacmi" />
-                      <select value={formData.cargo_volume_unit} onChange={e => updateFormData('cargo_volume_unit', e.target.value)} className="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" title="Hacim Birimi" aria-label="Hacim Birimi">
-                        <option value="m3">m³</option>
-                        <option value="ft3">ft³</option>
-                        <option value="l">l</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sigorta Şirketi</label>
-                    <input type="text" value={formData.insurance_company} onChange={e => updateFormData('insurance_company', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Örn: Allianz, Axa" title="Sigorta Şirketi" aria-label="Sigorta Şirketi" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sigorta Poliçe No</label>
-                    <input type="text" value={formData.insurance_policy_number} onChange={e => updateFormData('insurance_policy_number', e.target.value)} className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500" placeholder="Poliçe numarası" title="Sigorta Poliçe No" aria-label="Sigorta Poliçe No" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.customs_handling_included} onChange={e => updateFormData('customs_handling_included', e.target.checked)} title="Gümrük Dahil" aria-label="Gümrük Dahil" />
-                    <label className="text-sm">Gümrük Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.documentation_handling_included} onChange={e => updateFormData('documentation_handling_included', e.target.checked)} title="Evrak Dahil" aria-label="Evrak Dahil" />
-                    <label className="text-sm">Evrak Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.loading_unloading_included} onChange={e => updateFormData('loading_unloading_included', e.target.checked)} title="Yükleme/Boşaltma Dahil" aria-label="Yükleme/Boşaltma Dahil" />
-                    <label className="text-sm">Yükleme/Boşaltma Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.tracking_system_provided} onChange={e => updateFormData('tracking_system_provided', e.target.checked)} title="Canlı Takip" aria-label="Canlı Takip" />
-                    <label className="text-sm">Canlı Takip</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.express_service} onChange={e => updateFormData('express_service', e.target.checked)} title="Ekspres Servis" aria-label="Ekspres Servis" />
-                    <label className="text-sm">Ekspres Servis</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.weekend_service} onChange={e => updateFormData('weekend_service', e.target.checked)} title="Hafta Sonu Servisi" aria-label="Hafta Sonu Servisi" />
-                    <label className="text-sm">Hafta Sonu Servisi</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.fuel_surcharge_included} onChange={e => updateFormData('fuel_surcharge_included', e.target.checked)} title="Yakıt Dahil" aria-label="Yakıt Dahil" />
-                    <label className="text-sm">Yakıt Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.toll_fees_included} onChange={e => updateFormData('toll_fees_included', e.target.checked)} title="Köprü/Otoyol Dahil" aria-label="Köprü/Otoyol Dahil" />
-                    <label className="text-sm">Köprü/Otoyol Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.port_charges_included} onChange={e => updateFormData('port_charges_included', e.target.checked)} title="Liman Ücretleri Dahil" aria-label="Liman Ücretleri Dahil" />
-                    <label className="text-sm">Liman Ücretleri Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.airport_charges_included} onChange={e => updateFormData('airport_charges_included', e.target.checked)} title="Havalimanı Ücretleri Dahil" aria-label="Havalimanı Ücretleri Dahil" />
-                    <label className="text-sm">Havalimanı Ücretleri Dahil</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.on_time_guarantee} onChange={e => updateFormData('on_time_guarantee', e.target.checked)} title="Zamanında Teslim Garantisi" aria-label="Zamanında Teslim Garantisi" />
-                    <label className="text-sm">Zamanında Teslim Garantisi</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.damage_free_guarantee} onChange={e => updateFormData('damage_free_guarantee', e.target.checked)} title="Hasarsız Teslim Garantisi" aria-label="Hasarsız Teslim Garantisi" />
-                    <label className="text-sm">Hasarsız Teslim Garantisi</label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={formData.temperature_guarantee} onChange={e => updateFormData('temperature_guarantee', e.target.checked)} title="Sıcaklık Garantisi" aria-label="Sıcaklık Garantisi" />
-                    <label className="text-sm">Sıcaklık Garantisi</label>
-                  </div>
-                </div>
-              </>
-            )}
-            <div className="flex justify-between pt-6">
-              {step > 1 ? (
-                <button type="button" className="px-4 py-2 bg-gray-200 rounded-lg" onClick={() => setStep(step - 1)}>
-                  Geri
-                </button>
-              ) : <span />}
-              {step < 2 ? (
-                <button type="button" className="px-4 py-2 bg-orange-600 text-white rounded-lg" onClick={() => setStep(step + 1)}>
-                  İleri
-                </button>
-              ) : (
-                <button type="button" disabled={isSubmitting} onClick={handleUpdate} className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2">
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Güncelleniyor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Teklifi Güncelle</span>
-                    </>
-                  )}
-                </button>
-              )}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-2xl font-bold text-gray-900">Teklif Güncelle</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title="Kapat"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="p-6 space-y-8">
+          {/* Service Reference and Vehicle Type */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Truck className="w-5 h-5 mr-2" />
+              🚛 Hizmet Detayları
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hizmet Referansı
+                </label>
+                <input
+                  type="text"
+                  value={formData.service_reference_title}
+                  onChange={(e) => updateFormData('service_reference_title', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Hizmet tanımı"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Önerilen Araç Tipi
+                </label>
+                <select
+                  value={formData.offered_vehicle_type}
+                  onChange={(e) => updateFormData('offered_vehicle_type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Araç tipi seçiniz"
+                >
+                  <option value="">Araç tipi seçiniz</option>
+                  {serviceAd?.transport_mode && vehicleTypes[serviceAd.transport_mode as keyof typeof vehicleTypes]?.map((group: VehicleGroup) => (
+                    <optgroup key={group.group} label={group.group}>
+                      {group.vehicles.map((vehicle: VehicleOption) => (
+                        <option key={vehicle.value} value={vehicle.value}>
+                          {vehicle.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
-        </div>
+
+          {/* Company Information */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2" />
+              🏢 Şirket Bilgileri
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Şirket Adı
+                </label>
+                <input
+                  type="text"
+                  value={formData.company_name}
+                  onChange={(e) => updateFormData('company_name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Şirket adınız"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Şirket Web Sitesi
+                </label>
+                <input
+                  type="url"
+                  value={formData.company_website}
+                  onChange={(e) => updateFormData('company_website', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="https://www.sirketiniz.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Vergi Numarası
+                </label>
+                <input
+                  type="text"
+                  value={formData.company_tax_number}
+                  onChange={(e) => updateFormData('company_tax_number', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Vergi numaranız"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing Section */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
+              💰 Fiyatlandırma
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fiyat Miktarı
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="999999999"
+                  value={formData.price_amount}
+                  onChange={(e) => updateFormData('price_amount', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="0.00"
+                  title="Maksimum: 999,999,999"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Para Birimi
+                </label>
+                <select
+                  value={formData.price_currency}
+                  onChange={(e) => updateFormData('price_currency', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Para birimi seçiniz"
+                >
+                  <option value="TRY">TRY (₺)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Fiyat Türü
+                </label>
+                <select
+                  value={formData.price_per}
+                  onChange={(e) => updateFormData('price_per', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Fiyat türü seçiniz"
+                >
+                  <option value="total">Toplam Fiyat</option>
+                  <option value="per_km">KM Başına</option>
+                  <option value="per_ton">Ton Başına</option>
+                  <option value="per_ton_km">Ton-KM Başına</option>
+                  <option value="per_pallet">Palet Başına</option>
+                  <option value="per_hour">Saat Başına</option>
+                  <option value="per_day">Gün Başına</option>
+                  <option value="per_container">Konteyner Başına</option>
+                  <option value="per_teu">TEU Başına</option>
+                  <option value="per_cbm">CBM Başına</option>
+                  <option value="per_piece">Parça Başına</option>
+                  <option value="per_vehicle">Araç Başına</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Terms */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
+              💳 Ödeme Şartları
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ödeme Koşulları
+              </label>
+              <select
+                value={formData.payment_terms}
+                onChange={(e) => updateFormData('payment_terms', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                title="Ödeme koşulları seçiniz"
+              >
+                <option value="advance_payment">Peşin Ödeme</option>
+                <option value="on_pickup">Alım Sırasında</option>
+                <option value="after_delivery">Teslimat Sonrası</option>
+                <option value="partial_advance">Kısmi Avans</option>
+                <option value="bank_guarantee">Banka Garantisi</option>
+                <option value="letter_of_credit">Akreditif</option>
+                <option value="net_30">Net 30 Gün</option>
+                <option value="net_60">Net 60 Gün</option>
+                <option value="end_of_month">Ay Sonu</option>
+                <option value="cash_on_delivery">Kapıda Ödeme</option>
+                <option value="wire_transfer">Havale/EFT</option>
+                <option value="check_payment">Çek ile Ödeme</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Message */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              💬 Ek Mesaj
+            </h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Detaylı Açıklama
+              </label>
+              <textarea
+                value={formData.message}
+                onChange={(e) => updateFormData('message', e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Teklifinizle ilgili ek bilgiler..."
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end gap-4 pt-6 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              İptal
+            </button>
+            <button
+              type="submit"
+              onClick={(e) => {
+                if (isSubmitting) {
+                  e.preventDefault();
+                  return;
+                }
+              }}
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+            >
+              {isSubmitting ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+              ) : (
+                <Check className="w-4 h-4 mr-2" />
+              )}
+              {isSubmitting ? 'Güncelleniyor...' : 'Teklifi Güncelle'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

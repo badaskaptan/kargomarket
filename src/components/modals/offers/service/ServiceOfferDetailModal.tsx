@@ -342,7 +342,15 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
 
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Taşıma Modu</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.transport_mode || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">
+                      {offer.transport_mode === 'road' ? 'Karayolu' :
+                        offer.transport_mode === 'sea' ? 'Deniz' :
+                          offer.transport_mode === 'air' ? 'Hava' :
+                            offer.transport_mode === 'rail' ? 'Demir Yolu' :
+                              offer.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                                offer.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                  offer.transport_mode || 'Belirtilmemiş'}
+                    </div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Yük Tipi</span>

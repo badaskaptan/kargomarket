@@ -765,7 +765,15 @@ const CreateTransportServiceSection: React.FC = () => {
             <div className="space-y-4">
               <div><strong>Servis No:</strong> {lastCreatedService.service_number}</div>
               <div><strong>Başlık:</strong> {lastCreatedService.title}</div>
-              <div><strong>Taşıma Modu:</strong> {lastCreatedService.transport_mode}</div>
+              <div><strong>Taşıma Modu:</strong> {
+                lastCreatedService.transport_mode === 'road' ? 'Karayolu' :
+                  lastCreatedService.transport_mode === 'sea' ? 'Deniz' :
+                    lastCreatedService.transport_mode === 'air' ? 'Hava' :
+                      lastCreatedService.transport_mode === 'rail' ? 'Demir Yolu' :
+                        lastCreatedService.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                          lastCreatedService.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                            lastCreatedService.transport_mode}
+              </div>
               <div><strong>Araç Tipi:</strong> {translateVehicleType(lastCreatedService.vehicle_type || '')}</div>
               <div><strong>Kalkış:</strong> {lastCreatedService.origin}</div>
               <div><strong>Varış:</strong> {lastCreatedService.destination}</div>

@@ -155,7 +155,10 @@ const TransportServiceDetailModal: React.FC<TransportServiceDetailModalProps> = 
                     {service.transport_mode === 'road' ? 'Karayolu' :
                       service.transport_mode === 'sea' ? 'Deniz' :
                         service.transport_mode === 'air' ? 'Hava' :
-                          service.transport_mode === 'rail' ? 'Demiryolu' : service.transport_mode}
+                          service.transport_mode === 'rail' ? 'Demiryolu' :
+                            service.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                              service.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                service.transport_mode}
                   </div>
                 </div>
 

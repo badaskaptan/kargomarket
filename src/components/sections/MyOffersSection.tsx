@@ -17,7 +17,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/SupabaseAuthContext';
-import { OfferService, type ExtendedOffer } from '../../services/offerService';
+import { OfferService, type ExtendedOffer, type OfferUpdate } from '../../services/offerService';
 import { ServiceOfferService } from '../../services/serviceOfferService';
 import type { ExtendedServiceOffer } from '../../types/service-offer-types';
 import OfferDetailModal from '../modals/offers/regular/OfferDetailModal';
@@ -219,6 +219,19 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
     } catch (error) {
       console.error('Error rejecting offer:', error);
       toast.error('Teklif reddedilirken hata oluştu');
+    }
+  }, [loadOffers, closeAllModals]);
+
+  // --- UPDATE HANDLERS ---
+  const handleUpdateOffer = useCallback(async (offerId: string, updates: OfferUpdate) => {
+    try {
+      await OfferService.updateOffer(offerId, updates);
+      toast.success('Teklif başarıyla güncellendi');
+      await loadOffers();
+      closeAllModals();
+    } catch (error) {
+      console.error('Error updating offer:', error);
+      toast.error('Teklif güncellenirken hata oluştu');
     }
   }, [loadOffers, closeAllModals]);
 
@@ -537,8 +550,8 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
           <button
             onClick={() => setActiveTab('received')}
             className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === 'received'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
           >
             Aldığım Teklifler
@@ -546,8 +559,8 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
           <button
             onClick={() => setActiveTab('sent')}
             className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === 'sent'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
           >
             Gönderdiğim Teklifler
@@ -614,8 +627,8 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                   </div>
                 </div>
                 <div className={`px-3 py-1 rounded-full text-xs font-medium ${offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
+                  offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                    'bg-red-100 text-red-800'
                   }`}>
                   <div className="flex items-center space-x-1">
                     {getStatusIcon(offer.status || 'pending')}
@@ -729,8 +742,8 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                   </div>
                 </div>
                 <div className={`px-3 py-1 rounded-full text-xs font-medium ${offer.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
+                  offer.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                    'bg-red-100 text-red-800'
                   }`}>
                   <div className="flex items-center space-x-1">
                     {getStatusIcon(offer.status || 'pending')}
@@ -755,7 +768,15 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Transport Mode</p>
-                  <p className="text-sm font-medium">{offer.transport_service?.transport_mode || 'N/A'}</p>
+                  <p className="text-sm font-medium">
+                    {offer.transport_service?.transport_mode === 'road' ? 'Karayolu' :
+                      offer.transport_service?.transport_mode === 'sea' ? 'Deniz' :
+                        offer.transport_service?.transport_mode === 'air' ? 'Hava' :
+                          offer.transport_service?.transport_mode === 'rail' ? 'Demir Yolu' :
+                            offer.transport_service?.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                              offer.transport_service?.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                offer.transport_service?.transport_mode || 'N/A'}
+                  </p>
                 </div>
               </div>
 
@@ -864,7 +885,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
             offer={selectedOffer as ExtendedOffer}
             isOpen={editModalOpen}
             onClose={closeAllModals}
-            onSubmit={loadOffers}
+            onSubmit={handleUpdateOffer}
           />
 
           <AcceptRejectOfferModal
@@ -914,6 +935,9 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
       {serviceEditModalOpen && selectedOffer && 'transport_service_id' in selectedOffer && (
         <EditServiceOfferModal
           offer={selectedOffer as ExtendedServiceOffer}
+          serviceAd={{ 
+            transport_mode: (selectedOffer as ExtendedServiceOffer).transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal' | undefined
+          }}
           isOpen={serviceEditModalOpen}
           onClose={() => setServiceEditModalOpen(false)}
           onSuccess={loadOffers}

@@ -108,6 +108,130 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 }) => {
     const { user } = useAuth();
 
+    // Vehicle types configuration for dynamic dropdown
+    const vehicleTypes = {
+        road: [
+            {
+                group: 'Kamyonlar',
+                vehicles: [
+                    { value: 'truck_3_5_open', label: 'Kamyon - 3.5 Ton (Açık Kasa)' },
+                    { value: 'truck_3_5_closed', label: 'Kamyon - 3.5 Ton (Kapalı Kasa)' },
+                    { value: 'truck_5_open', label: 'Kamyon - 5 Ton (Açık Kasa)' },
+                    { value: 'truck_5_closed', label: 'Kamyon - 5 Ton (Kapalı Kasa)' },
+                    { value: 'truck_10_open', label: 'Kamyon - 10 Ton (Açık Kasa)' },
+                    { value: 'truck_10_closed', label: 'Kamyon - 10 Ton (Kapalı Kasa)' },
+                    { value: 'truck_10_tent', label: 'Kamyon - 10 Ton (Tenteli)' },
+                    { value: 'truck_15_open', label: 'Kamyon - 15 Ton (Açık Kasa)' },
+                    { value: 'truck_15_closed', label: 'Kamyon - 15 Ton (Kapalı Kasa)' },
+                    { value: 'truck_15_tent', label: 'Kamyon - 15 Ton (Tenteli)' }
+                ]
+            },
+            {
+                group: 'Tır ve Çekiciler (40 Tona Kadar)',
+                vehicles: [
+                    { value: 'tir_standard', label: 'Tır (Standart Dorse) - 90m³ / 40t' },
+                    { value: 'tir_mega', label: 'Tır (Mega Dorse) - 100m³ / 40t' },
+                    { value: 'tir_jumbo', label: 'Tır (Jumbo Dorse) - 120m³ / 40t' },
+                    { value: 'tir_tent', label: 'Tır (Tenteli Dorse) - 40t' },
+                    { value: 'tir_frigo', label: 'Tır (Frigorifik Dorse - Isı Kontrollü) - 40t' },
+                    { value: 'tir_container', label: 'Tır (Konteyner Taşıyıcı) - 40t' },
+                    { value: 'tir_platform', label: 'Tır (Platform) - 40t' },
+                    { value: 'tir_frigo_dual', label: 'Tır (Frigorifik Çift Isı) - 40t' }
+                ]
+            },
+            {
+                group: 'Kargo Araçları (Hafif Yükler)',
+                vehicles: [
+                    { value: 'van_3', label: 'Kargo Van - 3m³ (1000kg)' },
+                    { value: 'van_6', label: 'Kargo Van - 6m³ (1500kg)' },
+                    { value: 'van_10', label: 'Kargo Van - 10m³ (2000kg)' },
+                    { value: 'van_15', label: 'Kargo Van - 15m³ (2500kg)' }
+                ]
+            }
+        ],
+        sea: [
+            {
+                group: 'Konteyner Gemisi',
+                vehicles: [
+                    { value: 'container_20dc', label: '20\' Standart (20DC) - 33m³ / 28t' },
+                    { value: 'container_40dc', label: '40\' Standart (40DC) - 67m³ / 28t' },
+                    { value: 'container_40hc', label: '40\' Yüksek (40HC) - 76m³ / 28t' },
+                    { value: 'container_20ot', label: '20\' Open Top - 32m³ / 28t' },
+                    { value: 'container_40ot', label: '40\' Open Top - 66m³ / 28t' },
+                    { value: 'container_20fr', label: '20\' Flat Rack - 28t' },
+                    { value: 'container_40fr', label: '40\' Flat Rack - 40t' },
+                    { value: 'container_20rf', label: '20\' Reefer - 28m³ / 25t' },
+                    { value: 'container_40rf', label: '40\' Reefer - 60m³ / 25t' }
+                ]
+            },
+            {
+                group: 'Dökme Yük Gemisi',
+                vehicles: [
+                    { value: 'bulk_handysize', label: 'Handysize (10,000-35,000 DWT)' },
+                    { value: 'bulk_handymax', label: 'Handymax (35,000-60,000 DWT)' },
+                    { value: 'bulk_panamax', label: 'Panamax (60,000-80,000 DWT)' },
+                    { value: 'bulk_capesize', label: 'Capesize (80,000+ DWT)' }
+                ]
+            },
+            {
+                group: 'Genel Kargo Gemisi',
+                vehicles: [
+                    { value: 'general_small', label: 'Küçük Tonaj (1,000-5,000 DWT)' },
+                    { value: 'general_medium', label: 'Orta Tonaj (5,000-15,000 DWT)' },
+                    { value: 'general_large', label: 'Büyük Tonaj (15,000+ DWT)' }
+                ]
+            },
+            {
+                group: 'Tanker',
+                vehicles: [
+                    { value: 'tanker_product', label: 'Ürün Tankeri (10,000-60,000 DWT)' },
+                    { value: 'tanker_chemical', label: 'Kimyasal Tanker (5,000-40,000 DWT)' },
+                    { value: 'tanker_crude', label: 'Ham Petrol Tankeri (60,000+ DWT)' },
+                    { value: 'tanker_lpg', label: 'LPG Tankeri (5,000-80,000 m³)' },
+                    { value: 'tanker_lng', label: 'LNG Tankeri (150,000-180,000 m³)' }
+                ]
+            },
+            {
+                group: 'RO-RO',
+                vehicles: [
+                    { value: 'roro_small', label: 'Küçük RO-RO (100-200 araç)' },
+                    { value: 'roro_medium', label: 'Orta RO-RO (200-500 araç)' },
+                    { value: 'roro_large', label: 'Büyük RO-RO (500+ araç)' }
+                ]
+            },
+            {
+                group: 'Feribot ve Yük Teknesi',
+                vehicles: [
+                    { value: 'ferry_cargo', label: 'Kargo Feribotu' },
+                    { value: 'ferry_mixed', label: 'Karma Feribot (Yolcu+Yük)' },
+                    { value: 'cargo_small', label: 'Küçük Yük Teknesi (500-1,000 DWT)' },
+                    { value: 'cargo_large', label: 'Büyük Yük Teknesi (1,000+ DWT)' }
+                ]
+            }
+        ],
+        air: [
+            {
+                group: 'Kargo Tipleri',
+                vehicles: [
+                    { value: 'standard_cargo', label: 'Standart Kargo' },
+                    { value: 'large_cargo', label: 'Büyük Hacimli Kargo' },
+                    { value: 'special_cargo', label: 'Özel Kargo' }
+                ]
+            }
+        ],
+        rail: [
+            {
+                group: 'Vagon Tipleri',
+                vehicles: [
+                    { value: 'open_wagon', label: 'Açık Yük Vagonu' },
+                    { value: 'closed_wagon', label: 'Kapalı Yük Vagonu' },
+                    { value: 'container_wagon', label: 'Konteyner Vagonu' },
+                    { value: 'tanker_wagon', label: 'Tanker Vagonu' }
+                ]
+            }
+        ]
+    };
+
     const [formData, setFormData] = useState<EnhancedServiceOfferFormData>({
         // 🚨 ACİL EKLENDİ: Otomatik doldurma ile kritik alanlar
         pickup_location: transportService.origin || '',
@@ -290,17 +414,8 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
-        const locationLabels = getLocationLabels();
 
         // 🚨 ACİL EKLENDİ: Kritik alan validasyonları - Dinamik mesajlar
-        if (!formData.pickup_location.trim()) {
-            newErrors.pickup_location = `${locationLabels.pickup} zorunludur`;
-        }
-
-        if (!formData.delivery_location.trim()) {
-            newErrors.delivery_location = `${locationLabels.delivery} zorunludur`;
-        }
-
         if (!formData.service_reference_title.trim()) {
             newErrors.service_reference_title = 'Hizmet referansı zorunludur';
         }
@@ -336,16 +451,41 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
         if (!user) {
             alert('Teklif verebilmek için giriş yapmalısınız');
             return;
         }
 
+        // Prevent double submission
+        if (isSubmitting) {
+            return;
+        }
+
         if (!validateForm()) return;
 
-        setIsSubmitting(true);
+        // Validate numeric fields to prevent overflow
+        const validateNumericField = (value: string, fieldName: string, maxValue: number = 999999999) => {
+            if (!value) return null;
+            const numValue = parseFloat(value);
+            if (isNaN(numValue) || numValue < 0) {
+                throw new Error(`${fieldName} geçerli bir pozitif sayı olmalıdır.`);
+            }
+            if (numValue > maxValue) {
+                throw new Error(`${fieldName} çok büyük bir değer. Maksimum: ${maxValue.toLocaleString()}`);
+            }
+            return numValue;
+        };
+
         try {
+            // Validate before submission
+            const priceAmount = validateNumericField(formData.price_amount, 'Fiyat miktarı', 999999999);
+            const cargoWeight = validateNumericField(formData.cargo_weight, 'Yük ağırlığı', 999999);
+            const cargoVolume = validateNumericField(formData.cargo_volume, 'Yük hacmi', 999999);
+
+            setIsSubmitting(true);
+            
             // Teklif verisi hazırla
             const offerData = {
                 user_id: user.id,
@@ -357,7 +497,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 service_reference_title: formData.service_reference_title.trim(),
                 offered_vehicle_type: formData.offered_vehicle_type.trim() || null,
                 
-                price_amount: parseFloat(formData.price_amount),
+                price_amount: priceAmount,
                 price_currency: formData.price_currency,
                 price_per: formData.price_per,
                 message: formData.message.trim(),
@@ -372,9 +512,9 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 insurance_policy_number: formData.insurance_policy_number.trim() || null,
 
                 // 🚨 YENİ: Yük miktarı ve hacim
-                cargo_weight: formData.cargo_weight ? parseFloat(formData.cargo_weight) : null,
+                cargo_weight: cargoWeight,
                 cargo_weight_unit: formData.cargo_weight_unit,
-                cargo_volume: formData.cargo_volume ? parseFloat(formData.cargo_volume) : null,
+                cargo_volume: cargoVolume,
                 cargo_volume_unit: formData.cargo_volume_unit,
 
                 // 🚨 EKSİK ALANLAR - Boş giden alanları düzelt
@@ -495,7 +635,19 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
             setCurrentStep(1);
         } catch (error) {
             console.error('❌ Enhanced service offer creation failed:', error);
-            alert(error instanceof Error ? error.message : 'Teklif gönderilirken bir hata oluştu');
+            
+            // More specific error handling
+            if (error instanceof Error) {
+                if (error.message.includes('numeric field overflow')) {
+                    alert('Girilen sayısal değerler çok büyük. Lütfen daha küçük değerler girin.');
+                } else if (error.message.includes('validation')) {
+                    alert(error.message);
+                } else {
+                    alert(`Teklif gönderilirken bir hata oluştu: ${error.message}`);
+                }
+            } else {
+                alert('Teklif gönderilirken bir hata oluştu');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -505,6 +657,13 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
         setFormData(prev => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
+        }
+    };
+
+    // Prevent form submission on Enter key in input fields
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+            e.preventDefault();
         }
     };
 
@@ -573,7 +732,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         <span className="mr-2">{getLocationLabels().pickupIcon}</span>
-                        {getLocationLabels().pickup} *
+                        {getLocationLabels().pickup}
                     </label>
                     <input
                         type="text"
@@ -594,7 +753,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                         <span className="mr-2">{getLocationLabels().deliveryIcon}</span>
-                        {getLocationLabels().delivery} *
+                        {getLocationLabels().delivery}
                     </label>
                     <input
                         type="text"
@@ -623,12 +782,14 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                             <input
                                 type="number"
                                 min="1"
+                                max="999999999"
                                 step="0.01"
                                 value={formData.price_amount}
                                 onChange={(e) => updateFormData('price_amount', e.target.value)}
                                 className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${errors.price_amount ? 'border-red-300' : 'border-gray-300'
                                     }`}
                                 placeholder="0,00"
+                                title="Maksimum: 999,999,999"
                             />
                             <select
                                 value={formData.price_currency}
@@ -828,6 +989,30 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                             </optgroup>
                         </select>
                     </div>
+
+                    {/* Önerilen Araç Tipi */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Önerilen Araç Tipi
+                        </label>
+                        <select
+                            value={formData.offered_vehicle_type}
+                            onChange={(e) => updateFormData('offered_vehicle_type', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                            aria-label="Araç tipi seçin"
+                        >
+                            <option value="">Araç tipi seçiniz</option>
+                            {vehicleTypes[formData.transport_mode as keyof typeof vehicleTypes]?.map((group) => (
+                                <optgroup key={group.group} label={group.group}>
+                                    {group.vehicles.map((vehicle) => (
+                                        <option key={vehicle.value} value={vehicle.value}>
+                                            {vehicle.label}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -842,10 +1027,12 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                             type="number"
                             step="0.01"
                             min="0"
+                            max="999999"
                             value={formData.cargo_weight}
                             onChange={(e) => updateFormData('cargo_weight', e.target.value)}
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             placeholder="0.00"
+                            title="Maksimum: 999,999"
                         />
                         <select
                             value={formData.cargo_weight_unit}
@@ -869,10 +1056,12 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                             type="number"
                             step="0.01"
                             min="0"
+                            max="999999"
                             value={formData.cargo_volume}
                             onChange={(e) => updateFormData('cargo_volume', e.target.value)}
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             placeholder="0.00"
+                            title="Maksimum: 999,999"
                         />
                         <select
                             value={formData.cargo_volume_unit}
@@ -1361,10 +1550,12 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                                     {getTransportIcon(transportService.transport_mode)}
                                     <span className="ml-2 capitalize">
                                         {transportService.transport_mode === 'road' ? 'Karayolu' :
-                                            transportService.transport_mode === 'sea' ? 'Denizyolu' :
-                                                transportService.transport_mode === 'air' ? 'Havayolu' :
-                                                    transportService.transport_mode === 'rail' ? 'Demiryolu' :
-                                                        transportService.transport_mode}
+                                            transportService.transport_mode === 'sea' ? 'Deniz' :
+                                                transportService.transport_mode === 'air' ? 'Hava' :
+                                                    transportService.transport_mode === 'rail' ? 'Demir Yolu' :
+                                                        transportService.transport_mode === 'multimodal' ? 'Çok Modlu' :
+                                                            transportService.transport_mode === 'negotiable' ? 'Görüşülecek' :
+                                                                transportService.transport_mode}
                                     </span>
                                 </div>
                                 <div className="flex items-center">
@@ -1375,7 +1566,7 @@ const EnhancedServiceOfferModal: React.FC<EnhancedServiceOfferModalProps> = ({
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
                         {/* Step Indicator */}
                         {renderStepIndicator()}
 
