@@ -17,7 +17,8 @@ export class ServiceOfferService {
             title,
             origin,
             destination,
-            user_id
+            user_id,
+            transport_mode
           )
         `)
         .eq('user_id', userId)
@@ -30,6 +31,18 @@ export class ServiceOfferService {
 
       console.log('✅ Sent service offers with transport_service data fetched:', offers?.length || 0);
       console.log('📊 Raw sent service offers data:', offers);
+      
+      // Debug pickup_location and delivery_location
+      if (offers && offers.length > 0) {
+        offers.forEach((offer, index) => {
+          console.log(`🔍 Sent Offer ${index + 1} locations:`, {
+            pickup_location: offer.pickup_location,
+            delivery_location: offer.delivery_location,
+            transport_service_origin: offer.transport_service?.origin,
+            transport_service_destination: offer.transport_service?.destination
+          });
+        });
+      }
 
       if (!offers || offers.length === 0) {
         console.log('✅ No sent service offers found');
@@ -90,7 +103,8 @@ export class ServiceOfferService {
             title,
             origin,
             destination,
-            user_id
+            user_id,
+            transport_mode
           )
         `)
         .in('transport_service_id', serviceIds)
@@ -104,6 +118,18 @@ export class ServiceOfferService {
 
       console.log('✅ Received service offers with transport_service data fetched:', offers?.length || 0);
       console.log('📊 Raw received service offers data:', offers);
+
+      // Debug pickup_location and delivery_location  
+      if (offers && offers.length > 0) {
+        offers.forEach((offer, index) => {
+          console.log(`🔍 Received Offer ${index + 1} locations:`, {
+            pickup_location: offer.pickup_location,
+            delivery_location: offer.delivery_location,
+            transport_service_origin: offer.transport_service?.origin,
+            transport_service_destination: offer.transport_service?.destination
+          });
+        });
+      }
 
       // Debug: Check each offer individually
       if (offers && offers.length > 0) {

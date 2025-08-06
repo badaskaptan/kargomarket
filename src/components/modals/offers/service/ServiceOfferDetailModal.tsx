@@ -132,6 +132,121 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
     });
   };
 
+  // Geçerlilik tarihi hesaplama
+  const calculateExpiryDate = () => {
+    // Önce expires_at alanını kontrol et
+    if (offer.expires_at) {
+      return formatDate(offer.expires_at);
+    }
+    
+    // Sonra valid_until alanını kontrol et
+    if (offer.valid_until) {
+      return formatDate(offer.valid_until);
+    }
+    
+    // Son olarak created_at + validity_period ile hesapla
+    if (offer.created_at && offer.validity_period) {
+      const createdDate = new Date(offer.created_at);
+      const expiryDate = new Date(createdDate.getTime() + (offer.validity_period * 24 * 60 * 60 * 1000));
+      return formatDate(expiryDate.toISOString());
+    }
+    
+    return 'Belirtilmemiş';
+  };
+
+  // JSON obje formatlaması için yardımcı fonksiyon
+  const formatJsonData = (data: Record<string, unknown> | string | null | undefined) => {
+    if (!data) return null;
+    
+    try {
+      if (typeof data === 'object') {
+        return (
+          <div className="space-y-2">
+            {Object.entries(data).map(([key, value]) => (
+              <div key={key} className="flex justify-between items-start">
+                <span className="text-gray-700 capitalize font-medium">{key.replace(/_/g, ' ')}:</span>
+                <span className="text-gray-900 font-semibold text-right max-w-[60%]">
+                  {typeof value === 'string' && value.includes('T') ? formatDate(value) : String(value)}
+                </span>
+              </div>
+            ))}
+          </div>
+        );
+      } else {
+        return <span className="text-gray-900 font-semibold">{String(data)}</span>;
+      }
+    } catch {
+      return <span className="text-gray-500 italic">Veri formatlanamadı</span>;
+    }
+  };
+
+  // Raw kodları Türkçe karşılıklarına çevir
+  const translateValue = (key: string, value: string | null | undefined) => {
+    if (!value) return 'Belirtilmemiş';
+
+    const translations: Record<string, Record<string, string>> = {
+      payment_terms: {
+        'advance': 'Peşin Ödeme',
+        'after_delivery': 'Teslimat Sonrası Ödeme',
+        'monthly': 'Aylık Ödeme',
+        'cash_on_delivery': 'Kapıda Ödeme',
+        'bank_transfer': 'Havale/EFT',
+        'credit_card': 'Kredi Kartı',
+        'installment': 'Taksitli Ödeme'
+      },
+      payment_method: {
+        'cash': 'Nakit',
+        'bank_transfer': 'Havale/EFT',
+        'credit_card': 'Kredi Kartı',
+        'check': 'Çek',
+        'promissory_note': 'Senet',
+        'letter_of_credit': 'Akreditif',
+        'wire_transfer': 'Swift'
+      },
+      price_per: {
+        'total': 'Toplam Fiyat',
+        'per_kg': 'Kilogram Başına',
+        'per_ton': 'Ton Başına',
+        'per_m3': 'Metreküp Başına',
+        'per_km': 'Kilometre Başına',
+        'per_hour': 'Saat Başına',
+        'per_day': 'Gün Başına'
+      },
+      offered_vehicle_type: {
+        'truck': 'Kamyon',
+        'trailer': 'Tır',
+        'container': 'Konteyner',
+        'bulk_carrier': 'Dökme Yük Gemisi',
+        'bulk_handymax': 'Handymax Dökme Yük Gemisi',
+        'bulk_panamax': 'Panamax Dökme Yük Gemisi',
+        'tanker': 'Tanker',
+        'van': 'Van',
+        'pickup': 'Pickup'
+      },
+      cargo_type: {
+        'general_cargo': 'Genel Kargo',
+        'bulk_cargo': 'Dökme Yük',
+        'liquid_cargo': 'Sıvı Yük',
+        'container_cargo': 'Konteyner Yükü',
+        'dangerous_goods': 'Tehlikeli Madde',
+        'oversized_cargo': 'Gabari Dışı Yük',
+        'refrigerated_cargo': 'Soğuk Zincir Kargo',
+        'livestock': 'Canlı Hayvan'
+      },
+      service_scope: {
+        'door_to_door': 'Kapıdan Kapıya',
+        'port_to_port': 'Liman-Liman',
+        'warehouse_to_warehouse': 'Depo-Depo',
+        'pickup_only': 'Sadece Alım',
+        'delivery_only': 'Sadece Teslimat',
+        'customs_clearance': 'Gümrük İşlemleri Dahil'
+      }
+    };
+
+    const categoryTranslations = translations[key];
+    return categoryTranslations?.[value] || value;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl max-w-7xl w-full max-h-[95vh] overflow-auto shadow-2xl">
@@ -205,17 +320,10 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                     </div>
                     <div className="flex items-center justify-between bg-white/60 rounded-xl p-4">
                       <div className="flex items-center">
-                        <Clock className="w-5 h-5 text-blue-600 mr-3" />
-                        <span className="text-gray-700 font-medium">Geçerlilik Süresi</span>
-                      </div>
-                      <span className="font-semibold text-gray-900">{offer.validity_period ? `${offer.validity_period} gün` : 'Belirtilmemiş'}</span>
-                    </div>
-                    <div className="flex items-center justify-between bg-white/60 rounded-xl p-4">
-                      <div className="flex items-center">
                         <Calendar className="w-5 h-5 text-red-600 mr-3" />
                         <span className="text-gray-700 font-medium">Son Geçerlilik Tarihi</span>
                       </div>
-                      <span className="font-semibold text-gray-900">{formatDate(offer.expires_at)}</span>
+                      <span className="font-semibold text-gray-900">{calculateExpiryDate()}</span>
                     </div>
                     <div className="flex items-center justify-between bg-white/60 rounded-xl p-4">
                       <div className="flex items-center">
@@ -270,33 +378,22 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Ödeme Şartları</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.payment_terms || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{translateValue('payment_terms', offer.payment_terms)}</div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Ödeme Yöntemi</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.payment_method || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{translateValue('payment_method', offer.payment_method)}</div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Fiyatlandırma Tipi</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.price_per || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{translateValue('price_per', offer.price_per)}</div>
                   </div>
                   {offer.price_breakdown && (
                     <div className="bg-white/60 rounded-xl p-4 md:col-span-2">
                       <span className="text-gray-700 font-medium">Fiyat Dağılımı</span>
                       <div className="font-semibold text-gray-900 mt-1 text-sm">
                         <div className="bg-gray-100 p-3 rounded">
-                          {typeof offer.price_breakdown === 'object' ? (
-                            <div className="space-y-1">
-                              {Object.entries(offer.price_breakdown).map(([key, value]) => (
-                                <div key={key} className="flex justify-between">
-                                  <span className="text-gray-700">{key}:</span>
-                                  <span className="text-gray-900 font-medium">{String(value)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span>{String(offer.price_breakdown)}</span>
-                          )}
+                          {formatJsonData(offer.price_breakdown)}
                         </div>
                       </div>
                     </div>
@@ -337,7 +434,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Önerilen Araç Tipi</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.offered_vehicle_type || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{translateValue('offered_vehicle_type', offer.offered_vehicle_type)}</div>
                   </div>
 
                   <div className="bg-white/60 rounded-xl p-4">
@@ -354,11 +451,11 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Yük Tipi</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.cargo_type || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{translateValue('cargo_type', offer.cargo_type)}</div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Hizmet Kapsamı</span>
-                    <div className="font-semibold text-gray-900 mt-1">{offer.service_scope || 'Belirtilmemiş'}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{translateValue('service_scope', offer.service_scope)}</div>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Tahmini Transit Süre</span>
@@ -433,30 +530,14 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                   </div>
                   <div className="bg-white/60 rounded-xl p-4">
                     <span className="text-gray-700 font-medium">Geçerli Olacağı Son Tarih</span>
-                    <div className="font-semibold text-gray-900 mt-1">{formatDate(offer.valid_until)}</div>
+                    <div className="font-semibold text-gray-900 mt-1">{calculateExpiryDate()}</div>
                   </div>
                   {offer.proposed_dates && (
                     <div className="bg-white/60 rounded-xl p-4 md:col-span-2">
                       <span className="text-gray-700 font-medium">Önerilen Tarihler</span>
                       <div className="font-semibold text-gray-900 mt-1 text-sm">
                         <div className="bg-gray-100 p-3 rounded">
-                          {typeof offer.proposed_dates === 'object' ? (
-                            <div className="space-y-2">
-                              {Object.entries(offer.proposed_dates).map(([key, value]) => (
-                                <div key={key} className="flex justify-between">
-                                  <span className="text-gray-700 capitalize">{key.replace('_', ' ')}:</span>
-                                  <span className="text-gray-900 font-medium">
-                                    {typeof value === 'string' && value.includes('T')
-                                      ? formatDate(value)
-                                      : String(value)
-                                    }
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <span>{String(offer.proposed_dates)}</span>
-                          )}
+                          {formatJsonData(offer.proposed_dates)}
                         </div>
                       </div>
                     </div>
@@ -607,18 +688,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                         <span className="text-gray-700 font-medium">Ekstra Hizmetler</span>
                         <div className="font-semibold text-gray-900 mt-1 text-sm">
                           <div className="bg-gray-100 p-3 rounded">
-                            {typeof offer.additional_services === 'object' ? (
-                              <div className="space-y-1">
-                                {Object.entries(offer.additional_services).map(([key, value]) => (
-                                  <div key={key} className="flex justify-between">
-                                    <span className="text-gray-700 capitalize">{key.replace('_', ' ')}:</span>
-                                    <span className="text-gray-900 font-medium">{String(value)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span>{String(offer.additional_services)}</span>
-                            )}
+                            {formatJsonData(offer.additional_services)}
                           </div>
                         </div>
                       </div>
@@ -628,18 +698,7 @@ const ServiceOfferDetailModal: React.FC<ServiceOfferDetailModalProps> = ({
                         <span className="text-gray-700 font-medium">Ekstra Şartlar</span>
                         <div className="font-semibold text-gray-900 mt-1 text-sm">
                           <div className="bg-gray-100 p-3 rounded">
-                            {typeof offer.additional_terms === 'object' ? (
-                              <div className="space-y-1">
-                                {Object.entries(offer.additional_terms).map(([key, value]) => (
-                                  <div key={key} className="flex justify-between">
-                                    <span className="text-gray-700 capitalize">{key.replace('_', ' ')}:</span>
-                                    <span className="text-gray-900 font-medium">{String(value)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <span>{String(offer.additional_terms)}</span>
-                            )}
+                            {formatJsonData(offer.additional_terms)}
                           </div>
                         </div>
                       </div>

@@ -39,6 +39,19 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
   // --- AUTH CONTEXT ---
   const { clearSession } = useAuth();
 
+  // --- HELPER FUNCTIONS ---
+  const translateTransportMode = (mode: string): string => {
+    const translations = {
+      'road': 'Karayolu',
+      'sea': 'Deniz',
+      'air': 'Hava',
+      'rail': 'Demir Yolu',
+      'multimodal': 'Çok Modlu',
+      'negotiable': 'Görüşülecek'
+    };
+    return translations[mode as keyof typeof translations] || mode || 'N/A';
+  };
+
   // --- STATE TANIMLARI ---
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('received');
   const [searchTerm, setSearchTerm] = useState('');
@@ -769,25 +782,23 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Transport Mode</p>
                   <p className="text-sm font-medium">
-                    {offer.transport_service?.transport_mode === 'road' ? 'Karayolu' :
-                      offer.transport_service?.transport_mode === 'sea' ? 'Deniz' :
-                        offer.transport_service?.transport_mode === 'air' ? 'Hava' :
-                          offer.transport_service?.transport_mode === 'rail' ? 'Demir Yolu' :
-                            offer.transport_service?.transport_mode === 'multimodal' ? 'Çok Modlu' :
-                              offer.transport_service?.transport_mode === 'negotiable' ? 'Görüşülecek' :
-                                offer.transport_service?.transport_mode || 'N/A'}
+                    {translateTransportMode(offer.transport_service?.transport_mode)}
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4 text-center">
                 <div>
-                  <p className="text-sm text-gray-500">Kalkış</p>
-                  <p className="text-sm font-medium">{offer.transport_service?.origin || 'Belirtilmemiş'}</p>
+                  <p className="text-sm text-gray-500">Alım Noktası</p>
+                  <p className="text-sm font-medium">
+                    {offer.pickup_location || offer.transport_service?.origin || 'Belirtilmemiş'}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Varış</p>
-                  <p className="text-sm font-medium">{offer.transport_service?.destination || 'Belirtilmemiş'}</p>
+                  <p className="text-sm text-gray-500">Teslimat Noktası</p>
+                  <p className="text-sm font-medium">
+                    {offer.delivery_location || offer.transport_service?.destination || 'Belirtilmemiş'}
+                  </p>
                 </div>
               </div>
 
@@ -936,7 +947,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
         <EditServiceOfferModal
           offer={selectedOffer as ExtendedServiceOffer}
           serviceAd={{ 
-            transport_mode: (selectedOffer as ExtendedServiceOffer).transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal' | undefined
+            transport_mode: (selectedOffer as ExtendedServiceOffer).transport_service?.transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal' | undefined
           }}
           isOpen={serviceEditModalOpen}
           onClose={() => setServiceEditModalOpen(false)}
