@@ -24,6 +24,22 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 - **⭐ Reviews System**: Değerlendirme ve yorumlar
 - **💰 Billing System**: Faturalandırma altyapısı
 - **📁 File Upload**: Güvenli dosya yükleme
+- **📚 Information Center**: Kapsamlı bilgi merkezi (6 ana bölüm)
+- **📊 Live Data Integration**: Gerçek zamanlı piyasa verileri ve haberler
+
+### 🆕 **Information Center - v3.1.0** (Yeni!)
+- **📖 Lojistik Sözlük**: 15+ terim, kategori bazlı filtreleme
+- **⚖️ Ticaret Hukuku**: 5 kapsamlı hukuki rehber
+- **📈 Piyasa Verileri**: Canlı döviz, yakıt, navlun fiyatları
+- **📰 Sektör Haberleri**: Gerçek zamanlı haber entegrasyonu
+- **📊 Sektörel Analiz**: İnteraktif grafikler ve tablolar
+- **🧮 Hesaplama Araçları**: 4 farklı hesaplama modülü
+
+### 🔗 **Live Data APIs**
+- **Financial Data**: Alpha Vantage, Fixer.io, CoinGecko
+- **News Integration**: NewsAPI, Bing News API
+- **Fallback System**: Güvenilir offline veri desteği
+- **Cache Management**: Supabase tabanlı veri önbellekleme
 
 ### � **Teknik İyileştirmeler**
 - **Modal System**: Tutarlı UI/UX, raw JSON eliminasyonu
