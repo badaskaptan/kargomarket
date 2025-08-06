@@ -43,33 +43,33 @@ interface EditServiceOfferFormData {
   delivery_location: string;
   service_reference_title: string;
   offered_vehicle_type: string;
-  
+
   // Şirket bilgileri
   company_name: string;
   company_website: string;
   company_tax_number: string;
-  
+
   // Sigorta bilgileri
   insurance_company: string;
   insurance_policy_number: string;
-  
+
   // Yük miktarı ve hacim bilgileri
   cargo_weight: string;
   cargo_weight_unit: 'kg' | 'ton' | 'lb';
   cargo_volume: string;
   cargo_volume_unit: 'm3' | 'ft3' | 'l';
-  
+
   // Fiyat bilgileri
   price_amount: string;
   price_currency: 'USD' | 'EUR' | 'TRY';
   price_per: 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle';
   message: string;
-  
+
   // Hizmet özellikleri
   transport_mode: 'road' | 'sea' | 'air' | 'rail' | 'multimodal';
   cargo_type: CargoType;
   service_scope: 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only';
-  
+
   // Tarih bilgileri
   pickup_date_preferred: string;
   pickup_date_latest: string;
@@ -77,7 +77,7 @@ interface EditServiceOfferFormData {
   delivery_date_latest: string;
   transit_time_estimate: string;
   expires_at: string;
-  
+
   // Ek hizmetler
   customs_handling_included: boolean;
   documentation_handling_included: boolean;
@@ -85,23 +85,23 @@ interface EditServiceOfferFormData {
   tracking_system_provided: boolean;
   express_service: boolean;
   weekend_service: boolean;
-  
+
   // Ek ücretler
   fuel_surcharge_included: boolean;
   toll_fees_included: boolean;
   port_charges_included: boolean;
   airport_charges_included: boolean;
-  
+
   // Garantiler
   on_time_guarantee: boolean;
   damage_free_guarantee: boolean;
   temperature_guarantee: boolean;
-  
+
   // İletişim bilgileri
   contact_person: string;
   contact_phone: string;
   emergency_contact: string;
-  
+
   // Ödeme koşulları
   payment_terms: string;
 }
@@ -243,55 +243,55 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
     delivery_location: offer.delivery_location || '',
     service_reference_title: offer.service_reference_title || '',
     offered_vehicle_type: offer.offered_vehicle_type || '',
-    
+
     company_name: offer.company_name || '',
     company_website: offer.company_website || '',
     company_tax_number: offer.company_tax_number || '',
-    
+
     insurance_company: offer.insurance_company || '',
     insurance_policy_number: offer.insurance_policy_number || '',
-    
+
     cargo_weight: offer.cargo_weight?.toString() || '',
     cargo_weight_unit: offer.cargo_weight_unit || 'kg',
     cargo_volume: offer.cargo_volume?.toString() || '',
     cargo_volume_unit: offer.cargo_volume_unit || 'm3',
-    
+
     price_amount: offer.price_amount?.toString() || '',
     price_currency: offer.price_currency || 'TRY',
     price_per: (offer.price_per as 'total' | 'per_km' | 'per_ton' | 'per_ton_km' | 'per_pallet' | 'per_hour' | 'per_day' | 'per_container' | 'per_teu' | 'per_cbm' | 'per_piece' | 'per_vehicle') || 'total',
     message: offer.message || '',
-    
+
     transport_mode: (offer.transport_mode as 'road' | 'sea' | 'air' | 'rail' | 'multimodal') || 'road',
     cargo_type: (offer.cargo_type as CargoType) || 'general_cargo',
     service_scope: (offer.service_scope as 'door_to_door' | 'port_to_port' | 'terminal_to_terminal' | 'warehouse_to_warehouse' | 'pickup_only' | 'delivery_only') || 'door_to_door',
-    
+
     pickup_date_preferred: offer.pickup_date_preferred ? offer.pickup_date_preferred.split('T')[0] : '',
     pickup_date_latest: offer.pickup_date_latest ? offer.pickup_date_latest.split('T')[0] : '',
     delivery_date_preferred: offer.delivery_date_preferred ? offer.delivery_date_preferred.split('T')[0] : '',
     delivery_date_latest: offer.delivery_date_latest ? offer.delivery_date_latest.split('T')[0] : '',
     transit_time_estimate: offer.transit_time_estimate || '',
     expires_at: offer.expires_at ? offer.expires_at.split('T')[0] : '',
-    
+
     customs_handling_included: offer.customs_handling_included || false,
     documentation_handling_included: offer.documentation_handling_included || false,
     loading_unloading_included: offer.loading_unloading_included || false,
     tracking_system_provided: offer.tracking_system_provided || true,
     express_service: offer.express_service || false,
     weekend_service: offer.weekend_service || false,
-    
+
     fuel_surcharge_included: offer.fuel_surcharge_included || false,
     toll_fees_included: offer.toll_fees_included || false,
     port_charges_included: offer.port_charges_included || false,
     airport_charges_included: offer.airport_charges_included || false,
-    
+
     on_time_guarantee: offer.on_time_guarantee || false,
     damage_free_guarantee: offer.damage_free_guarantee || false,
     temperature_guarantee: offer.temperature_guarantee || false,
-    
+
     contact_person: offer.contact_person || '',
     contact_phone: offer.contact_phone || '',
     emergency_contact: offer.emergency_contact || '',
-    
+
     payment_terms: offer.payment_terms || 'after_delivery'
   });
 
@@ -314,7 +314,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!user?.id) {
       alert('Lütfen önce giriş yapın.');
       return;
@@ -345,7 +345,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
       const cargoVolume = validateNumericField(formData.cargo_volume, 'Yük hacmi', 999999);
 
       setIsSubmitting(true);
-      
+
       // Clean and prepare data for submission
       const cleanedData = {
         ...formData,
@@ -381,7 +381,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
       onClose();
     } catch (error) {
       console.error('Error updating offer:', error);
-      
+
       // More specific error handling
       if (error instanceof Error) {
         if (error.message.includes('numeric field overflow')) {
@@ -417,13 +417,51 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="p-6 space-y-8">
+          {/* Pickup & Delivery Locations */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Truck className="w-5 h-5 mr-2" />
+              📍 Konum Bilgileri
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Alış Noktası
+                </label>
+                <input
+                  type="text"
+                  value={formData.pickup_location}
+                  onChange={(e) => updateFormData('pickup_location', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Yük alış adresi"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Teslimat Noktası
+                </label>
+                <input
+                  type="text"
+                  value={formData.delivery_location}
+                  onChange={(e) => updateFormData('delivery_location', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Yük teslimat adresi"
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Service Reference and Vehicle Type */}
           <div className="bg-gray-50 rounded-xl p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Truck className="w-5 h-5 mr-2" />
               🚛 Hizmet Detayları
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -464,13 +502,578 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
             </div>
           </div>
 
-          {/* Company Information */}
+          {/* Cargo Weight and Volume */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              ⚖️ Yük Bilgileri
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Yük Ağırlığı
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="999999"
+                    value={formData.cargo_weight}
+                    onChange={(e) => updateFormData('cargo_weight', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="0.00"
+                    title="Maksimum: 999,999"
+                  />
+                  <select
+                    value={formData.cargo_weight_unit}
+                    onChange={(e) => updateFormData('cargo_weight_unit', e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    title="Ağırlık birimi"
+                  >
+                    <option value="kg">kg</option>
+                    <option value="ton">Ton</option>
+                    <option value="lb">lb</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Yük Hacmi
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="999999"
+                    value={formData.cargo_volume}
+                    onChange={(e) => updateFormData('cargo_volume', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="0.00"
+                    title="Maksimum: 999,999"
+                  />
+                  <select
+                    value={formData.cargo_volume_unit}
+                    onChange={(e) => updateFormData('cargo_volume_unit', e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    title="Hacim birimi"
+                  >
+                    <option value="m3">m³</option>
+                    <option value="ft3">ft³</option>
+                    <option value="l">Litre</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Transport Mode and Service Scope */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              🚚 Taşıma Detayları
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Taşıma Modu
+                </label>
+                <select
+                  value={formData.transport_mode}
+                  onChange={(e) => updateFormData('transport_mode', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Taşıma modu seçiniz"
+                >
+                  <option value="road">🚛 Karayolu</option>
+                  <option value="sea">🚢 Denizyolu</option>
+                  <option value="air">✈️ Havayolu</option>
+                  <option value="rail">🚂 Demiryolu</option>
+                  <option value="multimodal">🔀 Multimodal</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Yük Tipi
+                </label>
+                <select
+                  value={formData.cargo_type}
+                  onChange={(e) => updateFormData('cargo_type', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Yük tipi seçiniz"
+                >
+                  {/* Genel Kargo */}
+                  <optgroup label="📦 Genel Kargo">
+                    <option value="general_cargo">Genel Kargo</option>
+                    <option value="box_package">Kutu Paketler</option>
+                    <option value="pallet_standard">Standart Palet</option>
+                    <option value="pallet_euro">Euro Palet</option>
+                    <option value="pallet_industrial">Endüstriyel Palet</option>
+                    <option value="sack_bigbag">Çuval/BigBag</option>
+                    <option value="barrel_drum">Varil/Bidon</option>
+                    <option value="appliances_electronics">Beyaz Eşya/Elektronik</option>
+                    <option value="furniture_decor">Mobilya/Dekorasyon</option>
+                    <option value="textile_products">Tekstil Ürünleri</option>
+                    <option value="automotive_parts">Otomotiv Parçaları</option>
+                    <option value="machinery_parts">Makine Parçaları</option>
+                    <option value="construction_materials">İnşaat Malzemeleri</option>
+                    <option value="packaged_food">Paketli Gıda</option>
+                    <option value="consumer_goods">Tüketici Ürünleri</option>
+                    <option value="ecommerce_cargo">E-ticaret Kargo</option>
+                    <option value="other_general">Diğer Genel Kargo</option>
+                  </optgroup>
+
+                  {/* Dökme Yük */}
+                  <optgroup label="🚛 Dökme Yük">
+                    <option value="bulk_cargo">Dökme Yük</option>
+                    <option value="grain">Tahıl</option>
+                    <option value="ore">Maden Cevheri</option>
+                    <option value="coal">Kömür</option>
+                    <option value="cement_bulk">Çimento (Dökme)</option>
+                    <option value="sand_gravel">Kum/Çakıl</option>
+                    <option value="fertilizer_bulk">Gübre (Dökme)</option>
+                    <option value="soil_excavation">Toprak/Hafriyat</option>
+                    <option value="scrap_metal">Hurda Metal</option>
+                    <option value="other_bulk">Diğer Dökme Yük</option>
+                  </optgroup>
+
+                  {/* Sıvı Yükler */}
+                  <optgroup label="🛢️ Sıvı Yükler">
+                    <option value="liquid">Sıvı Yük</option>
+                    <option value="crude_oil">Ham Petrol</option>
+                    <option value="chemical_liquids">Kimyasal Sıvılar</option>
+                    <option value="vegetable_oils">Bitkisel Yağlar</option>
+                    <option value="fuel">Yakıt</option>
+                    <option value="lpg_lng">LPG/LNG</option>
+                    <option value="water">Su</option>
+                    <option value="milk_dairy">Süt/Süt Ürünleri</option>
+                    <option value="wine_concentrate">Şarap/Konsantre</option>
+                    <option value="other_liquid">Diğer Sıvı</option>
+                  </optgroup>
+
+                  {/* Büyük Boyutlu */}
+                  <optgroup label="📏 Büyük Boyutlu">
+                    <option value="oversized">Büyük Boyutlu</option>
+                    <option value="tbm">TBM (Tünel Açma Makinesi)</option>
+                    <option value="transformer_generator">Transformatör/Jeneratör</option>
+                    <option value="heavy_machinery">Ağır Makineler</option>
+                    <option value="boat_yacht">Tekne/Yat</option>
+                    <option value="industrial_parts">Endüstriyel Parçalar</option>
+                    <option value="prefab_elements">Prefabrik Elemanlar</option>
+                    <option value="wind_turbine">Rüzgar Türbini</option>
+                    <option value="other_oversized">Diğer Büyük Boyutlu</option>
+                  </optgroup>
+
+                  {/* Özel Dikkat Gerektiren */}
+                  <optgroup label="⚠️ Özel Dikkat Gerektiren">
+                    <option value="art_antiques">Sanat Eseri/Antika</option>
+                    <option value="glass_ceramic">Cam/Seramik</option>
+                    <option value="electronic_devices">Elektronik Cihazlar</option>
+                    <option value="medical_devices">Tıbbi Cihazlar</option>
+                    <option value="lab_equipment">Laboratuvar Ekipmanları</option>
+                    <option value="flowers_plants">Çiçek/Bitki</option>
+                    <option value="other_sensitive">Diğer Hassas Yük</option>
+                  </optgroup>
+
+                  {/* Tehlikeli Maddeler */}
+                  <optgroup label="☢️ Tehlikeli Maddeler">
+                    <option value="hazardous">Tehlikeli Madde</option>
+                    <option value="dangerous_class1">Sınıf 1 - Patlayıcılar</option>
+                    <option value="dangerous_class2">Sınıf 2 - Gazlar</option>
+                    <option value="dangerous_class3">Sınıf 3 - Yanıcı Sıvılar</option>
+                    <option value="dangerous_class4">Sınıf 4 - Yanıcı Katılar</option>
+                    <option value="dangerous_class5">Sınıf 5 - Oksitleyiciler</option>
+                    <option value="dangerous_class6">Sınıf 6 - Zehirli Maddeler</option>
+                    <option value="dangerous_class7">Sınıf 7 - Radyoaktif</option>
+                    <option value="dangerous_class8">Sınıf 8 - Aşındırıcılar</option>
+                    <option value="dangerous_class9">Sınıf 9 - Diğer Tehlikeli</option>
+                  </optgroup>
+
+                  {/* Soğuk Zincir */}
+                  <optgroup label="❄️ Soğuk Zincir">
+                    <option value="refrigerated">Soğuk Zincir</option>
+                    <option value="frozen_food">Dondurulmuş Gıda</option>
+                    <option value="fresh_produce">Taze Ürünler</option>
+                    <option value="meat_dairy">Et/Süt Ürünleri</option>
+                    <option value="pharma_vaccine">İlaç/Aşı</option>
+                    <option value="chemical_temp">Sıcaklık Kontrollü Kimyasal</option>
+                    <option value="other_cold_chain">Diğer Soğuk Zincir</option>
+                  </optgroup>
+
+                  {/* Canlı Hayvan */}
+                  <optgroup label="🐄 Canlı Hayvan">
+                    <option value="livestock">Canlı Hayvan</option>
+                    <option value="small_livestock">Küçük Baş Hayvan</option>
+                    <option value="large_livestock">Büyük Baş Hayvan</option>
+                    <option value="poultry">Kümes Hayvanları</option>
+                    <option value="pets">Evcil Hayvanlar</option>
+                    <option value="other_livestock">Diğer Canlı Hayvan</option>
+                  </optgroup>
+
+                  {/* Araç ve Makine */}
+                  <optgroup label="🚗 Araç ve Makine">
+                    <option value="vehicles">Araç Taşıma</option>
+                    <option value="machinery">Makine/Ekipman</option>
+                  </optgroup>
+
+                  {/* Proje Kargosu */}
+                  <optgroup label="🏗️ Proje Kargosu">
+                    <option value="project_cargo">Proje Kargo</option>
+                    <option value="factory_setup">Fabrika Kurulumu</option>
+                    <option value="power_plant">Güç Santrali</option>
+                    <option value="infrastructure">Altyapı Projesi</option>
+                    <option value="other_project">Diğer Proje</option>
+                  </optgroup>
+
+                  {/* Konteyner */}
+                  <optgroup label="📦 Konteyner">
+                    <option value="container">Konteyner</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hizmet Kapsamı
+                </label>
+                <select
+                  value={formData.service_scope}
+                  onChange={(e) => updateFormData('service_scope', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Hizmet kapsamı seçiniz"
+                >
+                  <option value="door_to_door">Kapıdan Kapıya</option>
+                  <option value="port_to_port">Limandan Limana</option>
+                  <option value="terminal_to_terminal">Terminalden Terminale</option>
+                  <option value="warehouse_to_warehouse">Depodan Depoya</option>
+                  <option value="pickup_only">Sadece Alım</option>
+                  <option value="delivery_only">Sadece Teslimat</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Date Information */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              📅 Tarih Bilgileri
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tercih Edilen Başlama Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={formData.pickup_date_preferred}
+                  onChange={(e) => updateFormData('pickup_date_preferred', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Tercih edilen başlama tarihi seçin"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  En Geç Başlama Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={formData.pickup_date_latest}
+                  onChange={(e) => updateFormData('pickup_date_latest', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="En geç başlama tarihi seçin"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tahmini Hizmet Süresi
+                </label>
+                <input
+                  type="text"
+                  value={formData.transit_time_estimate}
+                  onChange={(e) => updateFormData('transit_time_estimate', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ör: 3 gün, 2-4 saat"
+                  title="Tahmini hizmet süresi girin"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tercih Edilen Teslimat Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={formData.delivery_date_preferred}
+                  onChange={(e) => updateFormData('delivery_date_preferred', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Tercih edilen teslimat tarihi seçin"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  En Geç Teslimat Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={formData.delivery_date_latest}
+                  onChange={(e) => updateFormData('delivery_date_latest', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="En geç teslimat tarihi seçin"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Teklif Geçerlilik Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={formData.expires_at}
+                  onChange={(e) => updateFormData('expires_at', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  title="Teklif geçerlilik tarihi seçin"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Service Options */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              ⚙️ Hizmet Seçenekleri
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Temel Hizmetler */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">Temel Hizmetler</h4>
+                
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.customs_handling_included}
+                    onChange={(e) => updateFormData('customs_handling_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Gümrük işlemleri dahil"
+                  />
+                  <span className="text-sm text-gray-700">Gümrük İşlemleri</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.documentation_handling_included}
+                    onChange={(e) => updateFormData('documentation_handling_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Evrak işlemleri dahil"
+                  />
+                  <span className="text-sm text-gray-700">Evrak İşlemleri</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.loading_unloading_included}
+                    onChange={(e) => updateFormData('loading_unloading_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Yükleme/boşaltma dahil"
+                  />
+                  <span className="text-sm text-gray-700">Yükleme/Boşaltma</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.tracking_system_provided}
+                    onChange={(e) => updateFormData('tracking_system_provided', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Takip sistemi sağlama"
+                  />
+                  <span className="text-sm text-gray-700">Takip Sistemi</span>
+                </label>
+              </div>
+
+              {/* Özel Hizmetler */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">Özel Hizmetler</h4>
+                
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.express_service}
+                    onChange={(e) => updateFormData('express_service', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Ekspres hizmet"
+                  />
+                  <span className="text-sm text-gray-700">Ekspres Hizmet</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.weekend_service}
+                    onChange={(e) => updateFormData('weekend_service', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Hafta sonu hizmeti"
+                  />
+                  <span className="text-sm text-gray-700">Hafta Sonu Hizmeti</span>
+                </label>
+              </div>
+
+              {/* Ek Ücretler */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">Ek Ücretler</h4>
+                
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.fuel_surcharge_included}
+                    onChange={(e) => updateFormData('fuel_surcharge_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Yakıt ek ücreti dahil"
+                  />
+                  <span className="text-sm text-gray-700">Yakıt Ek Ücreti</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.toll_fees_included}
+                    onChange={(e) => updateFormData('toll_fees_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Geçiş ücretleri dahil"
+                  />
+                  <span className="text-sm text-gray-700">Geçiş Ücretleri</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.port_charges_included}
+                    onChange={(e) => updateFormData('port_charges_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Liman ücretleri dahil"
+                  />
+                  <span className="text-sm text-gray-700">Liman Ücretleri</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.airport_charges_included}
+                    onChange={(e) => updateFormData('airport_charges_included', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Havaalanı ücretleri dahil"
+                  />
+                  <span className="text-sm text-gray-700">Havaalanı Ücretleri</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Garantiler */}
+            <div className="mt-6">
+              <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2 mb-3">Garantiler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.on_time_guarantee}
+                    onChange={(e) => updateFormData('on_time_guarantee', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Zamanında teslimat garantisi"
+                  />
+                  <span className="text-sm text-gray-700">Zamanında Teslimat</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.damage_free_guarantee}
+                    onChange={(e) => updateFormData('damage_free_guarantee', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Hasarsız teslimat garantisi"
+                  />
+                  <span className="text-sm text-gray-700">Hasarsız Teslimat</span>
+                </label>
+
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.temperature_guarantee}
+                    onChange={(e) => updateFormData('temperature_guarantee', e.target.checked)}
+                    className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500"
+                    title="Sıcaklık garantisi"
+                  />
+                  <span className="text-sm text-gray-700">Sıcaklık Garantisi</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2" />
+              👥 İletişim Bilgileri
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  İletişim Kişisi
+                </label>
+                <input
+                  type="text"
+                  value={formData.contact_person}
+                  onChange={(e) => updateFormData('contact_person', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ad Soyad"
+                  title="İletişim kişisi adı"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  İletişim Telefonu
+                </label>
+                <input
+                  type="tel"
+                  value={formData.contact_phone}
+                  onChange={(e) => updateFormData('contact_phone', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="+90 xxx xxx xx xx"
+                  title="İletişim telefon numarası"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Acil Durum İletişim
+                </label>
+                <input
+                  type="tel"
+                  value={formData.emergency_contact}
+                  onChange={(e) => updateFormData('emergency_contact', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="+90 xxx xxx xx xx"
+                  title="Acil durum telefon numarası"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="bg-gray-50 rounded-xl p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <User className="w-5 h-5 mr-2" />
               🏢 Şirket Bilgileri
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -508,6 +1111,44 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
                   onChange={(e) => updateFormData('company_tax_number', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   placeholder="Vergi numaranız"
+                  title="Şirket vergi numarası"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Insurance Information */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              🛡️ Sigorta Bilgileri
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sigorta Şirketi
+                </label>
+                <input
+                  type="text"
+                  value={formData.insurance_company}
+                  onChange={(e) => updateFormData('insurance_company', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="Ör: Allianz Sigorta A.Ş."
+                  title="Sigorta şirketi adı"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Poliçe Numarası
+                </label>
+                <input
+                  type="text"
+                  value={formData.insurance_policy_number}
+                  onChange={(e) => updateFormData('insurance_policy_number', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="POL-2025-123456"
+                  title="Sigorta poliçe numarası"
                 />
               </div>
             </div>
@@ -519,7 +1160,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
               <DollarSign className="w-5 h-5 mr-2" />
               💰 Fiyatlandırma
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -587,7 +1228,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
               <DollarSign className="w-5 h-5 mr-2" />
               💳 Ödeme Şartları
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ödeme Koşulları
@@ -619,7 +1260,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               💬 Ek Mesaj
             </h3>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Detaylı Açıklama
@@ -630,6 +1271,7 @@ const EditServiceOfferModal: React.FC<EditServiceOfferModalProps> = ({
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="Teklifinizle ilgili ek bilgiler..."
+                title="Teklif mesajı ve açıklamalar"
               />
             </div>
           </div>
