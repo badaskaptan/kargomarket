@@ -13,7 +13,10 @@ import {
   Activity,
   FlaskConical
 } from 'lucide-react';
-import { MarketDataItem, FreightRate } from '../../services/marketDataService';
+import { MarketDataService, MarketDataItem, FreightRate } from '../../services/marketDataService';
+
+// Canlı API modu için flag
+const USE_LIVE_API = true;
 
 interface MarketDataPageProps {
   setActivePage?: (page: string) => void;
@@ -152,83 +155,141 @@ const MarketDataPage: React.FC<MarketDataPageProps> = ({ setActivePage }) => {
     ];
   };
 
-  // Sayfa yüklendiğinde statik verileri yükle
+  // Sayfa yüklendiğinde canlı/statik verileri yükle
   useEffect(() => {
-    setLoading(true);
-    
-    // Statik verileri yükle
-    const staticData = getStaticMarketData();
-    const allStaticData = [
-      ...staticData.energy.map(item => ({ ...item, category: 'energy' })),
-      ...staticData.metals.map(item => ({ ...item, category: 'metals' })), 
-      ...staticData.agricultural.map(item => ({ ...item, category: 'agricultural' })),
-      ...staticData.industrial.map(item => ({ ...item, category: 'industrial' })),
-      ...staticData.livestock.map(item => ({ ...item, category: 'livestock' })),
-      ...staticData.index.map(item => ({ ...item, category: 'index' }))
-    ];
+    const loadData = async () => {
+      setLoading(true);
+      
+      try {
+        let formattedData: MarketDataItem[] = [];
+        
+        if (USE_LIVE_API) {
+          console.log('🔄 Canlı API verileri yükleniyor...');
+          // Trading Economics API'den canlı veri çek
+          const liveData = await MarketDataService.getTradingEconomicsData();
+          
+          // Icon'ları ekle
+          formattedData = liveData.map(item => ({
+            ...item,
+            icon: getIconForCategory(item.category)
+          }));
+          
+          console.log('✅ Canlı veriler yüklendi:', formattedData.length);
+        } else {
+          console.log('📊 Statik veriler yükleniyor...');
+          // Statik verileri yükle
+          const staticData = getStaticMarketData();
+          const allStaticData = [
+            ...staticData.energy.map(item => ({ ...item, category: 'energy' })),
+            ...staticData.metals.map(item => ({ ...item, category: 'metals' })), 
+            ...staticData.agricultural.map(item => ({ ...item, category: 'agricultural' })),
+            ...staticData.industrial.map(item => ({ ...item, category: 'industrial' })),
+            ...staticData.livestock.map(item => ({ ...item, category: 'livestock' })),
+            ...staticData.index.map(item => ({ ...item, category: 'index' }))
+          ];
 
-    // MarketDataItem formatına dönüştür
-    const formattedData = allStaticData.map((item, index) => ({
-      id: `static-${index}`,
-      name: item.name,
-      category: item.category as 'energy' | 'metals' | 'agricultural' | 'industrial' | 'livestock' | 'index',
-      value: item.price,
-      change: parseFloat(item.dayChange),
-      changePercent: item.dayPercent,
-      unit: item.unit,
-      lastUpdate: new Date().toISOString(),
-      trend: item.positive ? 'up' as const : 'down' as const,
-      icon: getIconForCategory(item.category),
-      // Ek özellikler
-      weekly: item.weekly,
-      monthly: item.monthly,
-      ytd: item.ytd,
-      yoy: item.yoy,
-      updateTime: item.date
-    }));
+          // MarketDataItem formatına dönüştür
+          formattedData = allStaticData.map((item, index) => ({
+            id: `static-${index}`,
+            name: item.name,
+            category: item.category as 'energy' | 'metals' | 'agricultural' | 'industrial' | 'livestock' | 'index',
+            value: item.price,
+            change: parseFloat(item.dayChange),
+            changePercent: item.dayPercent,
+            unit: item.unit,
+            lastUpdate: new Date().toISOString(),
+            trend: item.positive ? 'up' as const : 'down' as const,
+            icon: getIconForCategory(item.category),
+            // Ek özellikler
+            weekly: item.weekly,
+            monthly: item.monthly,
+            ytd: item.ytd,
+            yoy: item.yoy,
+            updateTime: item.date
+          }));
+        }
 
-    setMarketData(formattedData);
-    setFreightRates(getFallbackFreightRates());
-    setLastRefresh(new Date());
-    setLoading(false);
+        setMarketData(formattedData);
+        setFreightRates(getFallbackFreightRates());
+        setLastRefresh(new Date());
+        
+      } catch (error) {
+        console.error('❌ Veri yükleme hatası:', error);
+        // Hata durumunda statik verileri kullan
+        const staticData = getStaticMarketData();
+        const fallbackData = staticData.energy.concat(staticData.metals).map((item, index) => ({
+          id: `fallback-${index}`,
+          name: item.name,
+          category: 'energy' as const,
+          value: item.price,
+          change: parseFloat(item.dayChange),
+          changePercent: item.dayPercent,
+          unit: item.unit,
+          lastUpdate: new Date().toISOString(),
+          trend: item.positive ? 'up' as const : 'down' as const,
+          icon: getIconForCategory('energy')
+        }));
+        setMarketData(fallbackData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  // Canlı veri çekme işlemi kaldırıldı - artık statik veri kullanıyoruz
+  // Canlı veri yenileme fonksiyonu
   const refreshData = async () => {
     setLoading(true);
     try {
       console.log('🔄 Veriler yenileniyor...');
       
-      // Statik verileri yeniden yükle
-      const staticData = getStaticMarketData();
-      const allStaticData = [
-        ...staticData.energy.map(item => ({ ...item, category: 'energy' })),
-        ...staticData.metals.map(item => ({ ...item, category: 'metals' })), 
-        ...staticData.agricultural.map(item => ({ ...item, category: 'agricultural' })),
-        ...staticData.industrial.map(item => ({ ...item, category: 'industrial' })),
-        ...staticData.livestock.map(item => ({ ...item, category: 'livestock' })),
-        ...staticData.index.map(item => ({ ...item, category: 'index' }))
-      ];
+      let formattedData: MarketDataItem[] = [];
+      
+      if (USE_LIVE_API) {
+        console.log('🔄 Canlı API verileri yenileniyor...');
+        // Trading Economics API'den canlı veri çek
+        const liveData = await MarketDataService.getTradingEconomicsData();
+        
+        // Icon'ları ekle
+        formattedData = liveData.map(item => ({
+          ...item,
+          icon: getIconForCategory(item.category)
+        }));
+        
+        console.log('✅ Canlı veriler yenilendi:', formattedData.length);
+      } else {
+        // Statik verileri yeniden yükle
+        const staticData = getStaticMarketData();
+        const allStaticData = [
+          ...staticData.energy.map(item => ({ ...item, category: 'energy' })),
+          ...staticData.metals.map(item => ({ ...item, category: 'metals' })), 
+          ...staticData.agricultural.map(item => ({ ...item, category: 'agricultural' })),
+          ...staticData.industrial.map(item => ({ ...item, category: 'industrial' })),
+          ...staticData.livestock.map(item => ({ ...item, category: 'livestock' })),
+          ...staticData.index.map(item => ({ ...item, category: 'index' }))
+        ];
 
-      // MarketDataItem formatına dönüştür
-      const formattedData = allStaticData.map((item, index) => ({
-        id: `static-${index}`,
-        name: item.name,
-        category: item.category as 'energy' | 'metals' | 'agricultural' | 'industrial' | 'livestock' | 'index',
-        value: item.price,
-        change: parseFloat(item.dayChange),
-        changePercent: item.dayPercent,
-        unit: item.unit,
-        lastUpdate: new Date().toISOString(),
-        trend: item.positive ? 'up' as const : 'down' as const,
-        icon: getIconForCategory(item.category),
-        // Ek özellikler
-        weekly: item.weekly,
-        monthly: item.monthly,
-        ytd: item.ytd,
-        yoy: item.yoy,
-        updateTime: item.date
-      }));
+        // MarketDataItem formatına dönüştür
+        formattedData = allStaticData.map((item, index) => ({
+          id: `static-${index}`,
+          name: item.name,
+          category: item.category as 'energy' | 'metals' | 'agricultural' | 'industrial' | 'livestock' | 'index',
+          value: item.price,
+          change: parseFloat(item.dayChange),
+          changePercent: item.dayPercent,
+          unit: item.unit,
+          lastUpdate: new Date().toISOString(),
+          trend: item.positive ? 'up' as const : 'down' as const,
+          icon: getIconForCategory(item.category),
+          // Ek özellikler
+          weekly: item.weekly,
+          monthly: item.monthly,
+          ytd: item.ytd,
+          yoy: item.yoy,
+          updateTime: item.date
+        }));
+      }
 
       setMarketData(formattedData);
       setLastRefresh(new Date());
