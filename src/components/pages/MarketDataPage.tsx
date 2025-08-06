@@ -13,6 +13,10 @@ import {
   Activity
 } from 'lucide-react';
 import { MarketDataService, MarketDataItem, FreightRate } from '../../services/marketDataService';
+import TradingViewMarketWidget from '../widgets/TradingViewMarketWidget';
+import TradingViewCurrencyWidget from '../widgets/TradingViewCurrencyWidget';
+import RealTimeMarketData from '../widgets/RealTimeMarketData';
+import FreightDataPanel from '../widgets/FreightDataPanel';
 
 interface MarketDataPageProps {
   setActivePage?: (page: string) => void;
@@ -277,6 +281,18 @@ const MarketDataPage: React.FC<MarketDataPageProps> = ({ setActivePage }) => {
         })}
       </div>
 
+      {/* Live Market Ticker */}
+      <div className="bg-white rounded-xl shadow-lg p-4 mb-8 overflow-hidden">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Anlık Kurlar & Piyasa</h3>
+          <div className="flex items-center text-green-500">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+            <span className="text-sm font-medium">Canlı</span>
+          </div>
+        </div>
+        <TradingViewCurrencyWidget />
+      </div>
+
       {/* Market Data Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {loading ? (
@@ -325,6 +341,34 @@ const MarketDataPage: React.FC<MarketDataPageProps> = ({ setActivePage }) => {
             );
           })
         )}
+      </div>
+
+      {/* TradingView Market Widget */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Canlı Piyasa Verileri</h2>
+            <p className="text-gray-600">Döviz kurları, emtialar, enerji ve nakliye sektörü hisse senetleri</p>
+          </div>
+          <div className="flex items-center text-blue-600">
+            <Activity className="w-5 h-5 mr-2" />
+            <span className="text-sm font-medium">Canlı</span>
+          </div>
+        </div>
+        
+        <div className="rounded-lg overflow-hidden border border-gray-200">
+          <TradingViewMarketWidget />
+        </div>
+      </div>
+
+      {/* Alpha Vantage Real-Time Data */}
+      <div className="mb-12">
+        <RealTimeMarketData />
+      </div>
+
+      {/* Freight & Commodity Data Panel */}
+      <div className="mb-12">
+        <FreightDataPanel />
       </div>
 
       {/* Freight Rates Table */}

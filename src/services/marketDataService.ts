@@ -12,6 +12,8 @@ export interface MarketDataItem {
   unit: string;
   lastUpdate: string;
   trend: 'up' | 'down' | 'stable';
+  source?: string;
+  description?: string;
   icon?: React.ElementType;
 }
 
