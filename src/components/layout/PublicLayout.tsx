@@ -15,6 +15,13 @@ import CookiePolicyPage from '../pages/CookiePolicyPage';
 import KvkkPage from '../pages/KvkkPage';
 import RefundPolicyPage from '../pages/RefundPolicyPage';
 import RevenueModelPage from '../pages/RevenueModelPage';
+import InfoCenterPage from '../pages/InfoCenterPage';
+import LogisticsDictionaryPage from '../pages/LogisticsDictionaryPage';
+import LegalGuidePage from '../pages/LegalGuidePage';
+import MarketDataPage from '../pages/MarketDataPage';
+import NewsPage from '../pages/NewsPage';
+import StatisticsPage from '../pages/StatisticsPage';
+import CalculationToolsPage from '../pages/CalculationToolsPage';
 
 interface PublicLayoutProps {
   onShowDashboard: () => void;
@@ -52,6 +59,20 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ onShowDashboard, onBackToHo
         return <RefundPolicyPage />;
       case 'revenue-model':
         return <RevenueModelPage />;
+      case 'bilgi-merkezi':
+        return <InfoCenterPage setActivePage={setActivePage} />;
+      case 'terimler-sozlugu':
+        return <LogisticsDictionaryPage setActivePage={setActivePage} />;
+      case 'ticaret-hukuku':
+        return <LegalGuidePage setActivePage={setActivePage} />;
+      case 'navlun-fiyatlari':
+        return <MarketDataPage setActivePage={setActivePage} />;
+      case 'sektor-haberleri':
+        return <NewsPage setActivePage={setActivePage} />;
+      case 'sektorel-analiz':
+        return <StatisticsPage setActivePage={setActivePage} />;
+      case 'hesaplama-araclari':
+        return <CalculationToolsPage setActivePage={setActivePage} />;
       default:
         return <HomePage onShowDashboard={onShowDashboard} onShowListings={() => setActivePage('listings')} />;
     }

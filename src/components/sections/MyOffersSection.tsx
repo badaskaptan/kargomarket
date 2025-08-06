@@ -782,7 +782,7 @@ const MyOffersSection: React.FC<MyOffersSectionProps> = ({ currentUserId }) => {
                 <div className="text-center">
                   <p className="text-sm text-gray-500">Transport Mode</p>
                   <p className="text-sm font-medium">
-                    {translateTransportMode(offer.transport_service?.transport_mode)}
+                    {translateTransportMode(offer.transport_service?.transport_mode || 'unknown')}
                   </p>
                 </div>
               </div>
