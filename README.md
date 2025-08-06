@@ -7,11 +7,13 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 ## 📋 **Hızlı Başlangıç**
 
 ### **� Dokümantasyon**
+
 - 🏠 **Ana Dokümantasyon**: [`docs/MASTER_DOCUMENTATION_INDEX.md`](docs/MASTER_DOCUMENTATION_INDEX.md)
 - 🗄️ **Database Migration**: [`sql/migrations/SERVICE_OFFERS_COMPLETE_MIGRATION.sql`](sql/migrations/SERVICE_OFFERS_COMPLETE_MIGRATION.sql)
 - 🔧 **Debug Sorguları**: [`sql/debug/COMMON_DEBUG_QUERIES.sql`](sql/debug/COMMON_DEBUG_QUERIES.sql)
 
 ### **🚀 Deployment**
+
 1. Backend: [`docs/deployment/SERVICE_OFFER_DEPLOYMENT_COMPLETE.md`](docs/deployment/SERVICE_OFFER_DEPLOYMENT_COMPLETE.md)
 2. Database: SQL migration script'lerini Supabase'de çalıştır
 3. Frontend: `npm run build` → hosting platform'una deploy
@@ -19,6 +21,7 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 ## 🎯 **Ana Özellikler**
 
 ### ✅ **Tamamlanan Sistemler** (Production Ready)
+
 - **🚛 Service Offer System**: Nakliye hizmet teklif sistemi (coğrafi bilgi, şirket detayları)
 - **💬 Messaging System**: Gerçek zamanlı mesajlaşma (RLS güvenlik)
 - **⭐ Reviews System**: Değerlendirme ve yorumlar
@@ -28,6 +31,7 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 - **📊 Live Data Integration**: Gerçek zamanlı piyasa verileri ve haberler
 
 ### 🆕 **Information Center - v3.1.0** (Yeni!)
+
 - **📖 Lojistik Sözlük**: 15+ terim, kategori bazlı filtreleme
 - **⚖️ Ticaret Hukuku**: 5 kapsamlı hukuki rehber
 - **📈 Piyasa Verileri**: Canlı döviz, yakıt, navlun fiyatları
@@ -36,12 +40,14 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 - **🧮 Hesaplama Araçları**: 4 farklı hesaplama modülü
 
 ### 🔗 **Live Data APIs**
+
 - **Financial Data**: Alpha Vantage, Fixer.io, CoinGecko
 - **News Integration**: NewsAPI, Bing News API
 - **Fallback System**: Güvenilir offline veri desteği
 - **Cache Management**: Supabase tabanlı veri önbellekleme
 
 ### � **Teknik İyileştirmeler**
+
 - **Modal System**: Tutarlı UI/UX, raw JSON eliminasyonu
 - **Database Schema**: Optimize edilmiş performans indexleri
 - **Type Safety**: %100 TypeScript coverage
@@ -50,6 +56,7 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 ## 🏗️ Teknoloji Stack
 
 ### Frontend
+
 - **React 18** - Modern UI geliştirme
 - **TypeScript** - Type-safe kod yazımı
 - **Vite** - Hızlı geliştirme ve build
@@ -57,12 +64,14 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 - **Lucide React** - Modern icon seti
 
 ### Backend & Database
+
 - **Supabase** - PostgreSQL veritabanı ve authentication
 - **Row Level Security (RLS)** - Veri güvenliği
 - **Real-time Subscriptions** - Canlı veri güncellemeleri
 - **Storage Buckets** - Medya dosyası yönetimi
 
 ### Özel Özellikler
+
 - **Progressive Web App (PWA)** desteği
 - **Responsive Design** - Mobil/tablet uyumlu
 - **Dark/Light Mode** - Tema değiştirme
@@ -71,7 +80,8 @@ Modern nakliye hizmetleri ve lojistik yönetimi için kapsamlı platform. React 
 ## 🚀 Hızlı Başlangıç
 
 ### Gereksinimler
-- Node.js 18+ 
+
+- Node.js 18+
 - npm veya yarn
 - Supabase hesabı
 
@@ -105,21 +115,25 @@ Detaylı kurulum için: [SUPABASE_BILLING_SETUP.md](./SUPABASE_BILLING_SETUP.md)
 ## 📱 Uygulama Bölümleri
 
 ### Dashboard
+
 - **Genel Bakış**: Sistem istatistikleri ve son aktiviteler
 - **Hızlı Erişim**: Yeni ilan, reklam ve mesaj oluşturma
 - **Bildirimler**: Gerçek zamanlı sistem bildirimleri
 
 ### Nakliye Yönetimi
+
 - **İlan Verme**: Yeni nakliye talebi oluşturma
 - **İlan Arama**: Filtreleme ve arama özellikleri
- - **Teklif Sistemi**: Yük ve nakliye ilanlarında HomePage ve ListingsPage üzerinden tam teklif akışı, CreateOfferModal ile eksiksiz modal entegrasyonu, tüm build/type hataları giderildi, testler geçti
+- **Teklif Sistemi**: Yük ve nakliye ilanlarında HomePage ve ListingsPage üzerinden tam teklif akışı, CreateOfferModal ile eksiksiz modal entegrasyonu, tüm build/type hataları giderildi, testler geçti
 
 ### Reklam Yönetimi
+
 - **Reklam Oluşturma**: Banner, video ve metin reklamları
 - **Performance Dashboard**: Detaylı analytics ve raporlar
 - **Budget Yönetimi**: Harcama kontrolü ve optimizasyon
 
 ### Mesajlaşma
+
 - **Gerçek Zamanlı Chat**: Anlık mesajlaşma
 - **Dosya Paylaşımı**: Resim ve doküman gönderme
 - **Mesaj Geçmişi**: Arama ve filtreleme
@@ -170,18 +184,21 @@ src/
 ## 🚀 Production Deployment
 
 ### Vercel (Önerilen)
+
 ```bash
 npm run build
 # Vercel dashboard'dan deploy edin
 ```
 
 ### Netlify
+
 ```bash
 npm run build
 # dist/ klasörünü Netlify'a yükleyin
 ```
 
 ### Manual Deployment
+
 ```bash
 npm run build
 # dist/ klasörünü web server'ınıza kopyalayın
@@ -190,6 +207,7 @@ npm run build
 ## 🔄 Billing System
 
 ### Ücretsiz Mod (Şu Anki Durum)
+
 ```typescript
 BILLING_CONFIG = {
   FREE_MODE: true,        // Ücretsiz kullanım
@@ -198,6 +216,7 @@ BILLING_CONFIG = {
 ```
 
 ### Ücretli Moda Geçiş
+
 ```typescript
 BILLING_CONFIG = {
   FREE_MODE: false,       // Ücretli mod
@@ -206,6 +225,7 @@ BILLING_CONFIG = {
 ```
 
 ### Fiyatlandırma
+
 - **Banner Reklamları**: 50 TL/gün
 - **Video Reklamları**: 100 TL/gün  
 - **Metin Reklamları**: 25 TL/gün
@@ -256,5 +276,6 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](./LI
     },
   },
 ])
+
 ```
 test

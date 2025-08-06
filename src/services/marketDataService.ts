@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 export interface MarketDataItem {
   id: string;
   name: string;
-  category: 'fuel' | 'currency' | 'freight' | 'commodity' | 'index' | 'chemical' | 'energy' | 'metals' | 'agricultural' | 'industrial' | 'livestock';
+  category: 'fuel' | 'currency' | 'freight' | 'commodity' | 'index';
   value: string;
   change: number;
   changePercent: string;
@@ -13,12 +13,6 @@ export interface MarketDataItem {
   lastUpdate: string;
   trend: 'up' | 'down' | 'stable';
   icon?: React.ElementType;
-  // Ek özellikler
-  weekly?: string;
-  monthly?: string;
-  ytd?: string;
-  yoy?: string;
-  updateTime?: string;
 }
 
 export interface FreightRate {
@@ -32,122 +26,360 @@ export interface FreightRate {
   lastUpdate: string;
 }
 
-// API anahtarları
-const FMP_API_KEY = import.meta.env.VITE_FMP_API_KEY || 'demo';
-const TRADING_ECONOMICS_API_KEY = import.meta.env.VITE_TRADING_ECONOMICS_API_KEY || 'demo';
-const TRADING_ECONOMICS_BASE_URL = 'https://api.tradingeconomics.com';
+// Alpha Vantage API (Ücretsiz - günlük 500 çağrı)
+const ALPHA_VANTAGE_API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY || 'demo';
+const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
+
+// Fixer.io API (Döviz kurları)
+const FIXER_API_KEY = import.meta.env.VITE_FIXER_API_KEY || 'demo';
+const FIXER_BASE_URL = 'https://api.fixer.io/v1';
+
+// CoinGecko API (Emtia ve kripto - ücretsiz)
+const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
+
+// MarketStack API (Hisse senetleri ve endeksler) - gelecekte kullanılacak
+// const MARKETSTACK_API_KEY = process.env.REACT_APP_MARKETSTACK_API_KEY || 'demo';
+// const MARKETSTACK_BASE_URL = 'https://api.marketstack.com/v1';
 
 export class MarketDataService {
-  // Trading Economics API - Gerçek commodity verileri
-  static async getTradingEconomicsData(): Promise<MarketDataItem[]> {
+  // Döviz kurları - Fixer.io API
+  static async getCurrencyRates(): Promise<MarketDataItem[]> {
     try {
-      console.log('📊 Trading Economics API verilerini çekiyor...');
-      
-      if (TRADING_ECONOMICS_API_KEY === 'demo') {
-        console.log('⚠️ Demo modunda - statik veriler kullanılıyor');
-        return this.getStaticTradingEconomicsData();
+      const response = await fetch(
+        `${FIXER_BASE_URL}/latest?access_key=${FIXER_API_KEY}&base=USD&symbols=TRY,EUR,GBP,JPY`
+      );
+
+      if (!response.ok) {
+        throw new Error('Currency API failed');
       }
 
-      // Gerçek API çağrısı buraya gelecek
-      // Demo mode için statik veri döndürüyoruz
-      return this.getStaticTradingEconomicsData();
+      const data = await response.json();
 
+      if (!data.success) {
+        throw new Error('Currency API error');
+      }
+
+      const rates = data.rates;
+      const timestamp = new Date().toISOString();
+
+      return [
+        {
+          id: 'usd-try',
+          name: 'USD/TRY',
+          category: 'currency',
+          value: rates.TRY?.toFixed(4) || '27.50',
+          change: 0, // Bu veri için historical comparison gerekli
+          changePercent: '+0.0%',
+          unit: 'TRY',
+          lastUpdate: timestamp,
+          trend: 'stable'
+        },
+        {
+          id: 'eur-try',
+          name: 'EUR/TRY',
+          category: 'currency',
+          value: (rates.TRY * (1 / rates.EUR))?.toFixed(4) || '29.85',
+          change: 0,
+          changePercent: '+0.0%',
+          unit: 'TRY',
+          lastUpdate: timestamp,
+          trend: 'stable'
+        },
+        {
+          id: 'eur-usd',
+          name: 'EUR/USD',
+          category: 'currency',
+          value: (1 / rates.EUR)?.toFixed(4) || '1.0865',
+          change: 0,
+          changePercent: '+0.0%',
+          unit: 'USD',
+          lastUpdate: timestamp,
+          trend: 'stable'
+        }
+      ];
     } catch (error) {
-      console.error('❌ Trading Economics API hatası:', error);
-      return this.getStaticTradingEconomicsData();
+      console.error('Currency rates fetch error:', error);
+      return this.getFallbackCurrencyData();
     }
   }
 
-  // Sembol kategorilendirme
-  static categorizeSymbol(symbol: string): 'energy' | 'metals' | 'agricultural' | 'industrial' | 'livestock' | 'index' {
-    const energySymbols = ['CRUDE', 'BRENT', 'NGAS', 'GAS', 'COAL', 'TTF', 'UK_GAS'];
-    const metalSymbols = ['GOLD', 'SILVER', 'COPPER', 'STEEL', 'LITHIUM', 'IRON', 'PLATINUM'];
-    const agriculturalSymbols = ['WHEAT', 'CORN', 'SOYBEAN', 'COFFEE', 'SUGAR', 'COTTON', 'RICE', 'LUMBER', 'PALM', 'ORANGE', 'COCOA'];
-    const industrialSymbols = ['BITUMEN', 'LEAD', 'ALUMINUM', 'TIN', 'ZINC', 'NICKEL', 'UREA'];
-    const livestockSymbols = ['CATTLE', 'HOGS', 'BEEF', 'EGGS'];
-    
-    if (energySymbols.some(s => symbol.includes(s))) return 'energy';
-    if (metalSymbols.some(s => symbol.includes(s))) return 'metals';
-    if (agriculturalSymbols.some(s => symbol.includes(s))) return 'agricultural';
-    if (industrialSymbols.some(s => symbol.includes(s))) return 'industrial';
-    if (livestockSymbols.some(s => symbol.includes(s))) return 'livestock';
-    return 'index';
+  // Petrol fiyatları - Alpha Vantage API
+  static async getOilPrices(): Promise<MarketDataItem[]> {
+    try {
+      const response = await fetch(
+        `${ALPHA_VANTAGE_BASE_URL}?function=WTI&interval=monthly&apikey=${ALPHA_VANTAGE_API_KEY}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Oil API failed');
+      }
+
+      const data = await response.json();
+
+      if (data['Error Message']) {
+        throw new Error('Oil API error');
+      }
+
+      const latestData = Object.values(data.data || {})[0] as { value: string; date: string };
+      const timestamp = new Date().toISOString();
+
+      return [
+        {
+          id: 'brent-oil',
+          name: 'Brent Petrol',
+          category: 'fuel',
+          value: `$${latestData?.value || '85.42'}`,
+          change: 0, // Calculation needed with previous data
+          changePercent: '+0.0%',
+          unit: 'USD/Varil',
+          lastUpdate: timestamp,
+          trend: 'stable'
+        }
+      ];
+    } catch (error) {
+      console.error('Oil prices fetch error:', error);
+      return this.getFallbackFuelData();
+    }
   }
 
-  // Statik veriler - API erişimi olmadığında fallback
-  static getStaticTradingEconomicsData(): MarketDataItem[] {
-    return [
-      // Energy Data
-      { id: 'crude-oil', name: 'Crude Oil', category: 'energy', value: '65.629', change: 0.469, changePercent: '0.72%', unit: 'USD/Bbl', lastUpdate: new Date().toISOString(), trend: 'up', weekly: '-6.30%', monthly: '-3.45%', ytd: '-8.55%', yoy: '-12.82%', updateTime: '09:22' },
-      { id: 'brent', name: 'Brent', category: 'energy', value: '68.131', change: 0.491, changePercent: '0.73%', unit: 'USD/Bbl', lastUpdate: new Date().toISOString(), trend: 'up', weekly: '-6.04%', monthly: '-2.14%', ytd: '-8.77%', yoy: '-13.07%', updateTime: '09:21' },
-      { id: 'natural-gas', name: 'Natural gas', category: 'energy', value: '2.9676', change: 0.0424, changePercent: '-1.41%', unit: 'USD/MMBtu', lastUpdate: new Date().toISOString(), trend: 'down', weekly: '-2.58%', monthly: '-13.06%', ytd: '-18.35%', yoy: '40.46%', updateTime: '09:22' },
-      // Metals Data  
-      { id: 'gold', name: 'Gold', category: 'metals', value: '3376.55', change: 4.58, changePercent: '-0.14%', unit: 'USD/t.oz', lastUpdate: new Date().toISOString(), trend: 'down', weekly: '3.07%', monthly: '1.15%', ytd: '28.61%', yoy: '41.53%', updateTime: '09:22' },
-      { id: 'silver', name: 'Silver', category: 'metals', value: '37.865', change: 0.045, changePercent: '0.12%', unit: 'USD/t.oz', lastUpdate: new Date().toISOString(), trend: 'up', weekly: '1.95%', monthly: '2.95%', ytd: '31.08%', yoy: '42.05%', updateTime: '09:22' },
-      // Agricultural Data
-      { id: 'soybeans', name: 'Soybeans', category: 'agricultural', value: '970.24', change: 1.24, changePercent: '0.13%', unit: 'USd/Bu', lastUpdate: new Date().toISOString(), trend: 'up', weekly: '0.26%', monthly: '-5.96%', ytd: '-2.81%', yoy: '-4.23%', updateTime: 'Aug/06' },
-      { id: 'wheat', name: 'Wheat', category: 'agricultural', value: '508.04', change: 0.21, changePercent: '-0.04%', unit: 'USd/Bu', lastUpdate: new Date().toISOString(), trend: 'down', weekly: '-3.05%', monthly: '-7.42%', ytd: '-7.93%', yoy: '-5.66%', updateTime: '09:21' },
-      // Industrial Data
-      { id: 'copper', name: 'Copper', category: 'metals', value: '4.3762', change: 0.0058, changePercent: '0.13%', unit: 'USD/Lbs', lastUpdate: new Date().toISOString(), trend: 'up', weekly: '-5.15%', monthly: '-12.06%', ytd: '9.95%', yoy: '10.72%', updateTime: '09:22' },
-      // Livestock Data
-      { id: 'cattle', name: 'Live Cattle', category: 'livestock', value: '234.2750', change: 3.3750, changePercent: '1.46%', unit: 'USd/Lbs', lastUpdate: new Date().toISOString(), trend: 'up', weekly: '1.98%', monthly: '8.51%', ytd: '22.28%', yoy: '28.67%', updateTime: 'Aug/05' },
-      // Index Data
-      { id: 'crb-index', name: 'CRB Index', category: 'index', value: '362.23', change: 1.88, changePercent: '-0.52%', unit: 'Index Points', lastUpdate: new Date().toISOString(), trend: 'down', weekly: '-3.16%', monthly: '-1.56%', ytd: '1.52%', yoy: '14.22%', updateTime: 'Aug/04' }
-    ];
+  // Altın fiyatları - CoinGecko API (ücretsiz)
+  static async getGoldPrices(): Promise<MarketDataItem[]> {
+    try {
+      const response = await fetch(
+        `${COINGECKO_BASE_URL}/simple/price?ids=gold&vs_currencies=usd&include_24hr_change=true`
+      );
+
+      if (!response.ok) {
+        throw new Error('Gold API failed');
+      }
+
+      const data = await response.json();
+      const goldData = data.gold;
+      const timestamp = new Date().toISOString();
+
+      return [
+        {
+          id: 'gold-usd',
+          name: 'Altın',
+          category: 'commodity',
+          value: `$${goldData.usd?.toFixed(2) || '1,945.30'}`,
+          change: goldData.usd_24h_change || 0,
+          changePercent: `${goldData.usd_24h_change > 0 ? '+' : ''}${goldData.usd_24h_change?.toFixed(1) || '0.0'}%`,
+          unit: 'USD/Ons',
+          lastUpdate: timestamp,
+          trend: goldData.usd_24h_change > 0 ? 'up' : goldData.usd_24h_change < 0 ? 'down' : 'stable'
+        }
+      ];
+    } catch (error) {
+      console.error('Gold prices fetch error:', error);
+      return this.getFallbackCommodityData();
+    }
   }
 
-  // Freight rates
+  // Baltic Dry Index - Web scraping alternatifi (gerçek API pahalı)
+  static async getFreightIndices(): Promise<MarketDataItem[]> {
+    try {
+      // Bu veri için özel bir API gerekebilir veya web scraping
+      // Şimdilik cached veriyi döndürelim
+      const timestamp = new Date().toISOString();
+
+      return [
+        {
+          id: 'baltic-dry-index',
+          name: 'Baltic Dry Index',
+          category: 'freight',
+          value: '1,247',
+          change: 15,
+          changePercent: '+1.2%',
+          unit: 'Points',
+          lastUpdate: timestamp,
+          trend: 'up'
+        }
+      ];
+    } catch (error) {
+      console.error('Freight indices fetch error:', error);
+      return this.getFallbackFreightData();
+    }
+  }
+
+  // Ana market data fonksiyonu
+  static async getMarketData(): Promise<MarketDataItem[]> {
+    try {
+      const [currencies, oils, gold, freightIndices] = await Promise.allSettled([
+        this.getCurrencyRates(),
+        this.getOilPrices(),
+        this.getGoldPrices(),
+        this.getFreightIndices()
+      ]);
+
+      const allData: MarketDataItem[] = [];
+
+      if (currencies.status === 'fulfilled') allData.push(...currencies.value);
+      if (oils.status === 'fulfilled') allData.push(...oils.value);
+      if (gold.status === 'fulfilled') allData.push(...gold.value);
+      if (freightIndices.status === 'fulfilled') allData.push(...freightIndices.value);
+
+      return allData;
+    } catch (error) {
+      console.error('Market data fetch error:', error);
+      return this.getFallbackMarketData();
+    }
+  }
+
+  // Navlun oranları - Supabase'de cached veri
   static async getFreightRates(): Promise<FreightRate[]> {
     try {
-      // Supabase'den navlun verilerini çek
       const { data, error } = await supabase
         .from('freight_rates')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('last_update', { ascending: false });
 
-      if (error) {
-        console.error('Freight rates fetch error:', error);
-        return this.getFallbackFreightRates();
-      }
+      if (error) throw error;
 
-      return data?.map((rate: any) => ({
-        route: `${rate.origin} - ${rate.destination}`,
-        origin: rate.origin,
-        destination: rate.destination,
-        mode: rate.mode,
-        rate: rate.rate,
-        unit: rate.unit,
-        change: rate.change || 0,
-        lastUpdate: rate.created_at
+      return data?.map(item => ({
+        route: item.route,
+        origin: item.origin,
+        destination: item.destination,
+        mode: item.mode,
+        rate: item.rate,
+        unit: item.unit,
+        change: item.change,
+        lastUpdate: item.last_update
       })) || this.getFallbackFreightRates();
-
     } catch (error) {
-      console.error('Freight rates service error:', error);
+      console.error('Freight rates fetch error:', error);
       return this.getFallbackFreightRates();
     }
   }
 
-  static getFallbackFreightRates(): FreightRate[] {
+  // Market verilerini cache'e kaydet
+  static async cacheMarketData(data: MarketDataItem[]): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('market_data_cache')
+        .upsert(
+          data.map(item => ({
+            item_id: item.id,
+            data: item,
+            last_update: new Date().toISOString()
+          }))
+        );
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Cache market data error:', error);
+    }
+  }
+
+  // Fallback verileri
+  private static getFallbackCurrencyData(): MarketDataItem[] {
+    const timestamp = new Date().toISOString();
+    return [
+      {
+        id: 'usd-try',
+        name: 'USD/TRY',
+        category: 'currency',
+        value: '27.48',
+        change: 0.22,
+        changePercent: '+0.8%',
+        unit: 'TRY',
+        lastUpdate: timestamp,
+        trend: 'up'
+      },
+      {
+        id: 'eur-try',
+        name: 'EUR/TRY',
+        category: 'currency',
+        value: '29.85',
+        change: -0.15,
+        changePercent: '-0.5%',
+        unit: 'TRY',
+        lastUpdate: timestamp,
+        trend: 'down'
+      }
+    ];
+  }
+
+  private static getFallbackFuelData(): MarketDataItem[] {
+    const timestamp = new Date().toISOString();
+    return [
+      {
+        id: 'brent-oil',
+        name: 'Brent Petrol',
+        category: 'fuel',
+        value: '$85.42',
+        change: 2.1,
+        changePercent: '+2.5%',
+        unit: 'USD/Varil',
+        lastUpdate: timestamp,
+        trend: 'up'
+      }
+    ];
+  }
+
+  private static getFallbackCommodityData(): MarketDataItem[] {
+    const timestamp = new Date().toISOString();
+    return [
+      {
+        id: 'gold-usd',
+        name: 'Altın',
+        category: 'commodity',
+        value: '$1,945.30',
+        change: 12.50,
+        changePercent: '+0.6%',
+        unit: 'USD/Ons',
+        lastUpdate: timestamp,
+        trend: 'up'
+      }
+    ];
+  }
+
+  private static getFallbackFreightData(): MarketDataItem[] {
+    const timestamp = new Date().toISOString();
+    return [
+      {
+        id: 'baltic-dry-index',
+        name: 'Baltic Dry Index',
+        category: 'freight',
+        value: '1,247',
+        change: 15,
+        changePercent: '+1.2%',
+        unit: 'Points',
+        lastUpdate: timestamp,
+        trend: 'up'
+      }
+    ];
+  }
+
+  private static getFallbackMarketData(): MarketDataItem[] {
+    return [
+      ...this.getFallbackCurrencyData(),
+      ...this.getFallbackFuelData(),
+      ...this.getFallbackCommodityData(),
+      ...this.getFallbackFreightData()
+    ];
+  }
+
+  private static getFallbackFreightRates(): FreightRate[] {
     return [
       {
         route: 'İstanbul - Hamburg',
-        origin: 'İstanbul',
-        destination: 'Hamburg',
+        origin: 'İstanbul, TR',
+        destination: 'Hamburg, DE',
         mode: 'road',
-        rate: '₺2,850',
-        unit: '/Ton',
-        change: 2.3,
+        rate: '€2,450',
+        unit: 'per truck',
+        change: 5.2,
         lastUpdate: new Date().toISOString()
       },
       {
-        route: 'Mersin - Rotterdam',
-        origin: 'Mersin',
-        destination: 'Rotterdam',
+        route: 'İzmir - Rotterdam',
+        origin: 'İzmir, TR',
+        destination: 'Rotterdam, NL',
         mode: 'sea',
-        rate: '$450',
-        unit: '/TEU',
-        change: -1.2,
+        rate: '$1,850',
+        unit: 'per TEU',
+        change: -2.1,
         lastUpdate: new Date().toISOString()
       }
     ];

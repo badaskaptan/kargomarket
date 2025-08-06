@@ -10,7 +10,7 @@
     -webkit-line-clamp: 2;
     line-clamp: 2;
   }
-  
+
   .line-clamp-3 {
     overflow: hidden;
     display: -webkit-box;
@@ -24,13 +24,13 @@
   body {
     font-family: 'Inter', sans-serif;
   }
-  
+
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  
+
   input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
@@ -38,25 +38,26 @@
 }
 
 @layer components {
+
   /* Webkit scrollbar styling for Chromium-based browsers */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 3px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 3px;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
   }
-  
+
   /* Fallback for browsers that don't support custom scrollbars */
   @supports not selector(::-webkit-scrollbar) {
     .custom-scrollbar {
@@ -64,25 +65,25 @@
       overflow-y: auto;
     }
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
   }
-  
+
   .glass-effect {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.95);
   }
-  
+
   .gradient-bg {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
-  
+
   .card-hover {
     transition: all 0.3s ease;
   }
-  
+
   .card-hover:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -94,6 +95,7 @@
       opacity: 0;
       transform: translateY(-10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -101,25 +103,33 @@
   }
 
   @keyframes bounceSubtle {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0);
     }
+
     50% {
       transform: translateY(-3px);
     }
   }
 
   @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.5;
     }
   }
 
   @keyframes ping {
-    75%, 100% {
+
+    75%,
+    100% {
       transform: scale(2);
       opacity: 0;
     }
@@ -146,10 +156,13 @@
   }
 
   @keyframes bounce {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(-25%);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
+
     50% {
       transform: none;
       animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -161,41 +174,44 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
   }
-  
+
   @keyframes slideUp {
     from {
       opacity: 0;
       transform: translateY(20px) scale(0.95);
     }
+
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
   }
-  
+
   @keyframes slideDown {
     from {
       opacity: 0;
       transform: translateY(-10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  
+
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
-  
+
   .animate-slideUp {
     animation: slideUp 0.4s ease-out;
   }
-  
+
   .animate-slideDown {
     animation: slideDown 0.3s ease-out;
   }

@@ -23,7 +23,6 @@ interface NewsAPIArticle {
   source: { name: string };
   url: string;
   urlToImage?: string;
-  content?: string;
 }
 
 interface RegulationNewsItem {
@@ -40,136 +39,130 @@ interface RegulationNewsItem {
   image_url: string | null;
 }
 
+interface BingNewsArticle {
+  name: string;
+  description: string;
+  datePublished: string;
+  provider: Array<{ name: string }>;
+  url: string;
+  image?: { thumbnail?: { contentUrl: string } };
+}
+
 // NewsAPI.org (Ücretsiz plan - günlük 1000 çağrı)
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY || 'demo';
 const NEWS_API_BASE_URL = 'https://newsapi.org/v2';
 
+// Bing News Search API (Microsoft)
+const BING_NEWS_API_KEY = import.meta.env.VITE_BING_NEWS_API_KEY || 'demo';
+const BING_NEWS_BASE_URL = 'https://api.bing.microsoft.com/v7.0/news';
+
 export class NewsService {
-  // Türkiye haberleri - NewsAPI ile gerçek veri
+  // Türkiye haberleri - NewsAPI
   static async getTurkeyNews(): Promise<NewsArticle[]> {
     try {
-      // NewsAPI.org'dan Türkiye lojistik haberleri çek
       const response = await fetch(
-        `${NEWS_API_BASE_URL}/everything?q=Turkey+logistics+cargo+transport+shipping+kargo+nakliye&language=tr&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_API_KEY}`
+        `${NEWS_API_BASE_URL}/everything?q=Turkey+logistics+cargo+transport&language=tr&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`
       );
-      
+
       if (!response.ok) {
-        console.warn('Primary NewsAPI failed, using fallback');
-        return this.getFallbackTurkeyNews();
+        throw new Error('Turkey news API failed');
       }
-      
+
       const data = await response.json();
-      
-      if (data.status !== 'ok' || !data.articles) {
-        console.warn('NewsAPI returned error, using fallback');
-        return this.getFallbackTurkeyNews();
+
+      if (data.status !== 'ok') {
+        throw new Error('Turkey news API error');
       }
 
       return data.articles?.map((article: NewsAPIArticle, index: number) => ({
-        id: `turkey-real-${index}`,
-        title: article.title || 'Başlık bulunamadı',
-        summary: article.description || article.title || 'Özet bulunamadı',
+        id: `turkey-${index}`,
+        title: article.title,
+        summary: article.description || article.title,
         content: this.generateDetailedContent(article.title, article.description),
         category: 'turkiye' as const,
-        tags: this.extractTags(article.title + ' ' + (article.description || '')),
+        tags: this.extractTags(article.title),
         publishDate: new Date(article.publishedAt).toISOString().split('T')[0],
         source: article.source.name,
         sourceUrl: article.url,
         viewCount: Math.floor(Math.random() * 1000) + 100,
-        featured: index < 3, // İlk 3 makale featured
+        featured: index < 2, // İlk 2 makale featured
         imageUrl: article.urlToImage
-      })).filter((article: NewsArticle) => 
-        article.title && 
-        article.title !== '[Removed]' && 
-        !article.title.includes('removed')
-      ) || this.getFallbackTurkeyNews();
+      })) || [];
     } catch (error) {
       console.error('Turkey news fetch error:', error);
       return this.getFallbackTurkeyNews();
     }
   }
 
-  // Dünya haberleri - NewsAPI ile gerçek veri
+  // Dünya haberleri - Bing News API
   static async getWorldNews(): Promise<NewsArticle[]> {
     try {
-      // Dünya lojistik haberleri için NewsAPI kullan
       const response = await fetch(
-        `${NEWS_API_BASE_URL}/everything?q=global+logistics+shipping+freight+supply+chain&language=en&sortBy=publishedAt&pageSize=15&apiKey=${NEWS_API_KEY}`
+        `${BING_NEWS_BASE_URL}/search?q=global+logistics+shipping+freight&mkt=en-US&count=10&category=Business`,
+        {
+          headers: {
+            'Ocp-Apim-Subscription-Key': BING_NEWS_API_KEY
+          }
+        }
       );
-      
+
       if (!response.ok) {
-        console.warn('World news API failed, using fallback');
-        return this.getFallbackWorldNews();
-      }
-      
-      const data = await response.json();
-      
-      if (data.status !== 'ok') {
-        console.warn('World news API returned error, using fallback');
-        return this.getFallbackWorldNews();
+        throw new Error('World news API failed');
       }
 
-      return data.articles?.map((article: NewsAPIArticle, index: number) => ({
-        id: `world-real-${index}`,
-        title: article.title,
-        summary: article.description || article.title,
-        content: this.generateDetailedContent(article.title, article.description),
+      const data = await response.json();
+
+      return data.value?.map((article: BingNewsArticle, index: number) => ({
+        id: `world-${index}`,
+        title: article.name,
+        summary: article.description,
+        content: this.generateDetailedContent(article.name, article.description),
         category: 'dunya' as const,
-        tags: this.extractTags(article.title + ' ' + (article.description || '')),
-        publishDate: new Date(article.publishedAt).toISOString().split('T')[0],
-        source: article.source.name,
+        tags: this.extractTags(article.name),
+        publishDate: new Date(article.datePublished).toISOString().split('T')[0],
+        source: article.provider[0]?.name || 'International Source',
         sourceUrl: article.url,
         viewCount: Math.floor(Math.random() * 1500) + 200,
-        featured: index < 2,
-        imageUrl: article.urlToImage
-      })).filter((article: NewsArticle) => 
-        article.title && 
-        article.title !== '[Removed]' && 
-        !article.title.includes('removed')
-      ) || this.getFallbackWorldNews();
+        featured: index < 1,
+        imageUrl: article.image?.thumbnail?.contentUrl
+      })) || [];
     } catch (error) {
       console.error('World news fetch error:', error);
       return this.getFallbackWorldNews();
     }
   }
 
-  // Teknoloji haberleri - NewsAPI ile gerçek veri
+  // Teknoloji haberleri - NewsAPI
   static async getTechNews(): Promise<NewsArticle[]> {
     try {
       const response = await fetch(
-        `${NEWS_API_BASE_URL}/everything?q=logistics+technology+AI+automation+IoT+blockchain+digitalization+smart+logistics&language=en&sortBy=publishedAt&pageSize=12&apiKey=${NEWS_API_KEY}`
+        `${NEWS_API_BASE_URL}/everything?q=logistics+technology+AI+automation+IoT+blockchain&language=en&sortBy=publishedAt&pageSize=8&apiKey=${NEWS_API_KEY}`
       );
-      
+
       if (!response.ok) {
-        console.warn('Tech news API failed, using fallback');
-        return this.getFallbackTechNews();
+        throw new Error('Tech news API failed');
       }
-      
+
       const data = await response.json();
-      
+
       if (data.status !== 'ok') {
-        console.warn('Tech news API returned error, using fallback');
-        return this.getFallbackTechNews();
+        throw new Error('Tech news API error');
       }
 
       return data.articles?.map((article: NewsAPIArticle, index: number) => ({
-        id: `tech-real-${index}`,
+        id: `tech-${index}`,
         title: article.title,
         summary: article.description || article.title,
         content: this.generateDetailedContent(article.title, article.description),
         category: 'teknoloji' as const,
-        tags: this.extractTags(article.title + ' ' + (article.description || '')),
+        tags: this.extractTags(article.title),
         publishDate: new Date(article.publishedAt).toISOString().split('T')[0],
         source: article.source.name,
         sourceUrl: article.url,
-        viewCount: Math.floor(Math.random() * 600) + 80,
-        featured: index < 2,
+        viewCount: Math.floor(Math.random() * 800) + 150,
+        featured: false,
         imageUrl: article.urlToImage
-      })).filter((article: NewsArticle) => 
-        article.title && 
-        article.title !== '[Removed]' && 
-        !article.title.includes('removed')
-      ) || this.getFallbackTechNews();
+      })) || [];
     } catch (error) {
       console.error('Tech news fetch error:', error);
       return this.getFallbackTechNews();
@@ -213,13 +206,13 @@ export class NewsService {
       const response = await fetch(
         `${NEWS_API_BASE_URL}/everything?q=logistics+investment+funding+IPO+merger&language=en&sortBy=publishedAt&pageSize=8&apiKey=${NEWS_API_KEY}`
       );
-      
+
       if (!response.ok) {
         throw new Error('Investment news API failed');
       }
-      
+
       const data = await response.json();
-      
+
       if (data.status !== 'ok') {
         throw new Error('Investment news API error');
       }
@@ -329,9 +322,9 @@ export class NewsService {
   private static extractTags(title: string): string[] {
     const keywords = ['Lojistik', 'Kargo', 'Taşımacılık', 'Teknoloji', 'AI', 'Blockchain', 'Yatırım', 'Mevzuat'];
     const titleLower = title.toLowerCase();
-    
-    return keywords.filter(keyword => 
-      titleLower.includes(keyword.toLowerCase()) || 
+
+    return keywords.filter(keyword =>
+      titleLower.includes(keyword.toLowerCase()) ||
       titleLower.includes(keyword.toLowerCase().replace('ı', 'i'))
     );
   }
