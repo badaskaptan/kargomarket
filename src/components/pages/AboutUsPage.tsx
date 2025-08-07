@@ -1,9 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Users,
-  Target,
-  Award,
-  TrendingUp,
   Heart,
   Shield,
   Zap,
@@ -15,8 +11,36 @@ import {
   Anchor,
   Ship
 } from 'lucide-react';
+import AuthModal from '../auth/AuthModal';
+import { useAuth } from '../../context/SupabaseAuthContext';
 
 const AboutUsPage: React.FC = () => {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { login, register, user } = useAuth();
+  
+  // Auth handlers
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      setIsAuthModalOpen(false);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      await register(email, password, fullName);
+      setIsAuthModalOpen(false);
+    } catch (error) {
+      console.error('Register error:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    console.log('Google login clicked');
+  };
+  
   const milestones = [
     { year: '2005', title: 'Denizcilik Başlangıcı', description: 'Emrah Badaş denizcilik sektöründe çalışmaya başladı' },
     { year: '2023', title: 'Proje Fikri', description: 'KargoMarketing fikri doğdu ve geliştirme başladı' },
@@ -82,22 +106,6 @@ const AboutUsPage: React.FC = () => {
     }
   ];
 
-  const stats = [
-    { number: '50,000+', label: 'Kayıtlı Kullanıcı', icon: Users },
-    { number: '1M+', label: 'Taşınan Yük (Ton)', icon: TrendingUp },
-    { number: '5,000+', label: 'Aktif Nakliyeci', icon: Target },
-    { number: '99.8%', label: 'Müşteri Memnuniyeti', icon: Award }
-  ];
-
-  const partners = [
-    { name: 'Aras Kargo', logo: '🚚' },
-    { name: 'MNG Kargo', logo: '📦' },
-    { name: 'Yurtiçi Kargo', logo: '🚛' },
-    { name: 'UPS', logo: '📮' },
-    { name: 'DHL', logo: '✈️' },
-    { name: 'FedEx', logo: '🌍' }
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-6">
@@ -131,7 +139,7 @@ const AboutUsPage: React.FC = () => {
                   Teknolojinin ve yapay zekânın hızla geliştiği bu dönemde, sektörün ihtiyaçlarını karşılayan, herkesin kazanabileceği adil ve yenilikçi bir dijital pazar yeri fikri zihnimde bir anda parladı.
                 </p>
                 <p>
-                  Mevcut platformlarda genellikle tek taraflı hizmetler öne çıkarken, ben alıcı, satıcı ve nakliyeciyi bir araya getiren, tarafsız ve güvenilir bir zincir kurmak istedim. Kişisel yapay zekâ asistanımın (ChatGPT!) yönlendirmeleriyle bu projeye başladım. Her adımda kendime şunu sordum:
+                  Mevcut platformlarda genellikle tek taraflı hizmetler öne çıkarken, ben alıcı, satıcı ve nakliyeciyi bir araya getiren, tarafsız ve güvenilir bir zincir kurmak istedim. Sektörel deneyimim ve teknolojik yenilikleri takip ederek bu projeye başladım. Her adımda kendime şunu sordum:
                 </p>
                 <p className="text-xl font-bold text-primary-600 text-center py-4">
                   "Nasıl olur da herkes kazanır?"
@@ -141,17 +149,31 @@ const AboutUsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl p-6 shadow-lg text-center transform hover:scale-105 transition-all duration-300">
-              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <stat.icon className="text-primary-600" size={24} />
-              </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
-              <div className="text-gray-600 font-medium">{stat.label}</div>
+        {/* Geliştirme Aşamasında */}
+        <div className="mb-20 text-center">
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-8 max-w-2xl mx-auto">
+            <div className="text-4xl mb-4">🚧</div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Platform Geliştirme Aşamasında</h3>
+            <p className="text-gray-700 text-lg leading-relaxed">
+              KargoMarketing şu anda aktif geliştirme sürecindedir. İlk 3 ay boyunca tüm hizmetlerimizi 
+              <span className="font-bold text-primary-600"> tamamen ücretsiz</span> sunuyoruz. 
+              Sistemin tüm temel fonksiyonları çalışır durumda ve güvenle kullanabilirsiniz.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center items-center gap-4">
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                ✅ Üye Sistemi Aktif
+              </span>
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                ✅ İlan Sistemi Çalışır
+              </span>
+              <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                ✅ Mesajlaşma Sistemi Aktif
+              </span>
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                🔄 Sürekli Güncelleme
+              </span>
             </div>
-          ))}
+          </div>
         </div>
 
         {/* Vision & Mission */}
@@ -258,21 +280,6 @@ const AboutUsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Partners */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            <span className="text-primary-600">Ortaklarımız</span>
-          </h2>
-          <div className="flex flex-wrap justify-center items-center gap-8 lg:gap-16">
-            {partners.map((partner, index) => (
-              <div key={index} className="group flex items-center space-x-3 bg-white px-6 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <span className="text-3xl">{partner.logo}</span>
-                <span className="font-semibold text-gray-700 group-hover:text-primary-600 transition-colors">{partner.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Contact */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-20">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
@@ -347,7 +354,7 @@ const AboutUsPage: React.FC = () => {
                   <strong>Since 2005, I have been working in the maritime industry</strong>, experiencing firsthand the challenges and opportunities of global trade. My journey as an ocean-going captain, combined with expertise on chemical tankers and maritime law, inspired me to envision a fair and innovative digital marketplace—where truly, everyone can win.
                 </p>
                 <p>
-                  Most platforms today serve only one side of the logistics equation. My goal was to create a trustworthy and impartial chain bringing together buyers, sellers, and carriers. With the support of my personal AI assistant (that's ChatGPT!), I set out to build this project, always guided by one simple question:
+                  Most platforms today serve only one side of the logistics equation. My goal was to create a trustworthy and impartial chain bringing together buyers, sellers, and carriers. With my industry experience and by following technological innovations, I set out to build this project, always guided by one simple question:
                 </p>
                 <p className="text-xl font-bold text-primary-600 text-center py-4">
                   "How can we all win together?"
@@ -388,9 +395,24 @@ const AboutUsPage: React.FC = () => {
           <p className="text-xl mb-8 text-primary-100">
             Binlerce kullanıcımızla birlikte güvenli ve hızlı taşımacılık deneyimi yaşayın.
           </p>
-          <button className="bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl">
-            Hemen Üye Ol
-          </button>
+          {user ? (
+            <div className="text-center">
+              <p className="text-primary-100 mb-4">✅ Zaten üye oldunuz! Dashboard'unuza gidebilirsiniz.</p>
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl"
+              >
+                Dashboard'a Git
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsAuthModalOpen(true)}
+              className="bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl"
+            >
+              Hemen Üye Ol
+            </button>
+          )}
         </div>
 
         {/* Mini FAQ */}
@@ -412,6 +434,15 @@ const AboutUsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </div>
   );
 };

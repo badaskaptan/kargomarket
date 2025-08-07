@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe, FileText, CreditCard, Shield, AlertTriangle, ExternalLink, Camera, Upload, Trash2 } from 'lucide-react';
+import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe, FileText, CreditCard, Shield, AlertTriangle, ExternalLink, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/SupabaseAuthContext';
 import { AvatarService } from '../../services/avatarService';
 import { useUserListingStats } from '../../hooks/useUserListingStats';

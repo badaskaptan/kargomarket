@@ -9,14 +9,18 @@ import {
   Play,
   Phone,
   Mail,
-  MessageSquare,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
+import AuthModal from '../auth/AuthModal';
+import { useAuth } from '../../context/SupabaseAuthContext';
 
 const HowItWorksPage: React.FC = () => {
   const [activeRole, setActiveRole] = useState('buyer');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  
+  const { login, register, user } = useAuth();
 
   const steps = {
     buyer: [
@@ -48,13 +52,13 @@ const HowItWorksPage: React.FC = () => {
         icon: CheckCircle,
         title: 'Anlaşmayı Onaylayın',
         description: 'Koşulları kabul edin ve taşıma işlemini başlatın',
-        details: 'Dijital sözleşme ile güvenli bir şekilde anlaşmanızı tamamlayın.'
+        details: 'Platform üzerinden güvenli anlaşma yapın, ödeme ve sigorta konularında kendi sorumluluğunuzu alın.'
       },
       {
         icon: Truck,
         title: 'Takip Edin',
-        description: 'Yükünüzün durumunu gerçek zamanlı takip edin',
-        details: 'GPS takip sistemi ile yükünüzün nerede olduğunu her an bilin.'
+        description: 'Nakliyeci ile iletişim halinde kalarak yükünüzü takip edin',
+        details: 'Platform üzerinden nakliyeci ile iletişim kurarak güncel bilgi alın.'
       }
     ],
     carrier: [
@@ -86,7 +90,7 @@ const HowItWorksPage: React.FC = () => {
         icon: CheckCircle,
         title: 'İşi Alın',
         description: 'Anlaşma sağlandığında işi onaylayın',
-        details: 'Dijital sözleşme ile güvenli bir şekilde işi teslim alın.'
+        details: 'Platform üzerinden güvenli anlaşma yapın, ödeme ve sigorta konularında kendi sorumluluğunuzu alın.'
       },
       {
         icon: Truck,
@@ -99,26 +103,50 @@ const HowItWorksPage: React.FC = () => {
 
   const features = [
     {
-      title: 'Güvenli Ödeme',
-      description: 'Tüm ödemeler güvenli ödeme sistemi ile korunur',
-      icon: '🔒'
+      title: 'Ücretsiz Platform',
+      description: 'İlk 3 ay hiçbir ücret alınmıyor, tamamen ücretsiz kullanın',
+      icon: '�'
     },
     {
-      title: 'Sigorta Koruması',
-      description: 'Yükleriniz sigorta güvencesi altındadır',
-      icon: '🛡️'
+      title: 'Güvenli İletişim',
+      description: 'Platform üzerinden güvenli mesajlaşma sistemi',
+      icon: '�'
     },
     {
-      title: 'Gerçek Zamanlı Takip',
-      description: 'GPS ile yükünüzü her an takip edebilirsiniz',
-      icon: '📍'
+      title: 'Kolay Kullanım',
+      description: '2 dakikada üye olun, hemen ilan vermeye başlayın',
+      icon: '⚡'
     },
     {
-      title: '7/24 Destek',
-      description: 'Her zaman yanınızdayız',
-      icon: '🎧'
+      title: 'Danışmanlık Desteği',
+      description: 'Gerektiğinde tavsiye ve yönlendirme desteği',
+      icon: '�'
     }
   ];
+
+  // Auth handlers
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
+      setIsAuthModalOpen(false);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  const handleRegister = async (fullName: string, email: string, password: string) => {
+    try {
+      await register(email, password, fullName);
+      setIsAuthModalOpen(false);
+    } catch (error) {
+      console.error('Register error:', error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    // Google login implementation can be added here
+    console.log('Google login clicked');
+  };
 
   const faqs = [
     {
@@ -143,7 +171,7 @@ const HowItWorksPage: React.FC = () => {
     },
     {
       question: 'Yükümü takip edebilir miyim?',
-      answer: 'Evet, GPS takip sistemi ile yükünüzün konumunu gerçek zamanlı olarak takip edebilirsiniz.'
+      answer: 'Platform üzerinden nakliyeci ile iletişim kurarak yükünüzün durumunu öğrenebilirsiniz. Şu anda otomatik GPS takip sistemi bulunmamaktadır.'
     }
   ];
 
@@ -282,37 +310,24 @@ const HowItWorksPage: React.FC = () => {
 
         {/* Support Section */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-xl p-8 text-white text-center mb-20">
-          <h2 className="text-3xl font-bold mb-4">Destek Ekibimiz</h2>
+          <h2 className="text-3xl font-bold mb-4">İletişim ve Destek</h2>
           <p className="text-xl mb-8 text-primary-100">
-            Herhangi bir sorunuz mu var? 7/24 destek ekibimiz size yardımcı olmaya hazır!
+            Sorularınız için bizimle iletişime geçebilirsiniz. Danışmanlık ve yönlendirme konularında yardımcı olmaya çalışırız.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
-              <MessageSquare className="mx-auto mb-4 text-white" size={32} />
-              <h3 className="font-bold mb-2">Canlı Destek</h3>
-              <p className="text-primary-100 text-sm mb-4">Anında yardım alın</p>
-              <button className="bg-white text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors transform hover:scale-105">
-                Sohbet Başlat
-              </button>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <Phone className="mx-auto mb-4 text-white" size={32} />
-              <h3 className="font-bold mb-2">Telefon Desteği</h3>
+              <h3 className="font-bold mb-2">Telefon İletişimi</h3>
               <p className="text-primary-100 text-sm mb-4">+905412879705</p>
-              <button className="bg-white text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors transform hover:scale-105">
-                Hemen Ara
-              </button>
+              <p className="text-primary-100 text-xs">Çalışma saatleri içinde</p>
             </div>
 
             <div className="bg-white/10 rounded-lg p-6 backdrop-blur-sm">
               <Mail className="mx-auto mb-4 text-white" size={32} />
-              <h3 className="font-bold mb-2">E-posta Desteği</h3>
+              <h3 className="font-bold mb-2">E-posta İletişimi</h3>
               <p className="text-primary-100 text-sm mb-4">emrahbadas@gmail.com</p>
-              <button className="bg-white text-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors transform hover:scale-105">
-                E-posta Gönder
-              </button>
+              <p className="text-primary-100 text-xs">En geç 24 saat içinde dönüş</p>
             </div>
           </div>
         </div>
@@ -323,13 +338,37 @@ const HowItWorksPage: React.FC = () => {
             Hemen <span className="text-primary-600">Başlayın!</span>
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Sıkıldınız mı? Hemen ilan açın ve ilk teklifinizi görün!
+            Platform geliştirme aşamasında! İlk 3 ay tamamen ücretsiz kullanın ve ilk teklifinizi görün!
           </p>
-          <button className="bg-primary-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
-            Ücretsiz Üye Ol
-          </button>
+          {user ? (
+            <div className="text-center">
+              <p className="text-green-600 font-medium mb-4">✅ Zaten üye oldunuz! Dashboard'unuza gidebilirsiniz.</p>
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="bg-green-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+              >
+                Dashboard'a Git
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsAuthModalOpen(true)}
+              className="bg-primary-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+            >
+              Ücretsiz Üye Ol
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
+      />
     </div>
   );
 };

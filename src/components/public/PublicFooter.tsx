@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Facebook,
   Twitter,
@@ -11,10 +11,54 @@ import {
   ArrowRight,
   Shield,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Check,
+  X
 } from 'lucide-react';
+import { NewsletterService } from '../../services/newsletterService';
 
 const PublicFooter: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setMessage({ type: 'error', text: 'Lütfen e-posta adresinizi girin.' });
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      await NewsletterService.subscribe(email);
+      setMessage({ type: 'success', text: 'Başarıyla abone oldunuz! E-posta adresinizi doğruladığınızda haberlerden haberdar olacaksınız.' });
+      setEmail('');
+      setIsSubscribed(true);
+      
+      // Başarı mesajını 5 saniye sonra temizle
+      setTimeout(() => {
+        setMessage(null);
+        setIsSubscribed(false);
+      }, 5000);
+    } catch (error) {
+      if (error instanceof Error) {
+        setMessage({ type: 'error', text: error.message });
+      } else {
+        setMessage({ type: 'error', text: 'Bir hata oluştu. Lütfen tekrar deneyin.' });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearMessage = () => {
+    setMessage(null);
+  };
   const quickLinks = [
     { label: 'Ana Sayfa', href: '#' },
     { label: 'İlanlar', href: '#' },
@@ -66,16 +110,78 @@ const PublicFooter: React.FC = () => {
               <h3 className="text-2xl font-bold mb-2">Haberlerden Haberdar Olun!</h3>
               <p className="text-primary-100">Yeni özellikler ve fırsatları kaçırmayın.</p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <input
-                type="email"
-                placeholder="E-posta adresiniz"
-                className="px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-white focus:outline-none flex-1 md:w-80"
-              />
-              <button className="bg-white text-primary-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center">
-                <span>Abone Ol</span>
-                <ArrowRight size={18} className="ml-2" />
-              </button>
+            
+            <div className="w-full md:w-auto">
+              {/* Success/Error Message */}
+              {message && (
+                <div className={`mb-4 p-3 rounded-lg flex items-center justify-between ${
+                  message.type === 'success' 
+                    ? 'bg-green-100 text-green-800 border border-green-200' 
+                    : 'bg-red-100 text-red-800 border border-red-200'
+                }`}>
+                  <div className="flex items-center">
+                    {message.type === 'success' ? (
+                      <Check size={16} className="mr-2" />
+                    ) : (
+                      <X size={16} className="mr-2" />
+                    )}
+                    <span className="text-sm">{message.text}</span>
+                  </div>
+                  <button 
+                    onClick={clearMessage}
+                    className="ml-2 text-current hover:opacity-70"
+                    aria-label="Mesajı kapat"
+                    title="Mesajı kapat"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Newsletter Form */}
+              {!isSubscribed && (
+                <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="E-posta adresiniz"
+                    disabled={isLoading}
+                    className="px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-white focus:outline-none flex-1 md:w-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isLoading || !email.trim()}
+                    className="bg-white text-primary-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none min-w-[120px]"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-2"></div>
+                        <span>Gönderiliyor...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <span>Abone Ol</span>
+                        <ArrowRight size={18} className="ml-2" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* Success State */}
+              {isSubscribed && !message && (
+                <div className="flex items-center justify-center bg-green-100 text-green-800 px-6 py-3 rounded-lg border border-green-200">
+                  <Check size={20} className="mr-2" />
+                  <span className="font-medium">Başarıyla abone oldunuz!</span>
+                </div>
+              )}
+
+              {/* KVKK Notice */}
+              <p className="text-xs text-primary-100 mt-3 text-center md:text-left">
+                Abone olarak <a href="#" className="underline hover:text-white">KVKK</a> ve <a href="#" className="underline hover:text-white">Gizlilik Politikası</a>'nı kabul etmiş olursunuz.
+              </p>
             </div>
           </div>
         </div>
