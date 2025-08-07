@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe, FileText, CreditCard, Shield, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Globe, FileText, CreditCard, Shield, AlertTriangle, ExternalLink, Camera, Upload, Trash2 } from 'lucide-react';
+import { useAuth } from '../../context/SupabaseAuthContext';
+import { AvatarService } from '../../services/avatarService';
+import { useUserListingStats } from '../../hooks/useUserListingStats';
+import { useUserOfferStats } from '../../hooks/useUserOfferStats';
+import { supabase } from '../../lib/supabase';
 {/* Yasal Bilgiler ve Sorumluluk Reddi - Detaylı Metin */ }
 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mt-6">
   <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
@@ -153,28 +158,13 @@ import { Edit, Lock, User, Mail, Phone, Calendar, Building, MapPin, Star, X, Glo
     </div>
   </div>
 </div>
-import { useAuth } from '../../context/SupabaseAuthContext';
-import { supabase } from '../../lib/supabase';
-
-type ProfileWithWebsite = {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  full_name: string;
-  email: string;
-  phone: string | null;
-  avatar_url: string | null;
-  user_type: 'buyer_seller' | 'carrier' | 'both';
-  company_name?: string;
-  tax_office?: string;
-  tax_number?: string;
-  address?: string;
-  website?: string;
-  [key: string]: unknown;
-};
 
 const ProfileSection: React.FC = () => {
-  const { profile, updateProfile } = useAuth() as { profile: ProfileWithWebsite; updateProfile: (data: Partial<ProfileWithWebsite>) => Promise<void> };
+  const { profile, updateProfile } = useAuth();
+  
+  // Canlı veri hook'ları (Overview'deki gibi)
+  const listingStats = useUserListingStats(profile?.id);
+  const offerStats = useUserOfferStats(profile?.id);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [offerNotifications, setOfferNotifications] = useState(true);
@@ -188,7 +178,6 @@ const ProfileSection: React.FC = () => {
     tax_office: profile?.tax_office || '',
     tax_number: profile?.tax_number || '',
     address: profile?.address || '',
-    website: profile?.website || '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -202,6 +191,10 @@ const ProfileSection: React.FC = () => {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Avatar upload states
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   // Tarih formatlama fonksiyonu (YYYY-MM-DD -> DD-MM-YYYY)
   const formatDate = (dateString: string | null) => {
@@ -243,7 +236,6 @@ const ProfileSection: React.FC = () => {
       tax_office: profile?.tax_office || '',
       tax_number: profile?.tax_number || '',
       address: profile?.address || '',
-      website: profile?.website || '',
     });
   }, [profile, editOpen]);
 
@@ -298,31 +290,79 @@ const ProfileSection: React.FC = () => {
     setPasswordLoading(false);
   };
 
+  // Avatar upload handlers
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    setAvatarUploading(true);
+    setAvatarError(null);
+
+    try {
+      const result = await AvatarService.uploadAvatar(file, profile.id);
+      
+      if (result.success && result.url) {
+        // Profil güncelleme için useAuth context'ini kullan
+        await updateProfile({ avatar_url: result.url });
+        console.log('✅ Avatar başarıyla güncellendi');
+      } else {
+        setAvatarError(result.error || 'Avatar yükleme başarısız');
+      }
+    } catch (error) {
+      setAvatarError('Avatar yükleme sırasında hata oluştu');
+      console.error('Avatar upload error:', error);
+    } finally {
+      setAvatarUploading(false);
+      // Input'u temizle
+      event.target.value = '';
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!profile?.id) return;
+
+    setAvatarUploading(true);
+    setAvatarError(null);
+
+    try {
+      const result = await AvatarService.deleteAvatar(profile.id);
+      
+      if (result.success) {
+        await updateProfile({ avatar_url: null });
+        console.log('✅ Avatar başarıyla silindi');
+      } else {
+        setAvatarError(result.error || 'Avatar silme başarısız');
+      }
+    } catch (error) {
+      setAvatarError('Avatar silme sırasında hata oluştu');
+      console.error('Avatar delete error:', error);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const stats: { label: string; value: string | number; icon: React.ElementType; color: string }[] = [
     {
       label: 'Toplam İlan',
-      value: profile?.total_listings !== undefined && profile?.total_listings !== null ? String(profile.total_listings) : '-',
+      value: listingStats.loading ? '...' : listingStats.totalListings.toString(),
       icon: Building,
       color: 'blue'
     },
     {
-      label: 'Toplam Teklif',
-      value: profile?.total_offers !== undefined && profile?.total_offers !== null ? String(profile.total_offers) : '-',
+      label: 'Aktif İlan',
+      value: listingStats.loading ? '...' : listingStats.activeListings.toString(),
       icon: Star,
       color: 'green'
     },
     {
-      label: 'Tamamlanan',
-      value: profile?.total_completed_transactions !== undefined && profile?.total_completed_transactions !== null ? String(profile.total_completed_transactions) : '-',
+      label: 'Bekleyen Teklif',
+      value: offerStats.loading ? '...' : offerStats.pendingOffers.toString(),
       icon: Calendar,
       color: 'purple'
     },
     {
-      label: 'Ortalama Puan',
-      value:
-        typeof profile?.rating === 'number'
-          ? profile.rating.toFixed(1)
-          : '-',
+      label: 'Kabul Edilen',
+      value: offerStats.loading ? '...' : offerStats.acceptedOffers.toString(),
       icon: Star,
       color: 'amber'
     }
@@ -524,19 +564,6 @@ const ProfileSection: React.FC = () => {
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Web Sitesi</label>
-                <input
-                  name="website"
-                  type="text"
-                  value={form.website}
-                  onChange={handleFormChange}
-                  placeholder="firmawebsitesi.com veya tam adres"
-                  title="Web Sitesi"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-primary-500 focus:border-primary-500"
-                />
-                <span className="text-xs text-gray-400">Başında http:// veya https:// yazmak zorunda değilsiniz.</span>
-              </div>
               {error && <div className="text-red-600 text-sm">{error}</div>}
               <div className="flex justify-end gap-2 mt-6">
                 <button
@@ -566,9 +593,69 @@ const ProfileSection: React.FC = () => {
           <div className="md:col-span-1">
             <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-6 border border-primary-200">
               <div className="flex flex-col items-center text-center">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mb-4 shadow-lg">
-                  <User size={48} className="text-white" />
+                {/* Avatar Container */}
+                <div className="relative mb-4">
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg overflow-hidden">
+                    {profile?.avatar_url ? (
+                      <img 
+                        src={profile.avatar_url} 
+                        alt="Profil Resmi" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Resim yüklenmediyse fallback göster
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <User size={48} className="text-white" />
+                    )}
+                  </div>
+                  
+                  {/* Avatar Upload/Delete Buttons */}
+                  <div className="absolute -bottom-2 -right-2 flex flex-col gap-1">
+                    <label 
+                      htmlFor="avatar-upload" 
+                      className="bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200"
+                      title="Profil resmi yükle"
+                    >
+                      <Camera size={16} className="text-gray-600" />
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        className="hidden"
+                        disabled={avatarUploading}
+                        aria-label="Profil resmi yükle"
+                      />
+                    </label>
+                    
+                    {profile?.avatar_url && (
+                      <button
+                        onClick={handleAvatarDelete}
+                        className="bg-red-500 rounded-full p-2 shadow-lg hover:bg-red-600 transition-colors"
+                        title="Profil resmini sil"
+                        disabled={avatarUploading}
+                      >
+                        <Trash2 size={16} className="text-white" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Loading Overlay */}
+                  {avatarUploading && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                 </div>
+                
+                {/* Avatar Error */}
+                {avatarError && (
+                  <div className="text-red-600 text-sm mb-2 text-center">
+                    {avatarError}
+                  </div>
+                )}
                 <h3 className="text-xl font-semibold text-gray-900 mb-1">
                   {profile?.full_name || 'Kullanıcı'}
                 </h3>
@@ -744,21 +831,6 @@ const ProfileSection: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Adres</p>
                     <p className="font-medium text-gray-900">{profile?.address || '-'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <Globe className="mr-3 text-gray-400" size={16} />
-                  <div>
-                    <p className="text-sm text-gray-500">Web Sitesi</p>
-                    {profile?.website ? (
-                      <a href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
-                        target="_blank" rel="noopener noreferrer"
-                        className="font-medium text-primary-700 hover:underline break-all">
-                        {profile.website}
-                      </a>
-                    ) : (
-                      <p className="font-medium text-gray-900">-</p>
-                    )}
                   </div>
                 </div>
               </div>
