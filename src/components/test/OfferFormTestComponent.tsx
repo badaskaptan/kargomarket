@@ -69,7 +69,7 @@ const OfferFormTestComponent: React.FC = () => {
     const handleOfferSubmit = async (offerData: Record<string, unknown>) => {
         console.log('Offer submitted:', offerData);
         // Burada normalde API çağrısı yapılır
-        alert('Teklif başarıyla gönderildi!');
+        // Toast notification veya success state kullanılabilir
         setActiveModal(null); // Modal'ı kapat
     };
 
