@@ -145,7 +145,6 @@ const HowItWorksPage: React.FC = () => {
 
   const handleGoogleLogin = async () => {
     // Google login implementation can be added here
-    console.log('Google login clicked');
   };
 
   const faqs = [

@@ -166,7 +166,7 @@ const ProfileSection: React.FC = () => {
   const listingStats = useUserListingStats(profile?.id);
   const offerStats = useUserOfferStats(profile?.id);
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
+  const [smsNotifications, setSmsNotifications] = useState(true);
   const [offerNotifications, setOfferNotifications] = useState(true);
   const [buyerRole, setBuyerRole] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -866,15 +866,12 @@ const ProfileSection: React.FC = () => {
                   Yasal Bilgiler
                 </h3>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li><span className="font-medium">Şirket Türü:</span> Limited Şirket</li>
-                  <li><span className="font-medium">MERSIS No:</span> 0123456789123456</li>
-                  <li><span className="font-medium">Ticaret Sicil No:</span> 123456-5</li>
-                  <li><span className="font-medium">Yetkili Kişi:</span> {profile?.full_name || '-'}</li>
-                  <li><span className="font-medium">Kuruluş Tarihi:</span> {formatDate(profile?.created_at || null)}</li>
-                  <li><span className="font-medium">Faaliyet Alanı:</span> Taşımacılık ve Lojistik</li>
-                  <li><span className="font-medium">Vergi Dairesi:</span> {profile?.tax_office || '-'}</li>
-                  <li><span className="font-medium">Vergi No:</span> {profile?.tax_number || '-'}</li>
-                  <li><span className="font-medium">Adres:</span> {profile?.address || '-'}</li>
+                  <li><span className="font-medium">Şirket Adı:</span> {profile?.company_name || 'Firma İsmi'}</li>
+                  <li><span className="font-medium">Yetkili Kişi:</span> {profile?.full_name || 'emrahbadas1980'}</li>
+                  <li><span className="font-medium">Kuruluş Tarihi:</span> 07-07-2025</li>
+                  <li><span className="font-medium">Vergi Dairesi:</span> {profile?.tax_office || 'Nilüfer Vergi Dairesi'}</li>
+                  <li><span className="font-medium">Vergi No:</span> {profile?.tax_number || '1111111111111111'}</li>
+                  <li><span className="font-medium">Adres:</span> {profile?.address || '23 Nisan Mahallesi 16001 Nilüfer Bursa'}</li>
                 </ul>
               </div>
               {/* Fatura Bilgileri */}

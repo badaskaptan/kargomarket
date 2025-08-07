@@ -38,7 +38,7 @@ const AboutUsPage: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    console.log('Google login clicked');
+    // Google login implementation
   };
   
   const milestones = [

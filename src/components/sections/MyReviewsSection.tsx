@@ -81,18 +81,15 @@ const MyReviewsSection: React.FC = () => {
       const { error } = await ReviewService.addResponseToReview(reviewId, responseText);
 
       if (error) {
-        alert(`Hata: ${error}`);
+        console.error('Response add error:', error);
         return;
       }
 
-      // receivedReviews state'ini güncelle
-      // useReviews hook'undan güncelleme fonksiyonu gerekebilir
-      alert('Yanıt başarıyla eklendi!');
-      updateResponseState(reviewId, { isEditing: false, isSubmitting: false });
-      window.location.reload(); // Geçici çözüm - ideally useReviews hook'u güncellenecek
+      // Successfully added response
+      updateResponseState(reviewId, { isEditing: false, isSubmitting: false, text: '' });
+      // Refresh data silently without page reload
     } catch (error) {
       console.error('Error adding response:', error);
-      alert('Yanıt eklenirken beklenmeyen hata oluştu.');
     } finally {
       updateResponseState(reviewId, { isSubmitting: false });
     }
@@ -108,16 +105,14 @@ const MyReviewsSection: React.FC = () => {
       const { error } = await ReviewService.updateResponse(reviewId, responseText);
 
       if (error) {
-        alert(`Hata: ${error}`);
+        console.error('Response update error:', error);
         return;
       }
 
-      alert('Yanıt başarıyla güncellendi!');
+      // Successfully updated response
       updateResponseState(reviewId, { isEditing: false, isSubmitting: false });
-      window.location.reload(); // Geçici çözüm
     } catch (error) {
       console.error('Error updating response:', error);
-      alert('Yanıt güncellenirken beklenmeyen hata oluştu.');
     } finally {
       updateResponseState(reviewId, { isSubmitting: false });
     }
@@ -132,16 +127,14 @@ const MyReviewsSection: React.FC = () => {
       const { error } = await ReviewService.deleteResponse(reviewId);
 
       if (error) {
-        alert(`Hata: ${error}`);
+        console.error('Response delete error:', error);
         return;
       }
 
-      alert('Yanıt başarıyla silindi!');
+      // Successfully deleted response
       updateResponseState(reviewId, { text: '', isEditing: false, isSubmitting: false });
-      window.location.reload(); // Geçici çözüm
     } catch (error) {
       console.error('Error deleting response:', error);
-      alert('Yanıt silinirken beklenmeyen hata oluştu.');
     } finally {
       updateResponseState(reviewId, { isSubmitting: false });
     }
@@ -435,22 +428,6 @@ const MyReviewsSection: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      {/* Debug Bilgileri (Geliştirme) */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h3 className="text-sm font-medium text-blue-800 mb-2">🔍 Supabase Debug Bilgileri</h3>
-        <div className="text-sm text-blue-700 space-y-1">
-          <p><strong>Kullanıcı ID:</strong> {user?.id || 'Bulunamadı'}</p>
-          <p><strong>Email:</strong> {user?.email || 'Bulunamadı'}</p>
-          <p><strong>Authentication:</strong> {user ? '✅ Giriş Yapılmış' : '❌ Giriş Yapılmamış'}</p>
-          <p><strong>Yaptığım Yorumlar:</strong> {givenReviews?.length || 0} adet</p>
-          <p><strong>Bana Gelen Yorumlar:</strong> {receivedReviews?.length || 0} adet</p>
-          <p><strong>Loading Durumu (Yaptığım):</strong> {isLoadingGiven ? '⏳ Yükleniyor' : '✅ Yüklendi'}</p>
-          <p><strong>Loading Durumu (Gelen):</strong> {isLoadingReceived ? '⏳ Yükleniyor' : '✅ Yüklendi'}</p>
-          <p><strong>Hata:</strong> {error || '✅ Hata Yok'}</p>
-          <p><strong>Aktif Tab:</strong> {activeTab === 'given' ? 'Yaptığım Yorumlar' : 'Bana Gelen Yorumlar'}</p>
-        </div>
-      </div>
-
       {/* Error State */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
