@@ -377,9 +377,21 @@ const NewsPage: React.FC<NewsPageProps> = ({ setActivePage }) => {
                 {article.summary}
               </p>
               
+
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">
                   {article.source}
+                  {article.sourceUrl && (
+                    <a
+                      href={article.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 inline-flex items-center px-2 py-1 bg-gray-100 text-blue-700 rounded hover:bg-gray-200 text-xs"
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Kaynağa Git
+                    </a>
+                  )}
                 </div>
                 <div className="flex items-center text-gray-500 text-sm">
                   <Eye className="w-4 h-4 mr-1" />

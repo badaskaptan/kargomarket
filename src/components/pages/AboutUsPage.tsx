@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Heart,
   Shield,
@@ -17,7 +18,8 @@ import { useAuth } from '../../context/SupabaseAuthContext';
 const AboutUsPage: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { login, register, user } = useAuth();
-  
+  const navigate = useNavigate();
+
   // Auth handlers
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -40,7 +42,7 @@ const AboutUsPage: React.FC = () => {
   const handleGoogleLogin = async () => {
     // Google login implementation
   };
-  
+
   const milestones = [
     { year: '2005', title: 'Denizcilik Başlangıcı', description: 'Emrah Badaş denizcilik sektöründe çalışmaya başladı' },
     { year: '2023', title: 'Proje Fikri', description: 'KargoMarketing fikri doğdu ve geliştirme başladı' },
@@ -155,8 +157,8 @@ const AboutUsPage: React.FC = () => {
             <div className="text-4xl mb-4">🚧</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Platform Geliştirme Aşamasında</h3>
             <p className="text-gray-700 text-lg leading-relaxed">
-              KargoMarketing şu anda aktif geliştirme sürecindedir. İlk 3 ay boyunca tüm hizmetlerimizi 
-              <span className="font-bold text-primary-600"> tamamen ücretsiz</span> sunuyoruz. 
+              KargoMarketing şu anda aktif geliştirme sürecindedir. İlk 3 ay boyunca tüm hizmetlerimizi
+              <span className="font-bold text-primary-600"> tamamen ücretsiz</span> sunuyoruz.
               Sistemin tüm temel fonksiyonları çalışır durumda ve güvenle kullanabilirsiniz.
             </p>
             <div className="mt-6 flex flex-wrap justify-center items-center gap-4">
@@ -398,15 +400,15 @@ const AboutUsPage: React.FC = () => {
           {user ? (
             <div className="text-center">
               <p className="text-primary-100 mb-4">✅ Zaten üye oldunuz! Dashboard'unuza gidebilirsiniz.</p>
-              <button 
-                onClick={() => window.location.href = '/dashboard'}
+              <button
+                onClick={() => navigate('/dashboard')}
                 className="bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl"
               >
                 Dashboard'a Git
               </button>
             </div>
           ) : (
-            <button 
+            <button
               onClick={() => setIsAuthModalOpen(true)}
               className="bg-white text-primary-600 px-12 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl"
             >

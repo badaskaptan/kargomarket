@@ -16,6 +16,33 @@ export interface NewsArticle {
   imageUrl?: string;
 }
 
+// Kategori bazlı cache
+const NEWS_CACHE_DURATION = 60 * 60 * 1000; // 1 saat
+type NewsCacheEntry = {
+  data: NewsArticle[];
+  timestamp: number;
+  expiresAt: number;
+};
+const newsCache = new Map<string, NewsCacheEntry>();
+
+function getNewsCache(category: string): NewsArticle[] | null {
+  const cached = newsCache.get(category);
+  if (cached && Date.now() < cached.expiresAt) {
+    console.log(`📰 Using cached news for ${category} - Last updated: ${new Date(cached.timestamp).toLocaleString('tr-TR')}`);
+    return cached.data;
+  }
+  return null;
+}
+
+function setNewsCache(category: string, data: NewsArticle[]): void {
+  newsCache.set(category, {
+    data,
+    timestamp: Date.now(),
+    expiresAt: Date.now() + NEWS_CACHE_DURATION
+  });
+  console.log(`💾 News cached for ${category} - Will expire: ${new Date(Date.now() + NEWS_CACHE_DURATION).toLocaleString('tr-TR')}`);
+}
+
 interface NewsAPIArticle {
   title: string;
   description: string;
@@ -266,23 +293,60 @@ export class NewsService {
 
   // Kategoriye göre haber getir
   static async getNewsByCategory(category: string): Promise<NewsArticle[]> {
-    if (category === 'all') {
-      return this.getAllNews();
-    }
+    // Önce cache'den kontrol et
+    const cached = getNewsCache(category);
+    if (cached) return cached;
 
-    switch (category) {
-      case 'turkiye':
-        return this.getTurkeyNews();
-      case 'dunya':
-        return this.getWorldNews();
-      case 'teknoloji':
-        return this.getTechNews();
-      case 'mevzuat':
-        return this.getRegulationNews();
-      case 'yatirim':
-        return this.getInvestmentNews();
-      default:
-        return [];
+    let news: NewsArticle[] = [];
+    try {
+      switch (category) {
+        case 'turkiye':
+          news = await this.getTurkeyNews();
+          break;
+        case 'dunya':
+          news = await this.getWorldNews();
+          break;
+        case 'teknoloji':
+          news = await this.getTechNews();
+          break;
+        case 'mevzuat':
+          news = await this.getRegulationNews();
+          break;
+        case 'yatirim':
+          news = await this.getInvestmentNews();
+          break;
+        case 'all':
+          news = await this.getAllNews();
+          break;
+        default:
+          news = [];
+      }
+      if (news.length > 0) {
+        setNewsCache(category, news);
+      }
+      return news;
+    } catch (error) {
+      console.error('getNewsByCategory error:', error);
+      // Hata olursa cache'den eski veri varsa onu döndür
+      const fallback = getNewsCache(category);
+      if (fallback) return fallback;
+      // Hiç veri yoksa fallback fonksiyonları
+      switch (category) {
+        case 'turkiye':
+          return this.getFallbackTurkeyNews();
+        case 'dunya':
+          return this.getFallbackWorldNews();
+        case 'teknoloji':
+          return this.getFallbackTechNews();
+        case 'mevzuat':
+          return this.getFallbackRegulationNews();
+        case 'yatirim':
+          return this.getFallbackInvestmentNews();
+        case 'all':
+          return [...this.getFallbackTurkeyNews(), ...this.getFallbackWorldNews(), ...this.getFallbackTechNews(), ...this.getFallbackRegulationNews(), ...this.getFallbackInvestmentNews()];
+        default:
+          return [];
+      }
     }
   }
 
