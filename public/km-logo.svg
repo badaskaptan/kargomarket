@@ -1,4 +1,15 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" rx="16" fill="#1A202C"/>
-  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="bold" fill="#F7FAFC">KM</text>
+</svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="rainbow" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2196F3" />
+      <stop offset="0.2" stop-color="#00BCD4" />
+      <stop offset="0.4" stop-color="#4CAF50" />
+      <stop offset="0.6" stop-color="#FFEB3B" />
+      <stop offset="0.8" stop-color="#FF9800" />
+      <stop offset="1" stop-color="#E91E63" />
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="55" fill="url(#rainbow)" stroke="#2196F3" stroke-width="5" />
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="bold" fill="#fff" stroke="#2196F3" stroke-width="2">KM</text>
+</svg>
 </svg>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import kmLogo from '../../../../km-logo.svg';
 import { Menu, X, User, LayoutDashboard, ChevronDown, Settings, LogOut } from 'lucide-react';
 import AuthModal from '../auth/AuthModal';
 import { useAuth } from '../../context/SupabaseAuthContext';
@@ -85,11 +86,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div
-            className="font-pacifico text-primary-600 text-2xl font-bold cursor-pointer hover:text-primary-700 transition-all duration-300 transform hover:scale-110"
-            onClick={() => setActivePage('home')}
-          >
-            KargoMarketing
+          <div className="cursor-pointer" onClick={() => setActivePage('home')}>
+            <img src={kmLogo} alt="Kargo Market Logo" width={48} height={48} style={{ display: 'inline-block' }} />
           </div>
 
           {/* Desktop Navigation */}

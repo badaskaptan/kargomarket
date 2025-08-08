@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import kmLogo from '../../../../km-logo.svg';
 import { useGlobalStats } from '../../hooks/useGlobalStats';
 import LoadListingDetailModal from '../modals/listings/detail/LoadListingDetailModal';
 import ShipmentRequestDetailModal from '../modals/listings/detail/ShipmentRequestDetailModal';
@@ -339,6 +340,10 @@ const HomePage: React.FC<HomePageProps> = ({ onShowDashboard, onShowListings }) 
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white overflow-hidden">
+        {/* Logo üstte */}
+        <div className="w-full flex justify-center pt-10">
+          <img src={kmLogo} alt="Kargo Market Logo" width={120} height={120} style={{ display: 'inline-block' }} />
+        </div>
         {/* Animated Background */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-72 h-72 bg-white rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
