@@ -377,6 +377,7 @@ const NewsPage: React.FC<NewsPageProps> = ({ setActivePage }) => {
                 {article.summary}
               </p>
               
+<<<<<<< HEAD
 
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">
@@ -392,6 +393,11 @@ const NewsPage: React.FC<NewsPageProps> = ({ setActivePage }) => {
                       Kaynağa Git
                     </a>
                   )}
+=======
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  {article.source}
+>>>>>>> 6a1c66a (Initial commit)
                 </div>
                 <div className="flex items-center text-gray-500 text-sm">
                   <Eye className="w-4 h-4 mr-1" />

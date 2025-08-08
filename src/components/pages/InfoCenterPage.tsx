@@ -296,7 +296,11 @@ const InfoCenterPage: React.FC<InfoCenterPageProps> = ({ setActivePage }) => {
               ))}
             </div>
             <button
+<<<<<<< HEAD
               onClick={() => setActivePage?.('sektor-haberleri')}
+=======
+              onClick={() => setActivePage?.('haberler')}
+>>>>>>> 6a1c66a (Initial commit)
               className="block mt-4 text-center bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors"
             >
               Tüm Haberleri Görüntüle

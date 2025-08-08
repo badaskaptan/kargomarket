@@ -3,5 +3,9 @@
     "",
     "\\src"
   ],
+<<<<<<< HEAD
+=======
+  "SelectedNode": "\\supabase-fix-compatibility.sql",
+>>>>>>> 6a1c66a (Initial commit)
   "PreviewInSolutionExplorer": false
 }

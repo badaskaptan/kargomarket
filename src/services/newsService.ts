@@ -16,6 +16,7 @@ export interface NewsArticle {
   imageUrl?: string;
 }
 
+<<<<<<< HEAD
 // Kategori bazlı cache
 const NEWS_CACHE_DURATION = 60 * 60 * 1000; // 1 saat
 type NewsCacheEntry = {
@@ -43,6 +44,8 @@ function setNewsCache(category: string, data: NewsArticle[]): void {
   console.log(`💾 News cached for ${category} - Will expire: ${new Date(Date.now() + NEWS_CACHE_DURATION).toLocaleString('tr-TR')}`);
 }
 
+=======
+>>>>>>> 6a1c66a (Initial commit)
 interface NewsAPIArticle {
   title: string;
   description: string;
@@ -293,6 +296,7 @@ export class NewsService {
 
   // Kategoriye göre haber getir
   static async getNewsByCategory(category: string): Promise<NewsArticle[]> {
+<<<<<<< HEAD
     // Önce cache'den kontrol et
     const cached = getNewsCache(category);
     if (cached) return cached;
@@ -347,6 +351,25 @@ export class NewsService {
         default:
           return [];
       }
+=======
+    if (category === 'all') {
+      return this.getAllNews();
+    }
+
+    switch (category) {
+      case 'turkiye':
+        return this.getTurkeyNews();
+      case 'dunya':
+        return this.getWorldNews();
+      case 'teknoloji':
+        return this.getTechNews();
+      case 'mevzuat':
+        return this.getRegulationNews();
+      case 'yatirim':
+        return this.getInvestmentNews();
+      default:
+        return [];
+>>>>>>> 6a1c66a (Initial commit)
     }
   }
 

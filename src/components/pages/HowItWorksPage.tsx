@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom';
+=======
+>>>>>>> 6a1c66a (Initial commit)
 import {
   UserPlus,
   FileText,
@@ -20,9 +23,14 @@ const HowItWorksPage: React.FC = () => {
   const [activeRole, setActiveRole] = useState('buyer');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+<<<<<<< HEAD
 
   const { login, register, user } = useAuth();
   const navigate = useNavigate();
+=======
+  
+  const { login, register, user } = useAuth();
+>>>>>>> 6a1c66a (Initial commit)
 
   const steps = {
     buyer: [
@@ -344,15 +352,24 @@ const HowItWorksPage: React.FC = () => {
           {user ? (
             <div className="text-center">
               <p className="text-green-600 font-medium mb-4">✅ Zaten üye oldunuz! Dashboard'unuza gidebilirsiniz.</p>
+<<<<<<< HEAD
               <button
                 onClick={() => navigate('/dashboard')}
+=======
+              <button 
+                onClick={() => window.location.href = '/dashboard'}
+>>>>>>> 6a1c66a (Initial commit)
                 className="bg-green-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
               >
                 Dashboard'a Git
               </button>
             </div>
           ) : (
+<<<<<<< HEAD
             <button
+=======
+            <button 
+>>>>>>> 6a1c66a (Initial commit)
               onClick={() => setIsAuthModalOpen(true)}
               className="bg-primary-600 text-white px-12 py-4 rounded-xl font-bold text-lg hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
             >
